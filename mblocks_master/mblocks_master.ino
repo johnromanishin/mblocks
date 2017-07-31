@@ -1,3 +1,7 @@
+#include <Wire.h>
+#include <ESP8266WiFi.h>
+#include <ArduinoHardware.h>
+
 void setup() {
   // put your setup code here, to run once:
 
