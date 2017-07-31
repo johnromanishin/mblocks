@@ -1,3 +1,6 @@
+/**
+ *  This includes the main code for the "parasite" board.
+ */
 #include <Wire.h>
 #include <ESP8266WiFi.h>
 #include <ArduinoHardware.h>
