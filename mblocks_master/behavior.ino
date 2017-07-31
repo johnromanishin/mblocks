@@ -8,3 +8,10 @@ void stepTowardLight() {
 
 }
 
+void stepTowardLightSolo() {
+
+}
+
+void stepTowardLightDuo() {
+
+}
