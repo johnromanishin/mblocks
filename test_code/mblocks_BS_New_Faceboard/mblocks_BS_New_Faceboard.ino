@@ -123,6 +123,7 @@ long motion_sum_log[ARRAY_LENGTH_LONG+1] = {};
 
 long IDnumber = ESP.getChipId();
 long msg_id   = system_get_chip_id();
+long timer_counter = 0;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////VARIABLES FROM MAIN PROGRAM///////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -149,6 +150,7 @@ void setup()
     pinMode(Switch, OUTPUT);
     digitalWrite(Switch, LOW);
     pinMode(LED, OUTPUT);
+    digitalWrite(LED, HIGH);
     Serial.println("stillalive");
     delay(1000);
     if(get_vin() > 3400){turn_off_esp();delay(100);Serial.println("Putting esp to sleep");}
@@ -165,6 +167,7 @@ void setup()
     delay(500);
     Serial.println("sma retract 8000");
     delay(400);
+    digitalWrite(LED, LOW);
     //for(int i = 0; i < 60; i++){check_5048_frame(); delay(400);}
     
     mesh.init(MESH_SSID, MESH_PASSWORD, MESH_PORT);
@@ -178,7 +181,6 @@ void setup()
     randomSeed(analogRead(A0));        
 }
 
-int loop_counter = 0;
 
 void loop()
 {
@@ -186,12 +188,15 @@ void loop()
 //if(loop_counter%10 == 0){reset_faces_power();}
 //blink_and_shout();
 //shift_and_update_IMU();
-String msg_new = "";
-msg_new = (("Cube ID: ") + String(msg_id) + " Sensor Magnitude: " +String(read_5048_agc(address4)) + "   Angle: " + String(read_5048_angle(address4)/45.5) + "  ");
-//Serial.print(msg_new);
-mesh.sendBroadcast(msg_new);
+if(millis() > timer_counter)
+  {
+    String msg_new = "";
+    msg_new = (("Cube ID: ") + String(msg_id) + " Sensor Magnitude: " +String(read_5048_agc(address4)) + "   Angle: " + String(read_5048_angle(address4)/45.5) + "  ");
+    timer_counter += 1000;
+    mesh.sendBroadcast(msg_new);
+  }
 mesh.update();
-delay(500);
+}
 
 //for(int face = 1; face < 7; face++)
 //  {
@@ -206,7 +211,6 @@ delay(500);
 //  delay(10);
 //  deactivate_sensors(face);
 //  }
-}
 
 
 void shift_and_update_IMU()
