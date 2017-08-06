@@ -1,8 +1,27 @@
+#include "initialization.h"
+#include <ArduinoHardware.h>
+#include <Wire.h>  
+
+
+// Hardware Pin Definitions
+#define Switch 12 // Digital Output | Switch which controlls power to the face boards,  High = power given to faceboards, Low = ability to charge
+#define LED 13    // Digital Output | Directly Controlls a small white LED on the "Master" circuit board
+#define SDA 2     // Managed by the wire.begin in initializeCube()
+#define SCL 14    // Managed by the wire.begin in initializeCube() 
+
 void initializeCube()
 {
+  delay(500);
+  pinMode(Switch, OUTPUT); // Initialize the pin to controll the power switching circuitry
+  digitalWrite(Switch, LOW); // Set the power switch to be OFF - this is so that we don't disrupt charging 
+  pinMode(LED, OUTPUT); // Initialize the pin to control the blinky LED
+  Serial.begin(115200);
+  Wire.begin(SDA, SCL);
+  
   if (inputVoltage() > 3400) {
     shutDownMasterBoard(); // This turns off ESP if we are on a charging pad
   }
+  digitalWrite(Switch, HIGH);
 }
 
 

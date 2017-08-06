@@ -1,4 +1,35 @@
+#include <Wire.h>
+#include "sensation.h"
+#include <ArduinoHardware.h>
 
+int readAmbient(int address)
+{
+  activateLightSensor(address);
+  delay(15);
+  int reading = 0;
+  Wire.beginTransmission(address); 
+  Wire.write(byte(0x8C)); // this is the register where the Ambient values are stored
+  Wire.endTransmission();
+  Wire.requestFrom(address, 2);
+  if (2 <= Wire.available()) 
+  {
+    reading = Wire.read();
+    reading |= Wire.read()<<8;
+  }
+  return reading;
+}
+
+void activateLightSensor(int address)
+{
+  Wire.beginTransmission(address); 
+  Wire.write(byte(0x80)); // 1000 0000 - Selects command register
+  Wire.write(byte(0x03)); // 0000 0010 - Activates device
+  Wire.endTransmission();
+  Wire.beginTransmission(address); 
+  Wire.write(byte(0x81));
+  Wire.write(byte(0x10)); // Sets integration time to 15 ms ... // 00010XX sets gain to 16x
+  Wire.endTransmission();
+}
 
 void readGyroAndAccel(int i2cAddress)
 {

@@ -1,3 +1,6 @@
+#include "Motion.h"
+#include <ArduinoHardware.h>
+
 bool setCorePlane(int targetCorePlane) {
   if (targetCorePlane == currentCorePlane()) {
     return true;

@@ -3,7 +3,10 @@
 //  2. Step toward a light source, in tandem with an adjacent block
 //  3. Step in the direction of an arrow, provided on an adjacent face
 //  4. Step in a direction provided via external communication (WiFi)
-
+  
+#include "behavior.h"
+#include <ArduinoHardware.h>
+      
 void stepTowardLight() {
 
 }
