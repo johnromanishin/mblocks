@@ -1,5 +1,3 @@
-//#include "CircularBuffer.h"
-//#include <ArduinoHardware.h>
 #if 0 
 template<typename T>
 CircularBuffer<T>::CircularBuffer(int capacity, T* data)

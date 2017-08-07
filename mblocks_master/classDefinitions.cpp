@@ -11,7 +11,7 @@ Face::Face()
 {}
 
 
-void Face::updateAmbient()
+bool Face::updateAmbient()
 {
   activateLightSensor(this->ambientSensorAddress);
   delay(15);

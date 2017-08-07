@@ -2,6 +2,9 @@
 
 void initializeCube();
 
+void initializeClasses(int faceVersion);
 void shutDownMasterBoard();
-
+void lookUpCalibrationValues();
+void initializeHardware();
+void disableAutoReset();
 int inputVoltage();

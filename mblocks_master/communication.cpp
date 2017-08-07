@@ -1,1 +1,5 @@
+void initializeWifiMesh()
+{
+  
+}
 

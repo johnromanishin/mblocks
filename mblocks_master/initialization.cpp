@@ -1,5 +1,6 @@
-#include "initialization.h"
 #include <ArduinoHardware.h>
+#include "initialization.h"
+#include "communication.h"
 #include <Wire.h>  
 
 
@@ -11,21 +12,23 @@
 
 void initializeCube()
 {
-  delay(500);
-  pinMode(Switch, OUTPUT); // Initialize the pin to controll the power switching circuitry
-  digitalWrite(Switch, LOW); // Set the power switch to be OFF - this is so that we don't disrupt charging 
-  pinMode(LED, OUTPUT); // Initialize the pin to control the blinky LED
-  Serial.begin(115200);
-  Wire.begin(SDA, SCL);
-  
-  if (inputVoltage() > 3400) {
-    shutDownMasterBoard(); // This turns off ESP if we are on a charging pad
-  }
-  digitalWrite(Switch, HIGH);
+  initializeHardware();
+  lookUpCalibrationValues();
+  initializeWifiMesh();
+  initializeClasses(1);
 }
 
+void initializeClasses(int faceVersion)
+{
+  
+}
 
+//// Smaller Functions ////
 
+void lookUpCalibrationValues()
+{
+  
+}
 
 void shutDownMasterBoard()
 {
@@ -35,7 +38,35 @@ void shutDownMasterBoard()
   }
 }
 
+void initializeHardware()
+{
+  delay(500);
+  pinMode(Switch, OUTPUT); // Initialize the pin to controll the power switching circuitry
+  digitalWrite(Switch, LOW); // Set the power switch to be OFF - this is so that we don't disrupt charging if we are on a charging pad
+  pinMode(LED, OUTPUT); // Initialize the pin to control the blinky LED
+  Serial.begin(115200); // open serial connection to the Slave Board
+  Wire.begin(SDA, SCL); // Begin Two Wire Bus (i2c) to contact all of the sensors
+  
+  int timesToCheck = 2; // We need to verify that the cube is not being charged at startup, we do this by asking
+  for(int i = 0; i++; i < timesToCheck)
+  {
+    if (inputVoltage() > 3400) {
+      shutDownMasterBoard(); // This turns off ESP if we are on a charging pad - checks three times
+      delay(300);
+    }
+  }
+  disableAutoReset();
+  digitalWrite(Switch, HIGH); // turns on power to the 
+}
 
+void disableAutoReset() // this tells the slave board not to accidently turn off its power, it prints it three times incase it is lost
+{
+  Serial.println("espprogram");
+  delay(50);
+  Serial.println("espprogram");
+  delay(100);
+  Serial.println("espprogram");
+}
 int inputVoltage()
 // Obtains the input voltage from the slave board to detect when the block is charging, and to put the master board to sleep
 {

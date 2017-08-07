@@ -7,14 +7,17 @@
 #include "behavior.h"
 #include <ArduinoHardware.h>
       
-void stepTowardLight() {
+void stepTowardLight()
+{
 
 }
 
-void stepTowardLightSolo() {
+void stepTowardLightSolo()
+{
 
 }
 
-void stepTowardLightDuo() {
+void stepTowardLightDuo()
+{
 
 }
