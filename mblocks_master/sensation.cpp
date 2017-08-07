@@ -28,6 +28,8 @@ void activateLightSensor(int address)
   Wire.beginTransmission(address); 
   Wire.write(byte(0x81));
   Wire.write(byte(0x10)); // Sets integration time to 15 ms ... // 00010XX sets gain to 16x
+  // 0x10 = 100 ms
+  // 0x10 = 14ms w/ 16x High Gain
   Wire.endTransmission();
 }
 

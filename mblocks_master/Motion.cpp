@@ -1,18 +1,21 @@
 #include "Motion.h"
 #include <ArduinoHardware.h>
 
-bool roll(bool forwardOrReverse, int flywheelRPM)
+
+bool roll(bool forwardOrReverse, int flywheelRPM, int wait)
 {
-  
+
 }
 
 bool lattice_transition()
 {
+
   
 }
 
-bool setCorePlane(int targetCorePlane) {
-  if (targetCorePlane == currentCorePlane()) {
+bool setCorePlane(int targetCorePlane) 
+  {
+    if (targetCorePlane == currentCorePlane()) {
     return true;
   }
 

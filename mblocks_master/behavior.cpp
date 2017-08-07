@@ -6,18 +6,25 @@
   
 #include "behavior.h"
 #include <ArduinoHardware.h>
-      
-void stepTowardLight()
+
+    
+void followArrows()
+{
+// Set rmp(6000);
+// wait  (4000ms);
+// ebrake //////
+}
+
+void soloSeekLight()
+{
+  // look at how long it has been since 
+  // update sensors... send messages...
+
+}
+
+void duoSeekLight()
 {
 
 }
 
-void stepTowardLightSolo()
-{
 
-}
-
-void stepTowardLightDuo()
-{
-
-}

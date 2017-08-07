@@ -1,3 +1,6 @@
+#ifndef BEHAVIOR_H
+#define BEHAVIOR_H
+
 #include <ArduinoHardware.h>
 
 // We wish to define four behaviors, in order of coding priority:
@@ -6,8 +9,10 @@
 //  3. Step in the direction of an arrow, provided on an adjacent face
 //  4. Step in a direction provided via external communication (WiFi)
 
-void stepTowardLight();
+void followArrows();
 
-void stepTowardLightSolo();
+void soloSeekLight();
 
-void stepTowardLightDuo();
+void duoSeekLight();
+
+#endif

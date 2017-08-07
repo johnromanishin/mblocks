@@ -1,3 +1,6 @@
+#ifndef SENSATION_H
+#define SENSATION_H
+
 #include <ArduinoHardware.h>
 
 int readAmbient(int address);
@@ -7,3 +10,5 @@ int magnetSensorAngle(int i2cAddress);
 int magnetSensorFieldStrength(int i2cAddress);
 int magnetSensorRead(int i2cAddress, byte dataRegisterAddress);
 void wakeMPU(int i2cAddress);
+
+#endif
