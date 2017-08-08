@@ -1,18 +1,19 @@
-#ifndef CLASSDEFINITIONS_H
-#define CLASSDEFINITIONS_H
-// We want to implement classes for ease of reference as we construct and modify code.
-// The classes we define here are the cube, the face, and the sensor.
+#ifndef FACE_H
+#define FACE_H
+
 #include "defines.h"
 #include "CBuff.h"
+#include "Cube.h"
 #include <ArduinoHardware.h>
+
 
 class Face
 { 
   private:
     // Cube attributes
     byte IOExpanderState[2];
-    const int ambientSensorAddress = 0x39;
     int faceVersion;
+    const int ambientSensorAddress = 0x39;
     void getMagnetEncoderAddresses(int* target)
     {
       switch(this->faceVersion)
@@ -36,52 +37,34 @@ class Face
     CircularBuffer<int> magnetBuffer_B;
     
   public:
-      int IOExpanderAddress;
+    // Pins on PCF7585 IO expander on each face.
+    const int r_0 = 13;
+    const int g_0 = 11;
+    const int b_0 = 12;
+    const int r_1 = 9;
+    const int g_1 = 8;
+    const int b_1 = 10;
+    
+    const int led_A = 7;
+    const int led_B = 5;
+    const int led_C = 15;
+    const int led_D = 2;
+    const int EN1 = 3;
+    const int EN2 = 4;
+    //
+    int IOExpanderAddress;
     Face();
     Face(int expanderAddress, int version);
+    bool clearRGB();
     bool enableSensors();
     bool disableSensors();
     bool updateAmbient();
     bool updateIOExpander();
-    bool turnOnLedA();
-    bool turnOffLedA();
+    bool setPinLow(int pin);
+    bool setPinHigh(int pin);
     int returnAmbientValue(int index);
 
     void setIOExpanderAddress(int a) {this->IOExpanderAddress = a;}
 };
 
-
-class Cube
-{
-  private:
-    // General information
-    int cubeID = 1;
-    long cubeMAC = 0;//esp.getchipID();
-    int batteryVoltage = 0;
-    
-    // Status Variables
-    int currentPlane;
-    int topFace;
-    int forwardFace;
-    int reverseFace;
-    
-    // Sensor Addresses
-    const int frameMPU = 0x69;
-    const int coreMPU  = 0x68;
-    const int faceExpanderAddresses[6] = {0x20, 0x21, 0x22, 0x23, 0x24, 0x25};
-
-    
-  public:
-    Face faces[6];
-
-    Cube();
-};
-
-//
-//class Sensor
-//{
-//  public:
-//  private:
-//};
-//
 #endif

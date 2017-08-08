@@ -51,6 +51,15 @@ void readGyroAndAccel(int i2cAddress)
 }
 
 
+void wakeMPU(int i2cAddress)
+// Wakes the MPU_6050 accelerometer
+{
+  Wire.beginTransmission(i2cAddress);
+  Wire.write(0x6B);  // PWR_MGMT_1 register
+  Wire.write(0);     // set to zero (wakes up the MPU-6050)
+  Wire.endTransmission(true);
+}
+
 int magnetSensorAngle(int i2cAddress) {
   // Returns the angle of the measured magnet as a 14 bit number
   magnetSensorRead(i2cAddress, byte(0xFF));
@@ -78,14 +87,5 @@ int magnetSensorRead(int i2cAddress, byte dataRegisterAddress) {
     return sensorValue;
   }
   return 0;
-}
-
-void wakeMPU(int i2cAddress)
-// Wakes the MPU_6050 accelerometer
-{
-  Wire.beginTransmission(i2cAddress);
-  Wire.write(0x6B);  // PWR_MGMT_1 register
-  Wire.write(0);     // set to zero (wakes up the MPU-6050)
-  Wire.endTransmission(true);
 }
 

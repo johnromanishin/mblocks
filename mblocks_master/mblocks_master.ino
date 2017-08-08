@@ -8,7 +8,8 @@
 #include <painlessMesh.h>
 #include <ArduinoHardware.h>      // Unsure of what this does, but it seemed like a good idea to keep it in here...
 #include "initialization.h"       // Includes .h files for each of the "tabs" in arduino
-#include "classDefinitions.h"     // Includes .h files for each of the "tabs" in arduino
+#include "Cube.h"     // Includes .h files for each of the "tabs" in arduino
+#include "Face.h"     // Includes .h files for each of the "tabs" in arduino
 #include "CBuff.h"                // Includes .h files for each of the "tabs" in arduino
 #include "communication.h"        // Includes wifi 
 #include "behavior.h"
@@ -16,27 +17,49 @@
 String behavior = "soloSeekLight";
 
 
-Cube c;
+Cube c; // Initialize the Cube Object c // globally so that things don't crash
+
 void setup() // Actually the main loop...
 {
   long timer_counter = 0;
   initializeCube(); // Runs this code once to setup input/outputs, communication networks... 
                      // (Wifi, i2c, serial) and instantiates classes/ calibration values
+  Serial.println(c.cubeMAC);
+  Serial.println("Starting Main Loop");
   while(1)
   {
+//   Serial.println(c.returnTopFace());
+//   Serial.print("MPU_ax: ");Serial.println(c.axFrameBuffer.access(0));
+//   Serial.print("MPU_ay: ");Serial.println(c.ayFrameBuffer.access(0));
+//   Serial.print("MPU_az: ");Serial.println(c.azFrameBuffer.access(0));
+//   Serial.print("MPU_gx: ");Serial.println(c.gxFrameBuffer.access(0));
+//   Serial.print("MPU_gy: ");Serial.println(c.gyFrameBuffer.access(0));
+//   Serial.print("MPU_gz: ");Serial.println(c.gzFrameBuffer.access(0));
+   c.lightFace(c.returnTopFace(),true,true,true);
+   delay(100);
+  }
+  while(1)
+    {
     for(int i = 0; i< 6; i++)
     {
-      //Serial.print(c.faces[i].IOExpanderAddress);  Serial.print("  ");
+      //Serial.print(c.faces[i].IOExpanderAddress);  Serial.print("  ");     
       c.faces[i].enableSensors();
-      c.faces[i].turnOnLedA();
+      c.faces[i].updateIOExpander();
       c.faces[i].updateAmbient();
-      Serial.print(c.faces[i].returnAmbientValue(0)); Serial.print("  ");
-      c.faces[i].turnOffLedA();
+      //Serial.print(c.faces[i].returnAmbientValue(0)); Serial.print("  ");          
+      //c.faces[i].updateIOExpander();
       c.faces[i].disableSensors();
       delay(1);
     }
-    Serial.println("hello");
     delay(500);
+    c.updateFrameMPU();
+    
+    Serial.print("MPU_ax: ");Serial.println(c.axFrameBuffer.access(0));
+    Serial.print("MPU_ay: ");Serial.println(c.ayFrameBuffer.access(0));
+    Serial.print("MPU_az: ");Serial.println(c.azFrameBuffer.access(0));
+    Serial.print("MPU_gx: ");Serial.println(c.gxFrameBuffer.access(0));
+    Serial.print("MPU_gy: ");Serial.println(c.gyFrameBuffer.access(0));
+    Serial.print("MPU_gz: ");Serial.println(c.gzFrameBuffer.access(0));
   }
                     
   while(1)

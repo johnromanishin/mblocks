@@ -1,20 +1,14 @@
 // We want to implement classes for ease of reference as we construct and modify code.
-// The classes we define here are the cube, the face, and the sensor.
+// The classes we define here are the cube, the face.
 #include "defines.h"
-#include "classDefinitions.h"
+#include "Cube.h"
 #include "sensation.h"
+#include "Face.h"
 #include <Wire.h> 
 #include <ArduinoHardware.h>
 
-Cube::Cube()
-{
-  
-  for(int i = 0; i < ARRAY_SIZEOF(this->faces); i++)
-  {
-     this->faces[i].setIOExpanderAddress(this->faceExpanderAddresses[i]);
-  }
-}
 
+////////////////////////////////////
 Face::Face()
   : ambientBuffer(ARRAY_SIZEOF(this->ambientData), this->ambientData),
     magnetBuffer_A(ARRAY_SIZEOF(this->magnetData_A), this->magnetData_A),
@@ -45,7 +39,7 @@ bool Face::updateIOExpander()
 bool Face::updateAmbient()
 {
   activateLightSensor(this->ambientSensorAddress);
-  delay(20);
+  delay(15);
   int reading = 0;
   Wire.beginTransmission(this->ambientSensorAddress); 
   Wire.write(byte(0x8C)); // this is the register where the Ambient values are stored
@@ -75,16 +69,30 @@ int Face::returnAmbientValue(int index)
  *   1111 0111  And this is what we need to bitwise AND
  */ 
 
-bool Face::turnOnLedA()
+bool Face::setPinLow(int pin)
 {
-  this->IOExpanderState[0] &= ~(1 << FB_LEDA);
-  return this->updateIOExpander();
+  if((pin < 8) && (pin >= 0))
+  {
+    this->IOExpanderState[0] &= ~(1 << pin);
+  }
+  else if ((pin > 7) && (pin < 16))
+  {
+    this->IOExpanderState[1] &= ~(1 << (pin - 8));
+  }
 }
 
-bool Face::turnOffLedA()
+bool Face::setPinHigh(int pin)
 {
-  this->IOExpanderState[0] |= (1 << FB_LEDA);
-  return this->updateIOExpander();
+    if(pin < 8 && pin >= 0)
+  {
+    this->IOExpanderState[0] |= (1 << pin);
+  }
+  else if (pin > 7 && pin < 16)
+  {
+    this->IOExpanderState[1] |= (1 << (pin - 8));
+  }
+  
+  //return this->updateIOExpander();
 }
 
 bool Face::enableSensors()
@@ -98,12 +106,3 @@ bool Face::disableSensors()
   this->IOExpanderState[0] |= (1 << FB_EN1);
   return this->updateIOExpander();
 }
-
-//
-//class Sensor
-//{
-//  public:
-//  private:
-//};
-//
-
