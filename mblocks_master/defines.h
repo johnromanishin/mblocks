@@ -1,5 +1,21 @@
 #include <ArduinoHardware.h>
 
+// Global Variables:
+extern int faceVersion;
+extern int cubeID;
+extern int planeChangeTime;
+extern int planeChangeRPM;
+extern int traverseBrakeCurrent_F;
+extern int traverseBrakeCurrent_R;
+extern int cornerClimbBrakeCurrent_F;
+extern int cornerClimbBrakeCurrent_R;
+extern int plane0321Magnet;
+extern int plane0425Magnet;
+extern int plane1435Magnet;
+//
+
+
+
 #define ARRAY_SIZEOF(x) ((sizeof(x) / sizeof(x[0])))
 
 // Face board pins

@@ -14,8 +14,6 @@ bool calc_delay = false;
 SimpleList<uint32_t> nodes;
 void sendMessage() ; // Prototype
 
-//Task taskSendMessage( TASK_SECOND * 1 , TASK_FOREVER, &sendMessage ); // start with a one second interval
-
 void initializeWifiMesh()
 {
     mesh.init(MESH_SSID, MESH_PASSWORD, MESH_PORT);
@@ -24,8 +22,6 @@ void initializeWifiMesh()
     mesh.onChangedConnections(&changedConnectionCallback);
     mesh.onNodeTimeAdjusted(&nodeTimeAdjustedCallback);
     mesh.onNodeDelayReceived(&delayReceivedCallback);
-   // mesh.scheduler.addTask( taskSendMessage );
-   // taskSendMessage.enable() ;
     randomSeed(analogRead(A0));
 }
 
@@ -42,8 +38,6 @@ void sendMessage() {
     }
     calc_delay = false;
   }
-  
-  //taskSendMessage.setInterval( random( TASK_SECOND * 1, TASK_SECOND * 5 ));  // between 1 and 5 seconds
 }
 
 

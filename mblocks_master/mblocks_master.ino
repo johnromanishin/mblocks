@@ -14,54 +14,75 @@
 #include "communication.h"        // Includes wifi 
 #include "behavior.h"
 
+//WiFi::BSSIDstr(i);
+
 String behavior = "soloSeekLight";
-
-
 Cube c; // Initialize the Cube Object c // globally so that things don't crash
 
 void setup() // Actually the main loop...
 {
   long timer_counter = 0;
   initializeCube(); // Runs this code once to setup input/outputs, communication networks... 
-                     // (Wifi, i2c, serial) and instantiates classes/ calibration values
-  Serial.println(c.cubeMAC);
+                    // (Wifi, i2c, serial) and instantiates classes and calibration values
+  Serial.println(ESP.getChipId());
   Serial.println("Starting Main Loop");
-  while(1)
+  
+  c.updateCoreMagnetSensor();
+  int initialMagnetReadingOffset = c.coreMagnetAngleBuffer.access(0);
+
+  Serial.print("Face Version: ");Serial.println(faceVersion);
+  while(millis() < c.shutDownTime)
   {
-//   Serial.println(c.returnTopFace());
-//   Serial.print("MPU_ax: ");Serial.println(c.axFrameBuffer.access(0));
-//   Serial.print("MPU_ay: ");Serial.println(c.ayFrameBuffer.access(0));
-//   Serial.print("MPU_az: ");Serial.println(c.azFrameBuffer.access(0));
-//   Serial.print("MPU_gx: ");Serial.println(c.gxFrameBuffer.access(0));
-//   Serial.print("MPU_gy: ");Serial.println(c.gyFrameBuffer.access(0));
-//   Serial.print("MPU_gz: ");Serial.println(c.gzFrameBuffer.access(0));
-   c.lightFace(c.returnTopFace(),true,true,true);
-   delay(100);
-  }
-  while(1)
+   //c.updateBothIMUs();
+   //c.updateCoreMagnetSensor();
+   
+//   String newmsg = "Angle: " + String(c.coreMagnetAngleBuffer.access(0) - initialMagnetReadingOffset)
+//   + " core.ax: " + String(c.axCoreBuffer.access(0))
+//   + " core.ay: " + String(c.ayCoreBuffer.access(0))
+//   + " core.az: " + String(c.azCoreBuffer.access(0))
+//   + " Frame.ax: " + String(c.axFrameBuffer.access(0))
+//   + " Frame.ay: " + String(c.ayFrameBuffer.access(0))
+//   + " Frame.az: " + String(c.azFrameBuffer.access(0))
+//   + " CoreMagAGC: " + String(c.coreMagnetStrengthBuffer.access(0));
+   
+   //Serial.print("Angle: ");Serial.print(c.coreMagnetAngleBuffer.access(0));Serial.print(" Magnitude: ");Serial.println(c.coreMagnetStrengthBuffer.access(0));
+   //String newmsg = "Angle: ";
+   //mesh.sendBroadcast(newmsg);
+   for(int i = 0; i < 6; i++)
+   {
+    delay(10);
+    if(c.faces[i].updateFace())
     {
-    for(int i = 0; i< 6; i++)
-    {
-      //Serial.print(c.faces[i].IOExpanderAddress);  Serial.print("  ");     
-      c.faces[i].enableSensors();
-      c.faces[i].updateIOExpander();
-      c.faces[i].updateAmbient();
-      //Serial.print(c.faces[i].returnAmbientValue(0)); Serial.print("  ");          
-      //c.faces[i].updateIOExpander();
-      c.faces[i].disableSensors();
-      delay(1);
+   //Serial.print("Ambient Value on face "); Serial.print(i); Serial.print(": "); Serial.println(c.faces[i].returnAmbientValue(0));
+   if((c.faces[i].returnMagnetStrength_B(0) < 255) && (c.faces[i].returnMagnetStrength_A(0) < 255) && (c.faces[i].returnMagnetStrength_A(0) != 0))
+    {Serial.print("HEY!!");Serial.println(c.lightFace(i));}
+   else if((c.faces[i].returnMagnetStrength_B(1) < 255) && (c.faces[i].returnMagnetStrength_B(0) > 254)){c.lightFace(i,0,0,0);}
     }
-    delay(500);
-    c.updateFrameMPU();
-    
-    Serial.print("MPU_ax: ");Serial.println(c.axFrameBuffer.access(0));
-    Serial.print("MPU_ay: ");Serial.println(c.ayFrameBuffer.access(0));
-    Serial.print("MPU_az: ");Serial.println(c.azFrameBuffer.access(0));
-    Serial.print("MPU_gx: ");Serial.println(c.gxFrameBuffer.access(0));
-    Serial.print("MPU_gy: ");Serial.println(c.gyFrameBuffer.access(0));
-    Serial.print("MPU_gz: ");Serial.println(c.gzFrameBuffer.access(0));
+//    c.lightFace(i);
+//    c.faces[i].enableSensors();
+//    c.faces[i].turnOnFaceLEDs();
+//    c.faces[i].updateAmbient();
+//    Serial.print("Ambient Value on face "); Serial.print(i); Serial.print(": "); Serial.println(c.faces[i].returnAmbientValue(0));
+//    delay(300);
+//    c.faces[i].turnOffFaceLEDs();
+//    c.faces[i].disableSensors();
+   }
+   
+   delay(1000);
+   
+//   Serial.println(c.returnTopFace());
+//   Serial.print("IMU_ax: ");Serial.println(c.axFrameBuffer.access(0));
+//   Serial.print("IMU_ay: ");Serial.println(c.ayFrameBuffer.access(0));
+//   Serial.print("IMU_az: ");Serial.println(c.azFrameBuffer.access(0));
+   //Serial.print("IMU_gx: ");Serial.println(c.gxFrameBuffer.access(0));
+   //Serial.print("IMU_gy: ");Serial.println(c.gyFrameBuffer.access(0));
+   //Serial.print("IMU_gz: ");Serial.println(c.gzFrameBuffer.access(0));
+   
+   // c.lightFace(c.returnTopFace());
+   // delay(100);
   }
-                    
+  c.shutDown();    
+   
   while(1)
   {
          if (behavior == "soloSeekLight") {soloSeekLight();}
@@ -85,3 +106,15 @@ void setup() // Actually the main loop...
 void loop() 
 {  
 }
+/////////// Global Variables
+int faceVersion = 1;
+int cubeID = 0;
+int planeChangeTime = 60;
+int planeChangeRPM = 5000;
+int traverseBrakeCurrent_F = 2800;
+int traverseBrakeCurrent_R = 2800;
+int cornerClimbBrakeCurrent_F = 3000;
+int cornerClimbBrakeCurrent_R = 3000;
+int plane0321Magnet = 0;
+int plane0425Magnet = 120;
+int plane1435Magnet = 240;

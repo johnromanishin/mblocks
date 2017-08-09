@@ -9,31 +9,25 @@
 class Cube
 /*
  * Cube class is the object for the cube itself
- * 
  */
 {
   private:
-    // General information
+      // General information
     int cubeID = 1;
-    // long cubeMAC = ESP.getChipId();  //esp.getchipID();
-    // ESP.getChipId();
-    //long msg_id   = system_get_chip_id();
-
     int batteryVoltage = 0;
-    
-    // Status Variables
-    int currentPlane; // int either 
+    int currentPlane; // The plane (out of three) that the central actuator is in - 0
+    int coreAngle;    // current angle of the core 
     int topFace;      // face this is point upwards, as determined by the accelerometer
-    int forwardFace;
-    int reverseFace;
+    int forwardFace;  // face that is pointing forwards
+    int reverseFace;  // face that is pointing backwards
     
-    // Sensor Addresses
-    const int frameMPUaddress = 0x69;
-    const int coreMPUaddress  = 0x68;
+      // i2c Addresses
+    const int frameIMUaddress = 0x69;
+    const int coreIMUaddress  = 0x68;
+    const int coreMagnetSensorAddress = 0x40;//
     const int faceExpanderAddresses[6] = {0x20, 0x21, 0x22, 0x23, 0x24, 0x25};
-
         
-    // Data storage spaces
+      // Data storage spaces
     int axCoreData[32];
     int ayCoreData[32];
     int azCoreData[32];
@@ -47,16 +41,32 @@ class Cube
     int gxFrameData[32];
     int gyFrameData[32];
     int gzFrameData[32];
-    
+
+    int coreMagnetAngleData[32];
+    int coreMagnetStrengthData[32];
+
+      // Internal functions
+    bool CornerRGB(int face, bool top, bool r, bool g, bool b); // Only for Version 0;
+
   public:
-    bool updateFrameMPU();
-    bool updateCoreMPU();
-    bool wakeMPU(int i2cAddress);
+      // Public Variables
+    long shutDownTime = (60000*10); // time until board goes to sleep
     
-    //     
-    void clearRGB();
-    int lightFace(int face, bool r, bool g, bool  b);
+      // Functions involving SENSORS
+    bool updateSensors(); // Updates almost everything on the cube...
+    bool updateFaces(); // Updates all of the face sensors on all faces
+    bool updateBothIMUs(); // updates BOTH IMU's
+    bool updateFrameIMU();
+    bool updateCoreIMU();
+    bool updateCoreMagnetSensor();
+    bool wakeIMU(int i2cAddress);
     
+    // Functions involving LED's
+    bool clearRGB(); // Turns off all LED's on the cube DUAL VERSIONS
+    bool lightFace(int face, bool r = true, bool g = false, bool  b = true); //DUAL VERSIONS
+    bool lightCube(bool r = true, bool g = true, bool b = false); // lights entire cube, defaults to yellow
+    
+    // Functions 
     bool determineIfLatticeConnected();  
     
     bool determineCurrentPlane();       // updates variable this->CurrentPlane
@@ -65,10 +75,10 @@ class Cube
     bool determineForwardFace();        // updates variable this->ForwardFace
     int returnForwardFace();
     
-    bool determineTopFace(int threshold);             // updates variable this->UpFace
+    bool determineTopFace(int threshold = 13000);             // updates variable this->UpFace
     int returnTopFace();
     
-    void goToSleep();                   // Turns off the entire cube
+    void shutDown();                   // Turns off the entire cube
     //
     long cubeMAC = ESP.getChipId(); 
     
@@ -86,6 +96,9 @@ class Cube
     CircularBuffer<int> gxFrameBuffer;
     CircularBuffer<int> gyFrameBuffer;
     CircularBuffer<int> gzFrameBuffer;
+
+    CircularBuffer<int> coreMagnetAngleBuffer;
+    CircularBuffer<int> coreMagnetStrengthBuffer;
     //
     Face faces[6];
     Cube();

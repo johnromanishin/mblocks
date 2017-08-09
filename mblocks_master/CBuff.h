@@ -1,6 +1,7 @@
 #ifndef CIRCULAR_BUFFER_H
 #define CIRCULAR_BUFFER_H
 #include <ArduinoHardware.h>
+#include "defines.h"
 
 template<class T>
 class CircularBuffer
