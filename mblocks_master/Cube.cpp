@@ -5,10 +5,13 @@
 #include "sensation.h"
 #include "Face.h"
 #include <Wire.h> 
-#include <ArduinoHardware.h>
+
+//PLANE_0321  PLANE_0425  PLANE_1534 
 
 Cube::Cube()
-  : axFrameBuffer(ARRAY_SIZEOF(this->axFrameData), this->axFrameData),
+  :    
+    faceSensorUpdateTimeBuffer(ARRAY_SIZEOF(this->faceSensorUpdateTimeData), this->faceSensorUpdateTimeData),
+    axFrameBuffer(ARRAY_SIZEOF(this->axFrameData), this->axFrameData),
     ayFrameBuffer(ARRAY_SIZEOF(this->ayFrameData), this->ayFrameData),
     azFrameBuffer(ARRAY_SIZEOF(this->azFrameData), this->azFrameData),
     gxFrameBuffer(ARRAY_SIZEOF(this->gxFrameData), this->gxFrameData),
@@ -61,7 +64,7 @@ bool Cube::updateFrameIMU()
 
 bool Cube::updateCoreIMU()
 {
-  bool succeed = false; // set a boolean 
+  bool succeed = true; // set a boolean 
   int16_t ax, ay, az, Tmp, gx, gy, gz;
   this->wakeIMU(this->coreIMUaddress);
   Wire.beginTransmission(this->coreIMUaddress);
@@ -88,27 +91,47 @@ bool Cube::updateCoreIMU()
 
 bool Cube::updateSensors()
 {
-  this->updateBothIMUs();
+  /*
+   * This functions updates all of the sensor buffers on each cube
+   * It also refreshes variables like this->topFace/ forwardFace/ ...
+   */
   this->updateCoreMagnetSensor();
+  this->processState();// -- this deals with anything involving IMUs 
   this->updateFaces();
-  this->determineCurrentPlane();
-  this->determineForwardFace();
-  this->determineTopFace();
 }
 
-
+bool Cube::blockingBlink(bool r, bool g, bool b, int howManyTimes, int waitTime)
+{
+  for(int times = 0; times < howManyTimes; times++)
+  {
+  this->lightCube(r,g,b);
+  delay(waitTime);
+  this->lightCube(0,0,0);
+  delay(waitTime);
+  }
+}
+bool Cube::processState()
+{
+  this->updateBothIMUs();
+  this->determineTopFace();
+  this->determineCurrentPlane();
+  this->determineForwardFace();
+}
 
 bool Cube::updateFaces()
 {
 for(int i = 0; i< 6; i++)
     {
+      delay(2);
       this->faces[i].updateFace();
       delay(2);
     }
 }
 bool Cube::updateBothIMUs()
 {
-  return(this->updateCoreIMU() && this->updateFrameIMU());
+  bool a = this->updateCoreIMU();
+  bool b = this->updateFrameIMU();
+  return(a && b);
 }
 
 bool Cube::wakeIMU(int i2cAddress)
@@ -152,7 +175,7 @@ bool Cube::determineTopFace(int threshold)
    *  the face which is point upwards. Returns -1 if results are inconclusive
    *  c.axFrameBuffer.access(0)
    */
-  this->updateFrameIMU();
+  //this->updateFrameIMU();
   int sum = (abs(this->axFrameBuffer.access(0))+abs(this->ayFrameBuffer.access(0))+abs(this->azFrameBuffer.access(0)));
   
        if ((this->azFrameBuffer.access(0) < (-threshold)) && sum < 25000)  { this->topFace = 0; }
@@ -168,7 +191,6 @@ bool Cube::determineTopFace(int threshold)
 
 int Cube::returnTopFace()
 {
-  this->determineTopFace();
   return (this->topFace);
 }
 
@@ -198,13 +220,31 @@ bool Cube::clearRGB()
     }
 }
 
+int Cube::numberOfNeighbors(int index, bool lightFace)
+{
+  int neighbors = 0;
+  for(int face = 0; face < 6; face++)
+    {
+    if((this->faces[face].returnMagnetStrength_A(index) < 255) &&
+       (this->faces[face].returnMagnetStrength_A(index) > 0)   && 
+       (this->faces[face].returnMagnetStrength_B(index) < 255) &&
+       (this->faces[face].returnMagnetStrength_B(index) > 0))
+        {
+          neighbors++;
+          if(lightFace) {this->lightFace(face,0,1,0);}
+        }
+    }
+    return(neighbors);
+}
+
 bool Cube::determineCurrentPlane()
 {
   /*
    * 
    */
  // this->updateCoreMagnetSensor();
-  this->currentPlane = 0123;
+  this->currentPlane = PLANE_0321;
+  return(true);
   
 }
 
@@ -214,35 +254,32 @@ int Cube::returnCurrentPlane()
    * Current plane is the orientation of the cube with respect to the frame
    * Either 0123, 1435
    */
-  this->determineCurrentPlane();
   return(this->currentPlane);
 }
 
 bool Cube::determineForwardFace() // FUN3 // plane should be either int 1234, 1536 2546 or -1
 {
   /*
-   * plane 0321 /0
-   * plane 0425 /1
-   * plane 1534 /4
+   * plane PLANE_0321 /0
+   * plane PLANE_0425 /1
+   * plane PLANE_1534 /4
    */
-  this->determineTopFace(); // Figure out which face is on top
-  this->determineCurrentPlane();  // determine which plane the actuator is in
-  int face = this->returnTopFace(); // 
+  int topFace = this->returnTopFace(); // 
   int plane = this->returnCurrentPlane();
   
-       if( (face == 1 && plane == 0321)  ||  (face == 5 && plane == 0425) )    {this->forwardFace = 0;}
-  else if( (face == 2 && plane == 0321)  ||  (face == 4 && plane == 1534) )    {this->forwardFace = 1;}
-  else if( (face == 3 && plane == 0321)  ||  (face == 4 && plane == 0425) )    {this->forwardFace = 2;}
-  else if( (face == 0 && plane == 0321)  ||  (face == 5 && plane == 1534) )    {this->forwardFace = 3;}
-  else if( (face == 3 && plane == 1534)  ||  (face == 0 && plane == 0425) )    {this->forwardFace = 4;}
-  else if( (face == 1 && plane == 1534)  ||  (face == 2 && plane == 0425) )    {this->forwardFace = 5;}
+       if( (topFace == 1 && plane == PLANE_0321)  ||  (topFace == 5 && plane == PLANE_0425) )    {this->forwardFace = 0;}
+  else if( (topFace == 2 && plane == PLANE_0321)  ||  (topFace == 4 && plane == PLANE_1534) )    {this->forwardFace = 1;}
+  else if( (topFace == 3 && plane == PLANE_0321)  ||  (topFace == 4 && plane == PLANE_0425) )    {this->forwardFace = 2;}
+  else if( (topFace == 0 && plane == PLANE_0321)  ||  (topFace == 5 && plane == PLANE_1534) )    {this->forwardFace = 3;}
+  else if( (topFace == 3 && plane == PLANE_1534)  ||  (topFace == 0 && plane == PLANE_0425) )    {this->forwardFace = 4;}
+  else if( (topFace == 1 && plane == PLANE_1534)  ||  (topFace == 2 && plane == PLANE_0425) )    {this->forwardFace = 5;}
   
-  else if( (face == 4 && plane == 0321) || (face == 0 && plane == 1534) || (face == 1 && plane == 0425) ) 
-  {this->forwardFace = -1;}
-  else if( (face == 5 && plane == 0321) || (face == 2 && plane == 1534) || (face == 3 && plane == 0425) ) 
-  {this->forwardFace = -1;}
+  else if( (topFace == 4 && plane == PLANE_0321) || (topFace == 0 && plane == PLANE_1534) || (topFace == 1 && plane == PLANE_0425) ) 
+    {this->forwardFace = -1;}
+  else if( (topFace == 5 && plane == PLANE_0321) || (topFace == 2 && plane == PLANE_1534) || (topFace == 3 && plane == PLANE_0425) ) 
+    {this->forwardFace = -1;}
   else                                                                                                    
-  {return(false);}
+    {return(false);}
   
   return(true);
 }
@@ -255,14 +292,92 @@ int Cube::returnForwardFace()
   return(this->forwardFace);
 }
 
-bool Cube::lightCube(bool r, bool g, bool b)
-/*
- * Turns the Corner RGB lights on for entire cube
- */
+int Cube::returnReverseFace()
+
 {
-  
+  return(oppositeFace(this->returnForwardFace()));
 }
 
+bool Cube::lightCube(bool r, bool g, bool b)
+  /*
+   * Lights up a particular face with the color r | g | b
+   */
+{
+ if(faceVersion == 0) // Alternate method for Old Face Version
+  {
+    for(int i = 0; i < 4; i++)
+    {
+    this->CornerRGB(1,0,r,g,b);
+    this->CornerRGB(1,1,r,g,b);
+    }
+    return(true);
+  }
+  
+  this->clearRGB(); // Sets all RGB bits to HIGH / aka off
+  for(int i = 0; i < 4; i++)
+  {
+    if(r)
+      {
+        this->faces[i].setPinLow(this->faces[0].r_0);
+        this->faces[i].setPinLow(this->faces[0].r_1);
+      }
+    else
+      {
+        this->faces[i].setPinHigh(this->faces[0].r_0);
+        this->faces[i].setPinHigh(this->faces[0].r_1);
+      }
+      
+    if(g)
+      {
+        this->faces[i].setPinLow(this->faces[0].g_0);
+        this->faces[i].setPinLow(this->faces[0].g_1);
+      }
+    else
+      {
+        this->faces[i].setPinHigh(this->faces[0].g_0);
+        this->faces[i].setPinHigh(this->faces[0].g_1);
+      }
+      
+    if(b)
+      {
+        this->faces[i].setPinLow(this->faces[0].b_0);
+        this->faces[i].setPinLow(this->faces[0].b_1);
+      }
+    else
+      {
+        this->faces[i].setPinHigh(this->faces[0].b_0);
+        this->faces[i].setPinHigh(this->faces[0].b_1);
+      }
+    this->faces[i].updateIOExpander();
+  }
+  return(true);
+}
+
+int Cube::returnXthBrightestFace(int X)
+{
+ /*
+  * Returns the face number corresponding to 
+  */
+  if( (X < 0) || (X > FACES) ) {return(-1);}
+  int tempArray[FACES];
+  for(int i = 0; i < FACES; i++)
+  {
+    tempArray[i] = this->faces[i].returnAmbientValue(0);
+  }
+  return(sortList(tempArray, FACES, X));
+}
+
+int Cube::returnSumOfAmbient()
+{
+ /*
+  * Returns the face number corresponding to 
+  */
+//  int tempArray[6];
+//  for(int i = 0; i++; i < 6)//{this->
+//  if( (X < 0) || (X < 6) ) {return(-1);}
+//  
+  
+}
 bool Cube::lightFace(int face, bool r, bool g, bool b)
 {
   /*
@@ -392,13 +507,66 @@ bool Cube::CornerRGB(int face, bool top, bool r, bool g, bool b)
   Wire.endTransmission();
 }
 
-//int opposite_face(int face)
-//{
-//  if(face == 1){return(3);}
-//  else if(face == 2){return(4);}
-//  else if(face == 3){return(1);}
-//  else if(face == 4){return(2);}
-//  else if(face == 5){return(6);}
-//  else if(face == 6){return(5);}
-//  else{return(-1);}
-//}
+int sortList(int* inputList, int listLength, int desiredIndex)
+/*
+ * returns the original index number representing where the items' new position
+ * after the list inputList has been sorted 
+ * e.g.
+ * a[5] = [100,400,312,900,100]
+ *         (0),(1),(2),(3),(4)      << returns this
+ * sortList(a,5,0)   should return ---> (3) Since index posotion 3 holds the highest value
+ * sortList(a,5,1)   should return ---> (1) Since index posotion 1 holds the second highest value
+ */
+{
+  int swapsInLastCycle = 1;
+  int listCopy[listLength]; // blank array to copy the input array into
+  int indexList[listLength];
+  
+  for(int i = 0; i < listLength; i++) {indexList[i] = i;}
+  for(int index = 0; index < listLength; index++){listCopy[index] = inputList[index];} // copy items over to a new list
+  
+  while(swapsInLastCycle != 0)
+  {
+    swapsInLastCycle = 0;
+    for(int i = 0; i < (listLength-1); i++)
+      {
+        int temp = 0;
+        int indexTemp = 0;
+        if(listCopy[i] < listCopy[i+1]) // if this is true, we flip the values, and increment swaps
+          {
+            temp = listCopy[i]; 
+            indexTemp = indexList[i];
+          
+            listCopy[i] = listCopy[i+1];
+            indexList[i] = indexList[i+1];
+          
+            listCopy[i+1] = temp;
+            indexList[i+1] = indexTemp;
+          
+            swapsInLastCycle++;
+        }
+      }
+    }
+  return(indexList[desiredIndex]);
+} 
+
+int oppositeFace(int face)
+{
+  if(face == 0){return(2);}
+  else if(face == 1){return(3);}
+  else if(face == 2){return(0);}
+  else if(face == 3){return(1);}
+  else if(face == 4){return(5);}
+  else if(face == 5){return(4);}
+  else{return(-1);}
+}
+
+void Cube::printOutDebugInformation()
+{
+      Serial.print("Plane: ");Serial.println(this->returnCurrentPlane());
+      Serial.print("Top Face: ");Serial.println(this->returnTopFace());
+      Serial.print("Forward Face: ");Serial.println(this->returnForwardFace());
+      Serial.print("Brightest Face: ");Serial.println(this->returnXthBrightestFace(0));
+      Serial.println("2nd Brightest Face: ");Serial.println(this->returnXthBrightestFace(1));
+}
+

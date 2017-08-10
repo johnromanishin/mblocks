@@ -1,7 +1,9 @@
 #ifndef CIRCULAR_BUFFER_H
 #define CIRCULAR_BUFFER_H
-#include <ArduinoHardware.h>
+
 #include "defines.h"
+#include <arduino.h>
+
 
 template<class T>
 class CircularBuffer
@@ -16,7 +18,6 @@ class CircularBuffer
     void push(T data);
     T access(int);
 };
-#include <ArduinoHardware.h>
 
 template<typename T>
 CircularBuffer<T>::CircularBuffer(int capacity, T* data)

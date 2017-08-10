@@ -1,6 +1,8 @@
 #ifndef INITIALIZATION_H
 #define INITIALIZATION_H
-#include <ArduinoHardware.h>
+
+#include <arduino.h>
+
 
 void initializeCube();
 void initializeClasses(int faceVersion);

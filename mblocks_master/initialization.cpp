@@ -1,4 +1,3 @@
-#include <ArduinoHardware.h>
 #include "initialization.h"
 #include "communication.h"
 #include "defines.h"
@@ -42,13 +41,26 @@ void shutDownMasterBoard()
 }
 
 void checkFaceVersion()
+/*
+ * This functions checks to see which version of the cube's Face hardware is running
+ * It will first check for version 1: Containing i2c address 0x21,
+ * Then it will check for version 0: Containing i2c address 
+ */
   {
-  delay(5000);
-  int error;
-  Wire.beginTransmission(0x04);
-  error = Wire.endTransmission();
-  if(error == 0){faceVersion = 0;}
-  Serial.print("Face Version is determined to be: ");Serial.println(faceVersion);
+    int error;
+    for(int i = 0; i < 6; i++)
+    {
+      Wire.beginTransmission(0x21);
+      error = Wire.endTransmission();  
+      if(error == 0){faceVersion = 1; return;}
+      delay(100);
+      Wire.beginTransmission(0x04);
+      error = Wire.endTransmission();  
+      if(error == 0){faceVersion = 0; return;}
+      delay(1000);
+    }
+    Serial.println("I am not connected to any face boards, going to sleep now!");
+    for(int i = 0; i < 10; i++) {Serial.println("sleep"); delay(500);}
   }
   
 void initializeHardware()

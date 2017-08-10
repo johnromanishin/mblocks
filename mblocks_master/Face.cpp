@@ -5,7 +5,6 @@
 #include "sensation.h"
 #include "Face.h"
 #include <Wire.h> 
-#include <ArduinoHardware.h>
 
 Face::Face()
   : ambientBuffer(ARRAY_SIZEOF(this->ambientData), this->ambientData),
@@ -41,12 +40,11 @@ bool Face::updateFace()
 {
   bool success = 
       (this->enableSensors() 
-    && this->turnOnFaceLEDs(1,0,1,0)
+    && this->turnOnFaceLEDs(1,0,0,0)
     && this->updateAmbient()
     && this->updateMagneticBarcode()
     && this->turnOffFaceLEDs()
-    && this->disableSensors());
-    
+    && this->disableSensors()); 
   return(success);
 }
 

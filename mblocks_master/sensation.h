@@ -1,8 +1,8 @@
 #ifndef SENSATION_H
 #define SENSATION_H
 
-#include <ArduinoHardware.h>
 #include "defines.h"
+#include <arduino.h>
 
 int readAmbient(int address);
 void activateLightSensor(int address);

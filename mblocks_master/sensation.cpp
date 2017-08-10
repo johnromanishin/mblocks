@@ -1,6 +1,5 @@
 #include <Wire.h>
 #include "sensation.h"
-#include <ArduinoHardware.h>
 
 int readAmbient(int address)
 {

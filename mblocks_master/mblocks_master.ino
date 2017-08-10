@@ -6,7 +6,8 @@
 
 #include <Wire.h>                 // Arduino's implementation of the i2c wireless protocal - used to communicate with all of the sensors on the Mblocks
 #include <painlessMesh.h>
-#include <ArduinoHardware.h>      // Unsure of what this does, but it seemed like a good idea to keep it in here...
+//#include <ArduinoHardware.h>      // Unsure of what this does, but it seemed like a good idea to keep it in here...
+#include <arduino.h>
 #include "initialization.h"       // Includes .h files for each of the "tabs" in arduino
 #include "Cube.h"     // Includes .h files for each of the "tabs" in arduino
 #include "Face.h"     // Includes .h files for each of the "tabs" in arduino
@@ -31,58 +32,30 @@ void setup() // Actually the main loop...
   int initialMagnetReadingOffset = c.coreMagnetAngleBuffer.access(0);
 
   Serial.print("Face Version: ");Serial.println(faceVersion);
-  while(millis() < c.shutDownTime)
-  {
-   //c.updateBothIMUs();
-   //c.updateCoreMagnetSensor();
-   
-//   String newmsg = "Angle: " + String(c.coreMagnetAngleBuffer.access(0) - initialMagnetReadingOffset)
-//   + " core.ax: " + String(c.axCoreBuffer.access(0))
-//   + " core.ay: " + String(c.ayCoreBuffer.access(0))
-//   + " core.az: " + String(c.azCoreBuffer.access(0))
-//   + " Frame.ax: " + String(c.axFrameBuffer.access(0))
-//   + " Frame.ay: " + String(c.ayFrameBuffer.access(0))
-//   + " Frame.az: " + String(c.azFrameBuffer.access(0))
-//   + " CoreMagAGC: " + String(c.coreMagnetStrengthBuffer.access(0));
-   
-   //Serial.print("Angle: ");Serial.print(c.coreMagnetAngleBuffer.access(0));Serial.print(" Magnitude: ");Serial.println(c.coreMagnetStrengthBuffer.access(0));
-   //String newmsg = "Angle: ";
-   //mesh.sendBroadcast(newmsg);
-   for(int i = 0; i < 6; i++)
-   {
-    delay(10);
-    if(c.faces[i].updateFace())
+  ///////////////////////ACTUAL LOOP////////////////////
+  while(millis() < c.shutDownTime && !(c.numberOfNeighbors(0,0)))
     {
-   //Serial.print("Ambient Value on face "); Serial.print(i); Serial.print(": "); Serial.println(c.faces[i].returnAmbientValue(0));
-   if((c.faces[i].returnMagnetStrength_B(0) < 255) && (c.faces[i].returnMagnetStrength_A(0) < 255) && (c.faces[i].returnMagnetStrength_A(0) != 0))
-    {Serial.print("HEY!!");Serial.println(c.lightFace(i));}
-   else if((c.faces[i].returnMagnetStrength_B(1) < 255) && (c.faces[i].returnMagnetStrength_B(0) > 254)){c.lightFace(i,0,0,0);}
+       
+      c.updateSensors();
+      int brightestFace = c.returnXthBrightestFace(0);
+      if(c.returnXthBrightestFace(0) == c.returnTopFace()) // now brightest Face now excludes the top face
+      {
+        brightestFace = c.returnXthBrightestFace(1);
+      }
+      
+      c.lightFace(brightestFace,0,1,1);
+      delay(500);
+           if(brightestFace == c.returnForwardFace()) 
+           {Serial.println("bldcspeed f 6000");c.blockingBlink(0,1,0);delay(3000);Serial.println("bldcstop b");}
+      else if(brightestFace == c.returnReverseFace()) 
+      {Serial.println("bldcspeed r 6000");c.blockingBlink(1,0,0);delay(3000);Serial.println("bldcstop b");}
+      else if(c.returnForwardFace() == c.returnXthBrightestFace(2)){Serial.println("bldcspeed f 6000");c.blockingBlink(0,1,0);delay(3000);Serial.println("bldcstop b");}              
+      else if(c.returnReverseFace() == c.returnXthBrightestFace(2)){Serial.println("bldcspeed r 6000");c.blockingBlink(1,0,0);delay(3000);Serial.println("bldcstop b");}
+      else  {Serial.println("bldcaccel f 6000 2000"); delay(2000); Serial.println("bldcstop b");delay(5000);}
     }
-//    c.lightFace(i);
-//    c.faces[i].enableSensors();
-//    c.faces[i].turnOnFaceLEDs();
-//    c.faces[i].updateAmbient();
-//    Serial.print("Ambient Value on face "); Serial.print(i); Serial.print(": "); Serial.println(c.faces[i].returnAmbientValue(0));
-//    delay(300);
-//    c.faces[i].turnOffFaceLEDs();
-//    c.faces[i].disableSensors();
-   }
-   
-   delay(1000);
-   
-//   Serial.println(c.returnTopFace());
-//   Serial.print("IMU_ax: ");Serial.println(c.axFrameBuffer.access(0));
-//   Serial.print("IMU_ay: ");Serial.println(c.ayFrameBuffer.access(0));
-//   Serial.print("IMU_az: ");Serial.println(c.azFrameBuffer.access(0));
-   //Serial.print("IMU_gx: ");Serial.println(c.gxFrameBuffer.access(0));
-   //Serial.print("IMU_gy: ");Serial.println(c.gyFrameBuffer.access(0));
-   //Serial.print("IMU_gz: ");Serial.println(c.gzFrameBuffer.access(0));
-   
-   // c.lightFace(c.returnTopFace());
-   // delay(100);
-  }
+  c.blockingBlink(0,0,1,30,200);
   c.shutDown();    
-   
+  ///////////////////////ACTUAL LOOP////////////////////
   while(1)
   {
          if (behavior == "soloSeekLight") {soloSeekLight();}
