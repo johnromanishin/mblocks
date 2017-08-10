@@ -1,5 +1,6 @@
 #include "Motion.h"
-#include <ArduinoHardware.h>
+#include <Arduino.h>
+//#include <ArduinoHardware.h>
 
 
 bool roll(bool forwardOrReverse, int flywheelRPM, int wait)

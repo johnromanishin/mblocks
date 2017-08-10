@@ -4,7 +4,8 @@
 // The classes we define here are the cube, the face, and the sensor.
 #include "defines.h"
 #include "CBuff.h"
-#include <ArduinoHardware.h>
+#include <Arduino.h>
+//#include <ArduinoHardware.h>
 
 class Face
 { 

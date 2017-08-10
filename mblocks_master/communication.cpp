@@ -1,4 +1,5 @@
-#include <ArduinoHardware.h>
+//#include <ArduinoHardware.h>
+#include <Arduino.h>
 #include <painlessMesh.h>         // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
 #include "communication.h"
 

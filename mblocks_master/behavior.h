@@ -1,7 +1,8 @@
 #ifndef BEHAVIOR_H
 #define BEHAVIOR_H
 
-#include <ArduinoHardware.h>
+#include <Arduino.h>
+//#include <ArduinoHardware.h>
 
 // We wish to define four behaviors, in order of coding priority:
 //  1. Step toward a light source, solo

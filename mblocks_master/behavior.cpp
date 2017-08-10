@@ -5,7 +5,8 @@
 //  4. Step in a direction provided via external communication (WiFi)
   
 #include "behavior.h"
-#include <ArduinoHardware.h>
+#include <Arduino.h>
+//#include <ArduinoHardware.h>
 
     
 void followArrows()

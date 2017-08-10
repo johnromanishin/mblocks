@@ -3,8 +3,9 @@
 #include "defines.h"
 #include "classDefinitions.h"
 #include "sensation.h"
-#include <Wire.h> 
-#include <ArduinoHardware.h>
+#include <Wire.h>
+#include <Arduino.h>
+//#include <ArduinoHardware.h>
 
 Cube::Cube()
 {

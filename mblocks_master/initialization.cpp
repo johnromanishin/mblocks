@@ -1,4 +1,5 @@
-#include <ArduinoHardware.h>
+#include <Arduino.h>
+//#include <ArduinoHardware.h>
 #include "initialization.h"
 #include "communication.h"
 #include <Wire.h>  

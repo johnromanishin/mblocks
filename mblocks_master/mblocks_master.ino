@@ -6,7 +6,8 @@
 
 #include <Wire.h>                 // Arduino's implementation of the i2c wireless protocal - used to communicate with all of the sensors on the Mblocks
 #include <painlessMesh.h>
-#include <ArduinoHardware.h>      // Unsure of what this does, but it seemed like a good idea to keep it in here...
+#include <Arduino.h>
+//#include <ArduinoHardware.h>      // Unsure of what this does, but it seemed like a good idea to keep it in here...
 #include "initialization.h"       // Includes .h files for each of the "tabs" in arduino
 #include "classDefinitions.h"     // Includes .h files for each of the "tabs" in arduino
 #include "CBuff.h"                // Includes .h files for each of the "tabs" in arduino

@@ -1,8 +1,9 @@
 #ifndef COMMUNICATION_H 
 #define COMMUNICATION_H
 
+#include <Arduino.h>
 #include <painlessMesh.h>         // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
-#include <ArduinoHardware.h>
+//#include <ArduinoHardware.h>
 
 extern painlessMesh  mesh;
 
