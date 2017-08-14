@@ -1,5 +1,5 @@
 #include <Wire.h>
-#include "sensation.h"
+#include "Sensation.h"
 
 int readAmbient(int address)
 {

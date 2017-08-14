@@ -1,5 +1,5 @@
 #include <painlessMesh.h>         // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
-#include "communication.h"
+#include "Communication.h"
 
 #define   BLINK_PERIOD    3000000 // microseconds until cycle repeat
 #define   BLINK_DURATION  100000  // microseconds LED is on for
