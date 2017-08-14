@@ -12,7 +12,6 @@
 #include "behavior.h"
 #include "Cube.h"
 #include "face.h"
-
     
 void followArrows()
 {

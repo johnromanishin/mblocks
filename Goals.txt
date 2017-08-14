@@ -1,0 +1,15 @@
+* More General Goals for M-Blocks *
+
+	
+1. Write Magnetic sensor processing code
+2. Movement Verification and Command framework
+	a. Serial Verification
+	b. IMU integration
+3. Write arrow following behavior
+4. Write "Virtual Arrow Following" 
+5. Test Plane changing verification
+6. Develop Calibration calibration
+7. Test arduino JSon Wifi stuff
+8. Test infrared tracking
+9. 
+10. 
