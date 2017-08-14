@@ -1,7 +1,7 @@
 #ifndef INITIALIZATION_H
 #define INITIALIZATION_H
 
-#include <arduino.h>
+//#include <arduino.h>
 
 
 void initializeCube();

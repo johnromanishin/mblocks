@@ -2,7 +2,7 @@
 #define CIRCULAR_BUFFER_H
 
 #include "defines.h"
-#include <arduino.h>
+//#include <arduino.h>
 
 
 template<class T>

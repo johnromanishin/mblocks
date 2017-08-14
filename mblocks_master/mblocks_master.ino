@@ -7,7 +7,7 @@
 #include <Wire.h>                 // Arduino's implementation of the i2c wireless protocal - used to communicate with all of the sensors on the Mblocks
 #include <painlessMesh.h>
 //#include <ArduinoHardware.h>      // Unsure of what this does, but it seemed like a good idea to keep it in here...
-#include <arduino.h>
+//#include <arduino.h>
 #include "initialization.h"       // Includes .h files for each of the "tabs" in arduino
 #include "Cube.h"     // Includes .h files for each of the "tabs" in arduino
 #include "Face.h"     // Includes .h files for each of the "tabs" in arduino
@@ -58,7 +58,7 @@ void setup() // Actually the main loop...
   ///////////////////////ACTUAL LOOP////////////////////
   while(1)
   {
-         if (behavior == "soloSeekLight") {soloSeekLight();}
+         if (behavior == "soloSeekLight") {soloSeekLight(&c);}
     else if (behavior == "duoSeekLight")  {duoSeekLight();}
     else if (behavior == "followArrows")  {followArrows();}
     

@@ -3,12 +3,15 @@
 //  2. Step toward a light source, in tandem with an adjacent block
 //  3. Step in the direction of an arrow, provided on an adjacent face
 //  4. Step in a direction provided via external communication (WiFi)
-  
+
+#include "initialization.h"       // Includes .h files for each of the "tabs" in arduino
+#include "Cube.h"     // Includes .h files for each of the "tabs" in arduino
+#include "Face.h"     // Includes .h files for each of the "tabs" in arduino
+#include "CBuff.h"                // Includes .h files for each of the "tabs" in arduino
+#include "communication.h"        // Includes wifi 
 #include "behavior.h"
-#include "defines.h"
 #include "Cube.h"
-#include "Face.h"
-#include "communication.h"
+#include "face.h"
 
     
 void followArrows()
@@ -18,34 +21,35 @@ void followArrows()
 // ebrake //////
 }
 
-void soloSeekLight()
+void soloSeekLight(Cube* c)
 {
-while(millis() < c.shutDownTime)
-    c.updateSensors();
-    if(c.numberOfNeighbors(0,0))
+  while(millis() < c->shutDownTime)
+  {
+    c->updateSensors();
+    if(c->numberOfNeighbors(0,0))
       {
         break;
       }
-    int brightestFace = c.returnXthBrightestFace(0);
-    if(c.returnXthBrightestFace(0) == c.returnTopFace()) // now brightest Face now excludes the top face
+    int brightestFace = c->returnXthBrightestFace(0);
+    if(c->returnXthBrightestFace(0) == c->returnTopFace()) // now brightest Face now excludes the top face
       {
-        brightestFace = c.returnXthBrightestFace(1);
+        brightestFace = c->returnXthBrightestFace(1);
       }  
-      c.lightFace(brightestFace,0,1,1);
+      c->lightFace(brightestFace,0,1,1);
       delay(500);
-      if(brightestFace == c.returnForwardFace()) 
-          {Serial.println("bldcspeed f 6000");c.blockingBlink(0,1,0);delay(3000);Serial.println("bldcstop b");}
-      else if(brightestFace == c.returnReverseFace()) 
-          {Serial.println("bldcspeed r 6000");c.blockingBlink(1,0,0);delay(3000);Serial.println("bldcstop b");}
-      else if(c.returnForwardFace() == c.returnXthBrightestFace(2))
-          {Serial.println("bldcspeed f 6000");c.blockingBlink(0,1,0);delay(3000);Serial.println("bldcstop b");}              
-      else if(c.returnReverseFace() == c.returnXthBrightestFace(2))
-          {Serial.println("bldcspeed r 6000");c.blockingBlink(1,0,0);delay(3000);Serial.println("bldcstop b");}
+      if(brightestFace == c->returnForwardFace()) 
+          {Serial.println("bldcspeed f 6000");c->blockingBlink(0,1,0);delay(3000);Serial.println("bldcstop b");}
+      else if(brightestFace == c->returnReverseFace()) 
+          {Serial.println("bldcspeed r 6000");c->blockingBlink(1,0,0);delay(3000);Serial.println("bldcstop b");}
+      else if(c->returnForwardFace() == c->returnXthBrightestFace(2))
+          {Serial.println("bldcspeed f 6000");c->blockingBlink(0,1,0);delay(3000);Serial.println("bldcstop b");}              
+      else if(c->returnReverseFace() == c->returnXthBrightestFace(2))
+          {Serial.println("bldcspeed r 6000");c->blockingBlink(1,0,0);delay(3000);Serial.println("bldcstop b");}
       else  
           {Serial.println("bldcaccel f 5000 1000"); delay(2000); Serial.println("bldcstop b");delay(5000);}
     }
-  c.blockingBlink(0,0,1,30,200);
-  c.shutDown(); 
+  c->blockingBlink(0,0,1,30,200);
+  c->shutDown(); 
 }
 
 void duoSeekLight()

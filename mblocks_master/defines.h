@@ -1,7 +1,7 @@
 #ifndef DEFINES
 #define DEFINES
 
-#include <arduino.h>
+//#include <arduino.h>
 
 // Global Variables:
 #define FACES 6
