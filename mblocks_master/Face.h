@@ -1,13 +1,10 @@
 #ifndef FACE_H
 #define FACE_H
 
-#include "defines.h"
+#include "Defines.h"
 #include "CBuff.h"
 #include "Cube.h"
 #include <Arduino.h>
-
-//#include <ArduinoHardware.h>
-
 
 class Face
 { 

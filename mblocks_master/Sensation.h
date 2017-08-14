@@ -1,7 +1,7 @@
 #ifndef SENSATION_H
 #define SENSATION_H
 
-#include "defines.h"
+#include "Defines.h"
 #include <Arduino.h>
 
 int readAmbient(int address);

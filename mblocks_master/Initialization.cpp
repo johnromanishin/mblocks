@@ -1,6 +1,6 @@
-#include "initialization.h"
-#include "communication.h"
-#include "defines.h"
+#include "Initialization.h"
+#include "Communication.h"
+#include "Defines.h"
 #include <Wire.h>  
 
 //// Global Calibration Variables

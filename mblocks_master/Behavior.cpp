@@ -4,15 +4,14 @@
 //  3. Step in the direction of an arrow, provided on an adjacent face
 //  4. Step in a direction provided via external communication (WiFi)
 
-#include "initialization.h"       // Includes .h files for each of the "tabs" in arduino
+#include "Initialization.h"       // Includes .h files for each of the "tabs" in arduino
 #include "Cube.h"     // Includes .h files for each of the "tabs" in arduino
 #include "Face.h"     // Includes .h files for each of the "tabs" in arduino
 #include "CBuff.h"                // Includes .h files for each of the "tabs" in arduino
-#include "communication.h"        // Includes wifi 
-#include "behavior.h"
+#include "Communication.h"        // Includes wifi 
+#include "Behavior.h"
 #include "Cube.h"
-#include "face.h"
-    
+ 
 void followArrows()
 {
 // Set rmp(6000);

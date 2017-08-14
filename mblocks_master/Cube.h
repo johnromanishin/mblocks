@@ -1,10 +1,10 @@
 #ifndef CUBE_H
 #define CUBE_H
 
-#include "defines.h"
+#include "Defines.h"
 #include "CBuff.h"
 #include "Face.h"
-//#include <arduino.h>
+#include <Arduino.h>
 
 class Cube
 /*

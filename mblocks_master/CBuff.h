@@ -1,9 +1,7 @@
 #ifndef CIRCULAR_BUFFER_H
 #define CIRCULAR_BUFFER_H
-
-#include "defines.h"
-//#include <arduino.h>
-
+#include "Defines.h"
+#include <Arduino.h>
 
 template<class T>
 class CircularBuffer
@@ -51,6 +49,7 @@ T CircularBuffer<T>::access(int index)
       return(*(this->data + temp)); // return memory box accessed by current pointer
     }
 };
+
 #endif
 /**
  * int bufspace[128];

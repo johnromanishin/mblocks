@@ -1,8 +1,8 @@
 // We want to implement classes for ease of reference as we construct and modify code.
 // The classes we define here are the cube, the face.
-#include "defines.h"
+#include "Defines.h"
 #include "Cube.h"
-#include "sensation.h"
+#include "Sensation.h"
 #include "Face.h"
 #include <Wire.h> 
 

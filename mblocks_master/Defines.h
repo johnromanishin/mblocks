@@ -1,7 +1,7 @@
 #ifndef DEFINES
 #define DEFINES
 
-//#include <arduino.h>
+#include <Arduino.h>
 
 // Global Variables:
 #define FACES 6
@@ -21,7 +21,6 @@ extern int plane0321Magnet;
 extern int plane0425Magnet;
 extern int plane1435Magnet;
 //
-
 
 #define ARRAY_SIZEOF(x) ((sizeof(x) / sizeof(x[0])))
 
