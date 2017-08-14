@@ -45,6 +45,7 @@ class StringPacker
     char* buf;
     int charCount;
     int bitModulo;
+    const int asciiOffset;
 
   public:
     StringPacker(char*);
@@ -59,6 +60,7 @@ class StringUnpacker
     string s;
     int charCount;
     int bitModulo;
+    const int asciiOffset;
 
   public:
     StringUnpacker(string);

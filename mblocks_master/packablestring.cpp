@@ -1,9 +1,7 @@
 #include "packablestring.h"
-#include <iostream>
-using namespace std;
 
 StringPacker::StringPacker(char* b)
-    : charCount(0), bitModulo(0)
+    : charCount(0), bitModulo(0), asciiOffset(0x28)
 {
     this->buf = b;
     this->buf[0] = 0;
@@ -27,12 +25,12 @@ void StringPacker::packU8(char c)
         this->buf[this->charCount] |= temp;
 
         // Advance to the next sextet if we have filled the current one.
-        cout << "remainchar = " << remainChar << endl;
         c >>= remainChar;
         bitsleft -= remainChar;
         this->bitModulo += remainChar;
         if(this->bitModulo == 6)
         {
+            this->buf[this->charCount] += this->asciiOffset;
             this->bitModulo = 0;
             this->charCount++;
             this->buf[this->charCount] = 0;  // Clear out the next sextet
@@ -58,9 +56,9 @@ void StringPacker::packU32(int i)
         i >>= remainChar;
         bitsleft -= remainChar;
         this->bitModulo += remainChar;
-        cout << "remainchar = " << remainChar << endl;
         if(this->bitModulo == 6)
         {
+            this->buf[this->charCount] += this->asciiOffset;
             this->bitModulo = 0;
             this->charCount++;
             this->buf[this->charCount] = 0;
@@ -70,18 +68,26 @@ void StringPacker::packU32(int i)
 
 string StringPacker::str()
 {
-    return string(this->buf);
+    string ret(this->buf, this->charCount + 1);
+
+    if(this->bitModulo != 0)
+        ret[this->charCount] += this->asciiOffset;
+    return ret;
 }
 
 StringUnpacker::StringUnpacker(string str="")
-    : s(str), charCount(0), bitModulo(0){}
+    : s(str), charCount(0), bitModulo(0), asciiOffset(0x28)
+{
+    for(int i = 0; i < this->s.length(); i++)
+        this->s[i] -= this->asciiOffset;
+}
 
 void StringUnpacker::setString(string s)
 {
     this->s = s;
     this->charCount = (this->bitModulo = 0);
     for(int i = 0; i < this->s.length(); i++)
-        this->s[i] -= 0;
+        this->s[i] -= this->asciiOffset;
 }
 
 char StringUnpacker::unpackU8()
@@ -93,12 +99,11 @@ char StringUnpacker::unpackU8()
         int remainChar = 6 - this->bitModulo;
         if(remainChar > bitsleft)
             remainChar = bitsleft;
-        int maskedout = (this->s.c_str()[this->charCount] >> this->bitModulo) &
-            masks[remainChar];
+        int maskedout = (this->s.c_str()[this->charCount]) &
+            masks[remainChar - 1];
         maskedout <<= (8 - bitsleft);
 
         retchar |= maskedout;
-        cout << "remainchar = " << remainChar << endl;
         this->s[this->charCount] >>= remainChar;
         bitsleft -= remainChar;
         this->bitModulo += remainChar;
@@ -106,6 +111,8 @@ char StringUnpacker::unpackU8()
         {
             this->bitModulo = 0;
             this->charCount++;
+            if(this->charCount >= this->s.length())
+                break;
         }
     }
 
@@ -121,8 +128,8 @@ int StringUnpacker::unpackU32()
         int remainChar = 6 - this->bitModulo;
         if(remainChar > bitsleft)
             remainChar = bitsleft;
-        int maskedout = (this->s.c_str()[this->charCount] >> this->bitModulo) &
-            masks[remainChar];
+        int maskedout = (this->s.c_str()[this->charCount]) &
+            masks[remainChar - 1];
         maskedout <<= (32 - bitsleft);
 
         ret |= maskedout;
@@ -134,6 +141,8 @@ int StringUnpacker::unpackU32()
         {
             this->bitModulo = 0;
             this->charCount++;
+            if(this->charCount >= this->s.length())
+                break;
         }
     }
 
