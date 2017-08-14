@@ -7,39 +7,54 @@
 #include <Wire.h>                 // Arduino's implementation of the i2c wireless protocal - used to communicate with all of the sensors on the Mblocks
 #include <painlessMesh.h>
 #include <Arduino.h>
-//#include <ArduinoHardware.h>      // Unsure of what this does, but it seemed like a good idea to keep it in here...
 #include "initialization.h"       // Includes .h files for each of the "tabs" in arduino
-#include "classDefinitions.h"     // Includes .h files for each of the "tabs" in arduino
+#include "Cube.h"     // Includes .h files for each of the "tabs" in arduino
+#include "Face.h"     // Includes .h files for each of the "tabs" in arduino
 #include "CBuff.h"                // Includes .h files for each of the "tabs" in arduino
 #include "communication.h"        // Includes wifi 
 #include "behavior.h"
 
+//WiFi::BSSIDstr(i);
+
 String behavior = "soloSeekLight";
+Cube c; // Initialize the Cube Object c // globally so that things don't crash
 
-
-Cube c;
 void setup() // Actually the main loop...
 {
   long timer_counter = 0;
   initializeCube(); // Runs this code once to setup input/outputs, communication networks... 
-                     // (Wifi, i2c, serial) and instantiates classes/ calibration values
-  while(1)
-  {
-    for(int i = 0; i< 6; i++)
+                    // (Wifi, i2c, serial) and instantiates classes and calibration values
+  Serial.println(ESP.getChipId());
+  Serial.println("Starting Main Loop");
+  
+  c.updateCoreMagnetSensor();
+  int initialMagnetReadingOffset = c.coreMagnetAngleBuffer.access(0);
+
+  Serial.print("Face Version: ");Serial.println(faceVersion);
+  ///////////////////////ACTUAL LOOP////////////////////
+  while(millis() < c.shutDownTime && !(c.numberOfNeighbors(0,0)))
     {
-      //Serial.print(c.faces[i].IOExpanderAddress);  Serial.print("  ");
-      c.faces[i].enableSensors();
-      c.faces[i].turnOnLedA();
-      c.faces[i].updateAmbient();
-      Serial.print(c.faces[i].returnAmbientValue(0)); Serial.print("  ");
-      c.faces[i].turnOffLedA();
-      c.faces[i].disableSensors();
-      delay(1);
+       
+      c.updateSensors();
+      int brightestFace = c.returnXthBrightestFace(0);
+      if(c.returnXthBrightestFace(0) == c.returnTopFace()) // now brightest Face now excludes the top face
+      {
+        brightestFace = c.returnXthBrightestFace(1);
+      }
+      
+      c.lightFace(brightestFace,0,1,1);
+      delay(500);
+           if(brightestFace == c.returnForwardFace()) 
+           {Serial.println("bldcspeed f 6000");c.blockingBlink(0,1,0);delay(3000);Serial.println("bldcstop b");}
+      else if(brightestFace == c.returnReverseFace()) 
+      {Serial.println("bldcspeed r 6000");c.blockingBlink(1,0,0);delay(3000);Serial.println("bldcstop b");}
+      else if(c.returnForwardFace() == c.returnXthBrightestFace(2)){Serial.println("bldcspeed f 6000");c.blockingBlink(0,1,0);delay(3000);Serial.println("bldcstop b");}              
+      else if(c.returnReverseFace() == c.returnXthBrightestFace(2)){Serial.println("bldcspeed r 6000");c.blockingBlink(1,0,0);delay(3000);Serial.println("bldcstop b");}
+      else  {Serial.println("bldcaccel f 6000 2000"); delay(2000); Serial.println("bldcstop b");delay(5000);}
     }
-    Serial.println("hello");
-    delay(500);
-  }
-                    
+  c.blockingBlink(0,0,1,30,200);
+  c.shutDown();    
+  ///////////////////////ACTUAL LOOP////////////////////
   while(1)
   {
          if (behavior == "soloSeekLight") {soloSeekLight();}
@@ -63,3 +78,15 @@ void setup() // Actually the main loop...
 void loop() 
 {  
 }
+/////////// Global Variables
+int faceVersion = 1;
+int cubeID = 0;
+int planeChangeTime = 60;
+int planeChangeRPM = 5000;
+int traverseBrakeCurrent_F = 2800;
+int traverseBrakeCurrent_R = 2800;
+int cornerClimbBrakeCurrent_F = 3000;
+int cornerClimbBrakeCurrent_R = 3000;
+int plane0321Magnet = 0;
+int plane0425Magnet = 120;
+int plane1435Magnet = 240;

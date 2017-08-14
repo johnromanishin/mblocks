@@ -5,7 +5,6 @@
 #include "defines.h"
 #include "CBuff.h"
 #include <Arduino.h>
-//#include <ArduinoHardware.h>
 
 class Face
 { 

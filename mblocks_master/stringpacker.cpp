@@ -1,4 +1,4 @@
-#include "packablestring.h"
+#include "stringpacker.h"
 
 StringPacker::StringPacker(char* b)
     : charCount(0), bitModulo(0), asciiOffset(0x28)

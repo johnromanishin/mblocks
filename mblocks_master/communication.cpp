@@ -1,5 +1,3 @@
-//#include <ArduinoHardware.h>
-#include <Arduino.h>
 #include <painlessMesh.h>         // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
 #include "communication.h"
 
@@ -15,8 +13,6 @@ bool calc_delay = false;
 SimpleList<uint32_t> nodes;
 void sendMessage() ; // Prototype
 
-//Task taskSendMessage( TASK_SECOND * 1 , TASK_FOREVER, &sendMessage ); // start with a one second interval
-
 void initializeWifiMesh()
 {
     mesh.init(MESH_SSID, MESH_PASSWORD, MESH_PORT);
@@ -25,8 +21,6 @@ void initializeWifiMesh()
     mesh.onChangedConnections(&changedConnectionCallback);
     mesh.onNodeTimeAdjusted(&nodeTimeAdjustedCallback);
     mesh.onNodeDelayReceived(&delayReceivedCallback);
-   // mesh.scheduler.addTask( taskSendMessage );
-   // taskSendMessage.enable() ;
     randomSeed(analogRead(A0));
 }
 
@@ -43,8 +37,6 @@ void sendMessage() {
     }
     calc_delay = false;
   }
-  
-  //taskSendMessage.setInterval( random( TASK_SECOND * 1, TASK_SECOND * 5 ));  // between 1 and 5 seconds
 }
 
 
@@ -85,3 +77,31 @@ void nodeTimeAdjustedCallback(int32_t offset) {
 void delayReceivedCallback(uint32_t from, int32_t delay) {
   Serial.printf("Delay to node %u is %d us\n", from, delay);
 }
+
+//   Serial.println(c.returnTopFace());
+//   Serial.print("IMU_ax: ");Serial.println(c.axFrameBuffer.access(0));
+//   Serial.print("IMU_ay: ");Serial.println(c.ayFrameBuffer.access(0));
+//   Serial.print("IMU_az: ");Serial.println(c.azFrameBuffer.access(0));
+   //Serial.print("IMU_gx: ");Serial.println(c.gxFrameBuffer.access(0));
+   //Serial.print("IMU_gy: ");Serial.println(c.gyFrameBuffer.access(0));
+   //Serial.print("IMU_gz: ");Serial.println(c.gzFrameBuffer.access(0));
+   
+   // c.lightFace(c.returnTopFace());
+   // delay(100);
+   
+//
+ //c.updateBothIMUs();
+   //c.updateCoreMagnetSensor();
+   
+//   String newmsg = "Angle: " + String(c.coreMagnetAngleBuffer.access(0) - initialMagnetReadingOffset)
+//   + " core.ax: " + String(c.axCoreBuffer.access(0))
+//   + " core.ay: " + String(c.ayCoreBuffer.access(0))
+//   + " core.az: " + String(c.azCoreBuffer.access(0))
+//   + " Frame.ax: " + String(c.axFrameBuffer.access(0))
+//   + " Frame.ay: " + String(c.ayFrameBuffer.access(0))
+//   + " Frame.az: " + String(c.azFrameBuffer.access(0))
+//   + " CoreMagAGC: " + String(c.coreMagnetStrengthBuffer.access(0));
+   
+   //Serial.print("Angle: ");Serial.print(c.coreMagnetAngleBuffer.access(0));Serial.print(" Magnitude: ");Serial.println(c.coreMagnetStrengthBuffer.access(0));
+   //String newmsg = "Angle: ";
+   //mesh.sendBroadcast(newmsg);

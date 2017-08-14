@@ -1,9 +1,21 @@
-#include <Arduino.h>
-//#include <ArduinoHardware.h>
 #include "initialization.h"
 #include "communication.h"
+#include "defines.h"
 #include <Wire.h>  
 
+//// Global Calibration Variables
+//int faceVersion = 1;
+//int cubeID = 0;
+//int planeChangeTime = 60;
+//int planeChangeRPM = 5000;
+//int traverseBrakeCurrent_F = 2800;
+//int traverseBrakeCurrent_R = 2800;
+//int cornerClimbBrakeCurrent_F = 3000;
+//int cornerClimbBrakeCurrent_R = 3000;
+//int plane0321Magnet = 0;
+//int plane0425Magnet = 120;
+//int plane1435Magnet = 240;
+//// Global Variables
 
 // Hardware Pin Definitions
 #define Switch 12 // Digital Output | Switch which controlls power to the face boards,  High = power given to faceboards, Low = ability to charge
@@ -15,21 +27,10 @@ void initializeCube()
 {
   initializeHardware();
   lookUpCalibrationValues();
+  checkFaceVersion();
   initializeWifiMesh();
-  initializeClasses(1);
 }
-
-void initializeClasses(int faceVersion)
-{
-  
-}
-
 //// Smaller Functions ////
-
-void lookUpCalibrationValues()
-{
-  
-}
 
 void shutDownMasterBoard()
 {
@@ -39,25 +40,49 @@ void shutDownMasterBoard()
   }
 }
 
+void checkFaceVersion()
+/*
+ * This functions checks to see which version of the cube's Face hardware is running
+ * It will first check for version 1: Containing i2c address 0x21,
+ * Then it will check for version 0: Containing i2c address 
+ */
+  {
+    int error;
+    for(int i = 0; i < 6; i++)
+    {
+      Wire.beginTransmission(0x21);
+      error = Wire.endTransmission();  
+      if(error == 0){faceVersion = 1; return;}
+      delay(100);
+      Wire.beginTransmission(0x04);
+      error = Wire.endTransmission();  
+      if(error == 0){faceVersion = 0; return;}
+      delay(1000);
+    }
+    Serial.println("I am not connected to any face boards, going to sleep now!");
+    for(int i = 0; i < 10; i++) {Serial.println("sleep"); delay(500);}
+  }
+  
 void initializeHardware()
 {
-  delay(500);
+  Serial.begin(115200); // open serial connection to the Slave Board
+  Serial.println("stillalive");
+  delay(1000);
   pinMode(Switch, OUTPUT); // Initialize the pin to controll the power switching circuitry
   digitalWrite(Switch, LOW); // Set the power switch to be OFF - this is so that we don't disrupt charging if we are on a charging pad
   pinMode(LED, OUTPUT); // Initialize the pin to control the blinky LED
-  Serial.begin(115200); // open serial connection to the Slave Board
   Wire.begin(SDA, SCL); // Begin Two Wire Bus (i2c) to contact all of the sensors
   
   int timesToCheck = 2; // We need to verify that the cube is not being charged at startup, we do this by asking
-  for(int i = 0; i++; i < timesToCheck)
+  for(int i = 0; i < timesToCheck; i++)
   {
     if (inputVoltage() > 3400) {
       shutDownMasterBoard(); // This turns off ESP if we are on a charging pad - checks three times
-      delay(300);
+      delay(500);
     }
   }
   disableAutoReset();
-  digitalWrite(Switch, HIGH); // turns on power to the 
+  digitalWrite(Switch, HIGH); // turns on power to the Boards
 }
 
 void disableAutoReset() // this tells the slave board not to accidently turn off its power, it prints it three times incase it is lost
@@ -101,4 +126,64 @@ int inputVoltage()
     previousCharacter = currentCharacter;
   }
   return 0;
+}
+
+int get_battery_voltage()
+  {
+    int vbat[4];
+    long begin_function = millis();
+    while(Serial.available()){Serial.read();} // empty serial buffer just in case...
+    delay(3);
+    Serial.println("vbat");
+    delay(23);
+    char prev_char = ' ';
+    String temp_string = "";
+    int battery_counter = 1;
+    while (Serial.available() > 0 && (millis()-begin_function) < 60) // while there are things in the serial buffer...
+    {
+        char c = Serial.read();
+        if(c == ' ' && prev_char == ':')
+          {
+              for(int i = 0; i < 4; i++)
+                  {
+                  char a = Serial.read();
+                  delayMicroseconds(250);
+                  if(isDigit(a)){temp_string += a;}
+                  } 
+              if(battery_counter == 1){vbat[1] = temp_string.toInt();}
+              else if(battery_counter == 2){vbat[2] = temp_string.toInt();}
+              else if(battery_counter == 3){vbat[3] = temp_string.toInt();}
+              else if(battery_counter == 4){vbat[4] = temp_string.toInt();}
+              battery_counter++;
+              temp_string = ""; 
+          }
+        delayMicroseconds(200);
+        prev_char = c;
+    }
+  vbat[0] = (vbat[1]+vbat[2]+vbat[3]+vbat[4])/4;
+  return (vbat[0]);
+}
+
+void lookUpCalibrationValues()
+{
+  switch (ESP.getChipId()) 
+  {
+    case 9086927:
+      Serial.println("WOOO!");
+      cubeID = 0;
+      planeChangeTime = 60;
+      planeChangeRPM = 5000;
+      traverseBrakeCurrent_F = 2800;
+      traverseBrakeCurrent_R = 2800;
+      cornerClimbBrakeCurrent_F = 3000;
+      cornerClimbBrakeCurrent_R = 3000;
+      plane0321Magnet = 0;
+      plane0425Magnet = 120;
+      plane1435Magnet = 240;
+      break;
+    case 2:
+    
+      break;
+    break;
+  }
 }

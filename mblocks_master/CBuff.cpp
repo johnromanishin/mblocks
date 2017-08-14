@@ -1,4 +1,5 @@
-#if 0 
+#include "CBuff.h"
+
 template<typename T>
 CircularBuffer<T>::CircularBuffer(int capacity, T* data)
 {
@@ -31,7 +32,6 @@ T CircularBuffer<T>::access(int index)
       return(*(this->data + temp)); // return memory box accessed by current pointer
     }
 };
-#endif
 /**
  * int bufspace[128];
  * CircularBuffer<int> cb(128, &bufspace[0]);
