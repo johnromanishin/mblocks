@@ -11,8 +11,7 @@
 #include "Communication.h"        // Includes wifi 
 #include "Behavior.h"
 #include "Cube.h"
-
-    
+ 
 void followArrows()
 {
 // Set rmp(6000);
