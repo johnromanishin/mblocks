@@ -38,6 +38,6 @@ typedef struct SerialResponsePairing
 
 extern const SerialResponsePairing pairings[];
 
-SerialResponse pushNewChar(SerialDecoderBuffer*, int);
+SerialResponse pushNewChar(SerialDecoderBuffer*);
 
 #endif

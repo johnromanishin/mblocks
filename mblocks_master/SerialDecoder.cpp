@@ -1,4 +1,5 @@
-#include "serial_decoder.h"
+#include "SerialDecoder.h"
+#include <Arduino.h>
 #include <cstring>
 
 const SerialResponsePairing pairings[] =
@@ -18,19 +19,29 @@ const SerialResponsePairing pairings[] =
     {0, RESPONSE_NONE_YET}
 };
 
-SerialResponse pushNewChar(SerialDecoderBuffer* b, int newByte)
+/**
+ * char storage[256];
+ * SerialDecoderBuffer buf = {storage, 256, 0};
+ * SerialResponse resp = pushNewChar(&buf);
+ * 
+ * if(resp != RESPONSE_NONE_YET)
+ * {
+ *   //do something
+ * }
+ */
+SerialResponse pushNewChar(SerialDecoderBuffer* b)
 {
     SerialResponse retval = RESPONSE_NONE_YET;
     int hasresult = 0;
-    //while((Serial.available() > 0) && (hasresult == 0))
-    //while(hasresult == 0)
+    while((Serial.available() > 0) && (hasresult == 0))
     {
-        //int newByte = Serial.read();
+        int newByte = Serial.read();
         if(newByte >= 0)
         {
             // add the new character
-            b->c[b->size++] = (char)newByte;
-
+            b->c[b->size] = (char)newByte;
+            b->size++;
+            
             // if we have reached an \r\n, search the list.
             if((b->size >= 2) && (b->c[b->size - 1] == '\n') &&
                (b->c[b->size - 2] == '\r'))
@@ -38,7 +49,7 @@ SerialResponse pushNewChar(SerialDecoderBuffer* b, int newByte)
                 // search the list.  If we find something, set the hasresult
                 // flag and store the corresponding enum in our return value.
                 int found_valid_string = 0;
-                for(int i = 0; pairings[i].c; i++)
+                for(int i = 0; (pairings[i].c != ((const char*)0)); i++)
                 {
                     if(strncmp(pairings[i].c, b->c, b->size) == 0)
                     {

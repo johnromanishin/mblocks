@@ -2,7 +2,7 @@
 
 StringPacker::StringPacker(char* b)
     : charCount(0), bitModulo(0), asciiOffset(0x28)
-{
+{    
     this->buf = b;
     this->buf[0] = 0;
 }

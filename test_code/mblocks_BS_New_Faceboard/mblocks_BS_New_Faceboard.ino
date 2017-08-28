@@ -65,6 +65,7 @@ int16_t AcX,AcY,AcZ,Tmp,GyX,GyY,GyZ, AcX_c, AcY_c, AcZ_c; // Variables from all 
 
 // Special Bytes
 byte all_high                  = B11111111;
+byte all_low                   = B00000000;
 byte sensors_active            = B11110111;
 byte purple                    = B11001001;
 byte green                     = B11110110;
@@ -165,7 +166,7 @@ void setup()
     delay(2000);
     Serial.print("ID NUMBER IS: ");Serial.println(IDnumber);
     delay(500);
-    Serial.println("sma retract 8000");
+    //Serial.println("sma retract 8000");
     delay(400);
     digitalWrite(LED, LOW);
     //for(int i = 0; i < 60; i++){check_5048_frame(); delay(400);}
@@ -188,14 +189,27 @@ void loop()
 //if(loop_counter%10 == 0){reset_faces_power();}
 //blink_and_shout();
 //shift_and_update_IMU();
-if(millis() > timer_counter)
-  {
-    String msg_new = "";
-    msg_new = (("Cube ID: ") + String(msg_id) + " Sensor Magnitude: " +String(read_5048_agc(address4)) + "   Angle: " + String(read_5048_angle(address4)/45.5) + "  ");
-    timer_counter += 1000;
-    mesh.sendBroadcast(msg_new);
-  }
-mesh.update();
+all_faces_everything_on();
+delay(100);
+Serial.print("Infrared: ");Serial.println(read_infrared());
+Serial.print("AMBIENT : ");Serial.println(read_ambient());
+delay(1000);
+all_faces_everything_off();
+delay(1000);
+//Serial.print("Infrared: ");Serial.println(read_infrared());
+//Serial.print("AMBIENT : ");Serial.println(read_ambient());
+//delay(1000);
+//all_faces_everything_on();
+//
+//if(millis() > timer_counter)
+//  {
+//    
+//    String msg_new = "";
+//    msg_new = (("Cube ID: ") + String(msg_id) + " Sensor Magnitude: " +String(read_5048_agc(address4)) + "   Angle: " + String(read_5048_angle(address4)/45.5) + "  ");
+//    timer_counter += 1000;
+//    mesh.sendBroadcast(msg_new);
+//  }
+//mesh.update();
 }
 
 //for(int face = 1; face < 7; face++)
@@ -298,8 +312,37 @@ void reset_faces_power()
 //  delay(60);
   all_faces_everything_off();
 }
+
+void all_faces_everything_on()
+{   
+    F1B1 = all_low;
+    F1B1 = all_low;
+    F1B1 = all_low;
+    F1B1 = all_low;
+    F1B1 = all_low;
+    F1B1 = all_low;
+    
+    F1B2 = all_low;
+    F2B2 = all_low;
+    F3B2 = all_low;
+    F4B2 = all_low;
+    F5B2 = all_low;
+    F6B2 = all_low;
+  for(int face = 1; face < 7; face++)
+  {
+    write_face(face);
+  }
+}
+
 void all_faces_everything_off()
 {
+    F1B1 = all_high;
+    F1B1 = all_high;
+    F1B1 = all_high;
+    F1B1 = all_high;
+    F1B1 = all_high;
+    F1B1 = all_high;
+    
     F1B2 = all_high;
     F2B2 = all_high;
     F3B2 = all_high;
@@ -366,6 +409,24 @@ int read_expander(int address)
   return reading;
 }
 
+int read_infrared()
+{
+  activate_light_sensor();
+  delay(15);
+  int reading = 0;
+  Wire.beginTransmission(byte(light_address)); 
+  Wire.write(byte(0x8E)); // this is the register where the Ambient values are stored
+  Wire.endTransmission();
+  Wire.requestFrom(byte(light_address), 2);
+  if (2 <= Wire.available()) //ambientLight  = twiBuf[0] << 2;
+  {
+    reading = Wire.read();
+    reading |= Wire.read()<<8;
+  }
+  //Serial.println(reading);
+  return reading;
+}
+
 int read_ambient()
 {
   activate_light_sensor();
@@ -380,7 +441,7 @@ int read_ambient()
     reading = Wire.read();
     reading |= Wire.read()<<8;
   }
-  Serial.println(reading);
+  //Serial.println(reading);
   return reading;
 }
 

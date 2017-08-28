@@ -6,6 +6,8 @@
 #include "Face.h"
 #include <Arduino.h>
 
+typedef enum PlaneEnum {plane0123, plane0425, plane1453, planeNone} PlaneEnum;
+
 class Cube
 /*
  * Cube class is the object for the cube itself
@@ -86,6 +88,7 @@ class Cube
     int returnForwardFace();
     int returnReverseFace();
     int returnTopFace();
+    PlaneEnum findLikelyPlane();
     
     void shutDown();                   // Turns off the entire cube
     //

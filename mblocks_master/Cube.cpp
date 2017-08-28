@@ -5,6 +5,7 @@
 #include "Sensation.h"
 #include "Face.h"
 #include <Wire.h> 
+#include <stdint.h>
 
 //PLANE_0321  PLANE_0425  PLANE_1534 
 
@@ -307,8 +308,8 @@ bool Cube::lightCube(bool r, bool g, bool b)
   {
     for(int i = 0; i < 4; i++)
     {
-    this->CornerRGB(1,0,r,g,b);
-    this->CornerRGB(1,1,r,g,b);
+    this->CornerRGB(i,0,r,g,b);
+    this->CornerRGB(i,1,r,g,b);
     }
     return(true);
   }
@@ -568,5 +569,93 @@ void Cube::printOutDebugInformation()
       Serial.print("Forward Face: ");Serial.println(this->returnForwardFace());
       Serial.print("Brightest Face: ");Serial.println(this->returnXthBrightestFace(0));
       Serial.println("2nd Brightest Face: ");Serial.println(this->returnXthBrightestFace(1));
+}
+
+//////////////////////////////////////////////////
+//  Core orientation detection                  //
+//////////////////////////////////////////////////
+#define ROOT2OVER2Q15_16 46341
+#define ONE_Q15_16 65536
+#define Q15_16_TO_DOUBLE(x) (((double)x) / (65536.0))
+
+/**
+ * 0, 120, -120
+ */
+static const int32_t rotationMatricies[3][3][3] =
+{
+    {{                0,                0,       ONE_Q15_16},
+     {-ROOT2OVER2Q15_16, ROOT2OVER2Q15_16,                0},
+     {-ROOT2OVER2Q15_16,-ROOT2OVER2Q15_16,                0}},
+
+    {{ ROOT2OVER2Q15_16, ROOT2OVER2Q15_16,                0},
+     {                0,                0,      -ONE_Q15_16},
+     {-ROOT2OVER2Q15_16, ROOT2OVER2Q15_16,                0}},
+
+    {{ ROOT2OVER2Q15_16,-ROOT2OVER2Q15_16,                0},
+     {-ROOT2OVER2Q15_16,-ROOT2OVER2Q15_16,                0},
+     {                0,                0,      -ONE_Q15_16}}
+};
+
+static PlaneEnum planeEnumMap[] = {plane0123, plane0425, plane1453};
+
+/**
+ * Multiplies two Q15.16 matricies.  R should be 3x3 and V should be should
+ * be 1x3.
+ */
+static void apply_3x3_mult(const int32_t* R, const int32_t* V, int32_t* target)
+{
+    for(int i = 0; i < 3; i++)
+    {
+        target[i] = 0;
+        for(int j = 0; j < 3; j++)
+            target[i] += (V[j] * R[j + (3 * i)]) / (65536);
+    }
+}
+
+static int32_t vector_distance_squared(const int32_t* a, const int32_t* b)
+{
+    int32_t accum = 0;
+    for(int i = 0; i < 3; i++)
+        accum += ((a[i] - b[i]) * (a[i] - b[i])) / (65536);
+
+    return accum;
+}
+
+/**
+ * We expect raw, signed 14-bit accelerometer readings
+ */
+PlaneEnum Cube::findLikelyPlane()
+{
+  this->updateBothIMUs();
+  int32_t coreAccel[3] =  {this->axCoreBuffer.access(0), this->ayCoreBuffer.access(0),
+                           this->azCoreBuffer.access(0)};
+  int32_t frameAccel[3] = {this->axFrameBuffer.access(0), this->ayFrameBuffer.access(0),
+                          this->azFrameBuffer.access(0)};
+
+  int32_t transformed[3][3];
+  int32_t distance[3];
+
+  //test each of the rotation matricies.  Store all results for debug purposes.
+  for(int i = 0; i < 3; i++)
+  {
+    apply_3x3_mult(&rotationMatricies[i][0][0], coreAccel, &transformed[i][0]);
+    distance[i] = vector_distance_squared(&transformed[i][0], frameAccel);
+  }
+
+  int mindist = distance[0];
+  int minidx = 0;
+  for(int i = 1; i < 3; i++)
+  {
+    if(distance[i] < mindist)
+    {
+      minidx = i;
+      mindist = distance[i];
+    }
+  }
+
+  Serial.print("Mindist = ");
+  Serial.println(mindist);
+  
+  return planeEnumMap[minidx];
 }
 

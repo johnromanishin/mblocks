@@ -22,6 +22,17 @@ extern int plane0425Magnet;
 extern int plane1435Magnet;
 //
 
+// Behaviors
+
+typedef enum Behavior
+{
+ SOLO_LIGHT_TRACK,
+ DUO_LIGHT_TRACK,
+ FOLLOW_ARROWS,
+ TEST_TESTING_THANGS,
+ CHILLING
+} Behavior;
+
 #define ARRAY_SIZEOF(x) ((sizeof(x) / sizeof(x[0])))
 
 // Face board pins
@@ -40,5 +51,7 @@ extern int plane1435Magnet;
 #define FB_B2 2
 #define FB_R2 1
 #define FB_G2 0
+
+
 
 #endif

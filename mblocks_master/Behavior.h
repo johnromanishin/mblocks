@@ -1,19 +1,48 @@
 #ifndef BEHAVIOR_H
 #define BEHAVIOR_H
 
+#include "Cube.h"
+#include "SerialDecoder.h"
+////////////////////////////////////////////////////////////////////////////////////
+// I. Behaviors involving non lattice connected Cubes or small mobile assemblies////
+////////////////////////////////////////////////////////////////////////////////////
+Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf); 
+/*        --- What it does ---
+ * 0. Updated sensors and checks if exit conditions are met
+ * 1. Determine which face is the brightest
+ * 2. Attempts to Moves towards the brightest face
+ *        --- Exit Conditions ---
+ * a. Checks if it is attached to a lattice (c->numberOfNeighbors > 0) >>>> Lattice Behavior 
+ * b. Checks to see if it has tried and failed to move repeaditly      >>>> Lattice alignment Behavior 
+ */
 
+Behavior latticeAlign(Cube* c, SerialDecoderBuffer* buf);
+/*        --- What it does ---
+ * 0. Updated sensors and checks if exit conditions are met
+ * 1. Attempts to roll forward/ backwards... Checks gyro sensor to see if we have rolled
+ * 2. Attemps to Aligns flywheel to be parallal to the ground
+ * 3. Performs several actuation events to attempt to join the lattice.
+ *        --- Exit Conditions ---
+ * a. Checks if it is attached to a lattice (c->numberOfNeighbors > 0) >>>> Lattice Behavior 
+ * b. Checks to see if it has tried and failed to move repeaditly      >>>> go to sleep 
+ */
 
+/////////////////////////////////////////////////////////
+// II. Behaviors Cubes connected on a large lattice////
+/////////////////////////////////////////////////////////
+Behavior duoSeekLight();
 
-// We wish to define four behaviors, in order of coding priority:
-//  1. Step toward a light source, solo
-//  2. Step toward a light source, in tandem with an adjacent block
-//  3. Step in the direction of an arrow, provided on an adjacent face
-//  4. Step in a direction provided via external communication (WiFi)
+// Lattice Related 
 
-void followArrows();
+Behavior crystolLattice();
 
-void soloSeekLight(Cube* c);
+Behavior chilling();
 
-void duoSeekLight();
+Behavior followArrows();
+
+//////////////////////////////
+// III. Misc. Behaviors   ////
+//////////////////////////////
+Behavior testTestingThangs(SerialDecoderBuffer* buf);
 
 #endif

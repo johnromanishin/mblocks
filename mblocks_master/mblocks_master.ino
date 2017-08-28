@@ -7,77 +7,65 @@
 #include <Wire.h>                 // Arduino's implementation of the i2c wireless protocal - used to communicate with all of the sensors on the Mblocks
 #include <painlessMesh.h>
 #include <Arduino.h>
+#include "Defines.h"
 #include "Initialization.h"       // Includes .h files for each of the "tabs" in arduino
-#include "Cube.h"     // Includes .h files for each of the "tabs" in arduino
-#include "Face.h"     // Includes .h files for each of the "tabs" in arduino
+#include "Cube.h"                 // Includes .h files for each of the "tabs" in arduino
+#include "Face.h"                 // Includes .h files for each of the "tabs" in arduino
 #include "CBuff.h"                // Includes .h files for each of the "tabs" in arduino
 #include "Communication.h"        // Includes wifi 
 #include "Behavior.h"
+#include "SerialDecoder.h"
 
 //WiFi::BSSIDstr(i);
 
-String behavior = "soloSeekLight";
+Behavior behavior = SOLO_LIGHT_TRACK; // initial Behavior Cube impliments
 Cube c; // Initialize the Cube Object c // globally so that things don't crash
+char storage[256];    
+SerialDecoderBuffer buf = {storage, 256, 0}; //Struct used to detect serial messages from Kyles Board 
 
 void setup() // Actually the main loop...
 {
-  long timer_counter = 0;
+  int loopCounter = 0;
+  long timerCounter = 0; // start time
   initializeCube(); // Runs this code once to setup input/outputs, communication networks... 
                     // (Wifi, i2c, serial) and instantiates classes and calibration values
-  Serial.println(ESP.getChipId());
-  Serial.println("Starting Main Loop");
-  
-  c.updateCoreMagnetSensor();
-  int initialMagnetReadingOffset = c.coreMagnetAngleBuffer.access(0);
-
-  Serial.print("Face Version: ");Serial.println(faceVersion);
+  c.updateSensors(); // populates initial readings for variables such as which face is up, and # of neighbors  
+  if(c.numberOfNeighbors() > 0)
+  behavior = TEST_TESTING_THANGS;                  
+  //Serial.println(ESP.getChipId());
+  Serial.println("Starting Main Loop"); 
   ///////////////////////ACTUAL LOOP////////////////////
-  while(millis() < c.shutDownTime && !(c.numberOfNeighbors(0,0)))
+  while(millis() < c.shutDownTime)
+  { 
+    if(behavior == SOLO_LIGHT_TRACK)    
+      behavior = soloSeekLight(&c, &buf);
+    else if(behavior == DUO_LIGHT_TRACK)
+      behavior = duoSeekLight();
+    else if (behavior == FOLLOW_ARROWS)
+      behavior = followArrows(); 
+    else if (behavior == TEST_TESTING_THANGS)
+      behavior = testTestingThangs(&buf);
+        
+    if(millis() > timerCounter)
     {
-       
-      c.updateSensors();
-      int brightestFace = c.returnXthBrightestFace(0);
-      if(c.returnXthBrightestFace(0) == c.returnTopFace()) // now brightest Face now excludes the top face
-      {
-        brightestFace = c.returnXthBrightestFace(1);
-      }
-      
-      c.lightFace(brightestFace,0,1,1);
-      delay(500);
-           if(brightestFace == c.returnForwardFace()) 
-           {Serial.println("bldcspeed f 6000");c.blockingBlink(0,1,0);delay(3000);Serial.println("bldcstop b");}
-      else if(brightestFace == c.returnReverseFace()) 
-      {Serial.println("bldcspeed r 6000");c.blockingBlink(1,0,0);delay(3000);Serial.println("bldcstop b");}
-      else if(c.returnForwardFace() == c.returnXthBrightestFace(2)){Serial.println("bldcspeed f 6000");c.blockingBlink(0,1,0);delay(3000);Serial.println("bldcstop b");}              
-      else if(c.returnReverseFace() == c.returnXthBrightestFace(2)){Serial.println("bldcspeed r 6000");c.blockingBlink(1,0,0);delay(3000);Serial.println("bldcstop b");}
-      else  {Serial.println("bldcaccel f 6000 2000"); delay(2000); Serial.println("bldcstop b");delay(5000);}
+      //face1.updateAmbient();
+      //Serial.println(face1.returnAmbientValue(0));
+      String msg_new = "";
+      msg_new = ("HEY BRO");// + String(msg_id); //+ " Sensor Magnitude: " +String(read_5048_agc(address4)) + "   Angle: " + String(read_5048_angle(address4)/45.5) + "  ");
+      timerCounter += 5000;
+      mesh.sendBroadcast(msg_new);
     }
-  c.blockingBlink(0,0,1,30,200);
-  c.shutDown();    
-  ///////////////////////ACTUAL LOOP////////////////////
-  while(1)
-  {
-         if (behavior == "soloSeekLight") {soloSeekLight(&c);}
-    else if (behavior == "duoSeekLight")  {duoSeekLight();}
-    else if (behavior == "followArrows")  {followArrows();}
-    
-    if(millis() > timer_counter)
-      {
-        //face1.updateAmbient();
-        //Serial.println(face1.returnAmbientValue(0));
-        String msg_new = "";
-        msg_new = ("HEY BRO");// + String(msg_id); //+ " Sensor Magnitude: " +String(read_5048_agc(address4)) + "   Angle: " + String(read_5048_angle(address4)/45.5) + "  ");
-        timer_counter += 5000;
-        mesh.sendBroadcast(msg_new);
-      }
     mesh.update();
   }
+  c.blockingBlink(0,0,1,30,200);
+  c.shutDown();
 }
 
 // This is here only becuase arduino won't compile without it, but it is never used, the real loop is "while(1)" in the void setup() Function
 void loop() 
 {  
 }
+
 /////////// Global Variables
 int faceVersion = 1;
 int cubeID = 0;
