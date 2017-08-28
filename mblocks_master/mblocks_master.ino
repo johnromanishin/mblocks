@@ -1,5 +1,5 @@
 /**
-    This includes the main code for the ESP8266 board, aka the "master"
+    This includes the main code for the ESP8266 board, aka the "Master Board"
     Copyright John Romanishin, MIT CSAIL
     johnrom@mit.edu
 */
