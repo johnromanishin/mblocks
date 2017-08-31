@@ -18,7 +18,7 @@
 
 //WiFi::BSSIDstr(i);
 
-Behavior behavior = SOLO_LIGHT_TRACK; // initial Behavior Cube impliments
+Behavior behavior = TESTING; // initial Behavior Cube impliments
 Cube c; // Initialize the Cube Object c // globally so that things don't crash
 char storage[256];    
 SerialDecoderBuffer buf = {storage, 256, 0}; //Struct used to detect serial messages from Kyles Board 
@@ -31,7 +31,9 @@ void setup() // Actually the main loop...
                     // (Wifi, i2c, serial) and instantiates classes and calibration values
   c.updateSensors(); // populates initial readings for variables such as which face is up, and # of neighbors  
   if(c.numberOfNeighbors() > 0)
-  behavior = TEST_TESTING_THANGS;                  
+    behavior = CHILLING; 
+  else
+    behavior = CHILLING;                 
   //Serial.println(ESP.getChipId());
   Serial.println("Starting Main Loop"); 
   ///////////////////////ACTUAL LOOP////////////////////
@@ -44,7 +46,11 @@ void setup() // Actually the main loop...
     else if (behavior == FOLLOW_ARROWS)
       behavior = followArrows(); 
     else if (behavior == TEST_TESTING_THANGS)
-      behavior = testTestingThangs(&buf);
+      behavior = testTestingThangs(&c, &buf);
+    else if (behavior == CHILLING && c.numberOfNeighbors() > 0)
+      behavior = chilling(&c, true, false, true);
+    else if (behavior == CHILLING)
+      behavior = chilling(&c, false, true, false);
         
     if(millis() > timerCounter)
     {

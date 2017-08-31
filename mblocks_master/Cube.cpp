@@ -624,6 +624,7 @@ static int32_t vector_distance_squared(const int32_t* a, const int32_t* b)
 /**
  * We expect raw, signed 14-bit accelerometer readings
  */
+ 
 PlaneEnum Cube::findLikelyPlane()
 {
   this->updateBothIMUs();

@@ -56,26 +56,26 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
   return(nextBehavior);
 }
 
-Behavior testTestingThangs(SerialDecoderBuffer* buf)
+Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf)
 {
    Serial.println("sma retract 6000");
    while(1)
   {
-    switch(c.findLikelyPlane())
+    switch(c->findLikelyPlane())
     {
       case plane0123:
       {
-        c.blockingBlink(0,1,0,1,50);
+        c->blockingBlink(0,1,0,1,50);
         break;
       }
       case plane0425:
       {
-        c.blockingBlink(1, 0, 0, 1, 50);
+        c->blockingBlink(1, 0, 0, 1, 50);
         break;
       }
       case plane1453:
       {
-        c.blockingBlink(0, 0, 1, 1, 50);
+        c->blockingBlink(0, 0, 1, 1, 50);
         break;
       }
       default:
@@ -90,6 +90,12 @@ Behavior testTestingThangs(SerialDecoderBuffer* buf)
    return(CHILLING);
 }
 
+Behavior chilling(Cube* c, bool r, bool g, bool b)
+{
+  Serial.println("WTF");
+  c->blockingBlink(r,g,b,200,30);
+  c->shutDown();
+}
 
 Behavior duoSeekLight()
 {

@@ -19,6 +19,7 @@ typedef struct Motion
 extern Motion traverse;
 extern Motion roll;
 extern Motion cornerClimb;
+
 bool Move(Motion*, String Direction, int numberOfAttempts, SerialDecoderBuffer*);
 bool setCorePlane(int targetCorePlane);
 int currentCorePlane();

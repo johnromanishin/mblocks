@@ -30,7 +30,8 @@ typedef enum Behavior
  DUO_LIGHT_TRACK,
  FOLLOW_ARROWS,
  TEST_TESTING_THANGS,
- CHILLING
+ CHILLING,
+ TESTING
 } Behavior;
 
 #define ARRAY_SIZEOF(x) ((sizeof(x) / sizeof(x[0])))

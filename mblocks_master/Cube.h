@@ -60,7 +60,7 @@ class Cube
 
   public:
       // Public Variables
-    long shutDownTime = (60000*10); // time until board goes to sleep
+    long shutDownTime = (60000*5); // time until board goes to sleep
     
       // Update Functions involving SENSORS
     bool updateSensors(); // Updates almost everything on the cube...
@@ -73,12 +73,13 @@ class Cube
     bool wakeIMU(int i2cAddress);
     void printOutDebugInformation();
     
-    // Functions involving LED's
+      // Functions involving LED's
     bool clearRGB(); // Turns off all LED's on the cube DUAL VERSIONS
     bool lightFace(int face, bool r = true, bool g = false, bool  b = true); //DUAL VERSIONS
     bool lightCube(bool r = true, bool g = true, bool b = false); // lights entire cube, defaults to yellow
     bool blockingBlink(bool r, bool g, bool b, int howManyTimes = 6, int waitTime = 100);
-    // Useful Functions 
+    
+      // Useful Functions 
     bool determineIfLatticeConnected();  
     
     int returnXthBrightestFace(int index);

@@ -3,6 +3,7 @@
 
 #include "Cube.h"
 #include "SerialDecoder.h"
+#include "Defines.h"
 ////////////////////////////////////////////////////////////////////////////////////
 // I. Behaviors involving non lattice connected Cubes or small mobile assemblies////
 ////////////////////////////////////////////////////////////////////////////////////
@@ -36,13 +37,13 @@ Behavior duoSeekLight();
 
 Behavior crystolLattice();
 
-Behavior chilling();
+Behavior chilling(Cube* c, bool r, bool g, bool b);
 
 Behavior followArrows();
 
 //////////////////////////////
 // III. Misc. Behaviors   ////
 //////////////////////////////
-Behavior testTestingThangs(SerialDecoderBuffer* buf);
+Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf);
 
 #endif
