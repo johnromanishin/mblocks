@@ -2,7 +2,7 @@
 #define BEHAVIOR_H
 
 
-
+typedef enum BehaviorEnum {BEHAVIOR} BehaviorEnum;
 
 // We wish to define four behaviors, in order of coding priority:
 //  1. Step toward a light source, solo

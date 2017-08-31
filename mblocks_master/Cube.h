@@ -4,6 +4,7 @@
 #include "Defines.h"
 #include "CBuff.h"
 #include "Face.h"
+#include "ArrowMap.h"
 #include <Arduino.h>
 
 class Cube
@@ -76,6 +77,8 @@ class Cube
     bool lightFace(int face, bool r = true, bool g = false, bool  b = true); //DUAL VERSIONS
     bool lightCube(bool r = true, bool g = true, bool b = false); // lights entire cube, defaults to yellow
     bool blockingBlink(bool r, bool g, bool b, int howManyTimes = 6, int waitTime = 100);
+    void setFaceLEDsAtEdge(int, int);
+    
     // Useful Functions 
     bool determineIfLatticeConnected();  
     
@@ -110,6 +113,9 @@ class Cube
 
     CircularBuffer<int> coreMagnetAngleBuffer;
     CircularBuffer<int> coreMagnetStrengthBuffer;
+
+    ArrowMap arrowMap;
+    
     //
     Face faces[6];
     Cube();

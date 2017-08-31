@@ -31,46 +31,10 @@ void setup() // Actually the main loop...
   int initialMagnetReadingOffset = c.coreMagnetAngleBuffer.access(0);
 
   Serial.print("Face Version: ");Serial.println(faceVersion);
-  ///////////////////////ACTUAL LOOP////////////////////
+  
   while(millis() < c.shutDownTime && !(c.numberOfNeighbors(0,0)))
-    {
-       
-      c.updateSensors();
-      int brightestFace = c.returnXthBrightestFace(0);
-      if(c.returnXthBrightestFace(0) == c.returnTopFace()) // now brightest Face now excludes the top face
-      {
-        brightestFace = c.returnXthBrightestFace(1);
-      }
-      
-      c.lightFace(brightestFace,0,1,1);
-      delay(500);
-           if(brightestFace == c.returnForwardFace()) 
-           {Serial.println("bldcspeed f 6000");c.blockingBlink(0,1,0);delay(3000);Serial.println("bldcstop b");}
-      else if(brightestFace == c.returnReverseFace()) 
-      {Serial.println("bldcspeed r 6000");c.blockingBlink(1,0,0);delay(3000);Serial.println("bldcstop b");}
-      else if(c.returnForwardFace() == c.returnXthBrightestFace(2)){Serial.println("bldcspeed f 6000");c.blockingBlink(0,1,0);delay(3000);Serial.println("bldcstop b");}              
-      else if(c.returnReverseFace() == c.returnXthBrightestFace(2)){Serial.println("bldcspeed r 6000");c.blockingBlink(1,0,0);delay(3000);Serial.println("bldcstop b");}
-      else  {Serial.println("bldcaccel f 6000 2000"); delay(2000); Serial.println("bldcstop b");delay(5000);}
-    }
-  c.blockingBlink(0,0,1,30,200);
-  c.shutDown();    
-  ///////////////////////ACTUAL LOOP////////////////////
-  while(1)
   {
-         if (behavior == "soloSeekLight") {soloSeekLight(&c);}
-    else if (behavior == "duoSeekLight")  {duoSeekLight();}
-    else if (behavior == "followArrows")  {followArrows();}
-    
-    if(millis() > timer_counter)
-      {
-        //face1.updateAmbient();
-        //Serial.println(face1.returnAmbientValue(0));
-        String msg_new = "";
-        msg_new = ("HEY BRO");// + String(msg_id); //+ " Sensor Magnitude: " +String(read_5048_agc(address4)) + "   Angle: " + String(read_5048_angle(address4)/45.5) + "  ");
-        timer_counter += 5000;
-        mesh.sendBroadcast(msg_new);
-      }
-    mesh.update();
+      mesh.update();
   }
 }
 

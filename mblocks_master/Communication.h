@@ -3,8 +3,11 @@
 
 #include <painlessMesh.h>  // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
 #include <Arduino.h>
+#include <ArduinoJson.h>
+#include "CBuff.h"
 
-extern painlessMesh  mesh;
+extern painlessMesh mesh;
+extern CircularBuffer<String> jsonBuffer;
 
 void initializeWifiMesh();
 void sendMessage() ;

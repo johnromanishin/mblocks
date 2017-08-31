@@ -4,6 +4,7 @@
 #include "Cube.h"
 #include "Sensation.h"
 #include "Face.h"
+#include "ArrowMap.h"
 #include <Wire.h> 
 
 //PLANE_0321  PLANE_0425  PLANE_1534 
@@ -110,6 +111,30 @@ bool Cube::blockingBlink(bool r, bool g, bool b, int howManyTimes, int waitTime)
   delay(waitTime);
   }
 }
+
+/**
+ * Given a primary face and a secondary face, this array gives led settings such that if the 
+ * face leds on the "primary face" are set according to the given settings, they will be on 
+ * the "side" of the secondary face.
+ */
+static const bool faceLEDCornerMapping[6][6][4] = 
+{
+  {{1,1,1,1}, {1,0,0,1}, {0,0,0,0}, {0,1,1,0}, {0,0,1,1}, {1,1,0,0}},
+  {{0,1,1,0}, {1,1,1,1}, {1,0,0,1}, {0,0,0,0}, {0,0,1,1}, {1,1,0,0}},
+  {{0,0,0,0}, {1,1,0,0}, {1,1,1,1}, {0,0,1,1}, {0,1,1,0}, {1,0,0,1}},
+  {{1,0,0,1}, {0,0,0,0}, {0,1,1,0}, {1,1,1,1}, {0,0,1,1}, {1,1,0,0}},
+  {{0,0,1,1}, {0,1,1,0}, {1,1,0,0}, {1,0,0,1}, {1,1,1,1}, {0,0,0,0}},
+  {{1,0,0,1}, {1,1,0,0}, {0,1,1,0}, {0,0,1,1}, {0,0,0,0}, {1,1,1,1}}
+};
+
+void Cube::setFaceLEDsAtEdge(int primaryFace, int adjacentFace)
+{
+  this->faces[primaryFace].turnOnFaceLEDs(faceLEDCornerMapping[primaryFace][adjacentFace][0],
+                                          faceLEDCornerMapping[primaryFace][adjacentFace][1],
+                                          faceLEDCornerMapping[primaryFace][adjacentFace][2],
+                                          faceLEDCornerMapping[primaryFace][adjacentFace][3]);
+}
+
 bool Cube::processState()
 {
   this->updateBothIMUs();
@@ -307,8 +332,8 @@ bool Cube::lightCube(bool r, bool g, bool b)
   {
     for(int i = 0; i < 4; i++)
     {
-    this->CornerRGB(1,0,r,g,b);
-    this->CornerRGB(1,1,r,g,b);
+    this->CornerRGB(i,0,r,g,b);
+    this->CornerRGB(i,1,r,g,b);
     }
     return(true);
   }

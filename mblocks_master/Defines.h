@@ -20,7 +20,9 @@ extern int cornerClimbBrakeCurrent_R;
 extern int plane0321Magnet;
 extern int plane0425Magnet;
 extern int plane1435Magnet;
-//
+
+//These tables define connectivity between faces for the cube
+const external int faceRotations[][4];
 
 #define ARRAY_SIZEOF(x) ((sizeof(x) / sizeof(x[0])))
 
