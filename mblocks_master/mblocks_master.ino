@@ -17,6 +17,7 @@
 #include "SerialDecoder.h"
 
 //WiFi::BSSIDstr(i);
+// Hey Im testings things...
 
 Behavior behavior = TESTING; // initial Behavior Cube impliments
 Cube c; // Initialize the Cube Object c // globally so that things don't crash
