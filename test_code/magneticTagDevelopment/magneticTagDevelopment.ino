@@ -1,20 +1,14 @@
-//define ADDRESS 0x43
-//#define ADDRESS1 0x42
-//define ADDRESS 0x40
-// I2C device found at address 0x70   - segment display
-
 #define Switch 12
 #define LED 13
-#define Awesome_push_switch 2
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include "Adafruit_LEDBackpack.h"
+
 Adafruit_7segment matrix1 = Adafruit_7segment();
 Adafruit_7segment matrix2 = Adafruit_7segment();
+
 ///////////////////////////////////////////////////////////
 /////////////// FACE + ORIENTATION BIT ////////////////////
-  int eps = 6;   // range around the centerpoint which still qualifys
-  
   int v1a = 348; // Magnet centerpoint for face 1 magnet position a
   int v1b = 336;
   int v2a = 324;
@@ -27,48 +21,21 @@ Adafruit_7segment matrix2 = Adafruit_7segment();
   int v5b = 240;
   int v6a = 228;
   int v6b = 216; 
-///////////////////////////////////////////////////////////
-/////////////////////CUBE ID NUMBER////////////////////////
-  int ID_eps = 12;
   
-  int cubeID_1  = 6;
-  int cubeID_2  = 30;
-  int cubeID_3  = 54;
-  int cubeID_4  = 78;
-  int cubeID_5  = 102;
-  int cubeID_6  = 126;
-  int cubeID_7  = 150;
-  int cubeID_8  = 174;
-  int cubeID_9  = 198;
-///////////////////////////////////////////////////////////
-//////////////////////PASSIVE CUBES////////////////////////
   int passive_ID = 90;
   int passive_A  = 180;
   int passive_B  = 0;
-///////////////////////////////////////////////////////////
-//////////////////////SPECIAL COMMANDS/////////////////////
-  int cmd_red       = 30;
-  int cmd_blue      = 50;
-  int cmd_green     = 70;
-  int cmd_purple    = 90;
-  int cmd_yellow    = 110;
-  int cmd_teal      = 130;
-  int cmd_move      = 150;
-  int cmd_s1        = 170;
-  int cmd_s2        = 190;
-  int cmd_s3        = 330;
-  int cmd_s4        = 310;
-  int cmd_s5        = 290;
-  int cmd_s6        = 270;
-///////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////
 
-int address1 = 0x43;
-int address2 = 0x42;
-int address3 = 0x41;
-int address4 = 0x40;
+///////////////////
 int mode_switch = 0;
+
+int mag1 = 0x42;
+int mag2 = 0x43;
+int angle1 = 0;
+int angle2 = 0;
+int agc1   = 0;
+int agc2   = 0;
+
 float AMS5048_scaling_factor = 45.5111;
 
 void setup()
@@ -78,82 +45,84 @@ void setup()
   Serial.begin(115200);
   pinMode(LED,    OUTPUT);
   pinMode(Switch, INPUT);
-  pinMode(Awesome_push_switch, INPUT);
   delay(50);
-  digitalWrite(Switch, HIGH);
-  matrix1.begin(0x70);
-  matrix2.begin(0x71);
+  matrix1.begin(0x71);
+  matrix2.begin(0x70);
 }
-
-
 
  void loop()
 {
-mode_switch = digitalRead(Switch);
-//if(mode_switch < 0) // JUST SHOW NUMBERS
-if(1)
-  {
-  if((read_intensity(address4) < 255 && read_intensity(address4) > 0) || (read_intensity(address4) < 255 && read_intensity(address4) > 0)
-  || (read_intensity(address4) < 255 && read_intensity(address4) > 0) || (read_intensity(address4) < 255 && read_intensity(address4) > 0)
-  )
+  mode_switch = digitalRead(Switch);
+  delay(20);
+  agc1   = read_intensity(mag1);
+  delay(20);
+  angle1 = round(read_angle(mag1)/AMS5048_scaling_factor);
+  delay(20);
+  agc2   = read_intensity(mag2);
+  delay(20);
+  angle2 = round(read_angle(mag2)/AMS5048_scaling_factor);
+  delay(20);
+  if(mode_switch > 0) // JUST SHOW NUMBERS
+    {
 
-  delay(100);
-  Serial.println("stillalive");
-  digitalWrite(LED, HIGH);
-  delay(100);
-  digitalWrite(LED, LOW); 
-  
-  
-  if(read_intensity(address4) < 255 && read_intensity(address4) > 0)
-  {
-  matrix1.blinkRate(0);
-  matrix1.print(round((read_angle(address4)*10)/AMS5048_scaling_factor));
-  matrix1.writeDisplay();
-  }
-  else
-  {
-   matrix1.blinkRate(1);
-   matrix1.print(round(read_angle(address4)/AMS5048_scaling_factor));
-   matrix1.writeDisplay();
-  }
+    if(agc1 < 255 && agc1 > 0)
+      {
+      matrix1.blinkRate(0);
+      matrix1.print(angle1);
+      matrix1.writeDisplay();
+      }
+    else
+      {
+      matrix1.blinkRate(1);
+      matrix1.print(angle1);
+      matrix1.writeDisplay();
+      }
 
-  if(read_intensity(address2) < 255 && read_intensity(address2) > 0)
-  {
-  matrix2.blinkRate(0);
-  matrix2.print(round(read_angle(address4)/AMS5048_scaling_factor));
-  matrix2.writeDisplay();
-  }
-  else
-  {
-   matrix2.blinkRate(1);
-   matrix2.print(round(read_angle(address4)/AMS5048_scaling_factor));
-   matrix2.writeDisplay();
-  }
-  delay(50);
-  }
+    if(agc2 < 255 && agc2 > 0)
+      {
+      matrix2.blinkRate(0);
+      matrix2.print(angle2);
+      matrix2.writeDisplay();
+      }
+    else
+      {
+      matrix2.blinkRate(1);
+      matrix2.print(angle2);
+      matrix2.writeDisplay();
+      }
+    delay(50);
+    }
 
   
-else // CUBE NUMBER AND FACE NUMBER
-{
+  else // CUBE NUMBER AND FACE NUMBER
+  {
+
+//            if (mag1 == 0)                      {mag_digit_1 = 0;}
+//   else if (angle1 < 6 || angle1 > 354)     {mag_digit_1 = 1;}
+//   else                                     {mag_digit_1 = int(angle1 + 18)/12;}
+//
+//        if (mag2 == 0)                      {mag_digit_2 = 0;}
+//   else if(angle2 < 6 || angle2 > 354)      {mag_digit_2 = 1;}  
+//   else                                     {mag_digit_2 = int(angle2 + 18)/12;}
+//   
+  }
+}
+/*
   int reading_1 = 0;
   int read_id = 0;
   int read_face = 0;
   int reading_2 = 0;
   int orientation = 0;
+  Serial.println("BRO");
   if(
-   (read_intensity(address1) < 255 && read_intensity(address1) > 0) || (read_intensity(address2) < 255 && read_intensity(address2) > 0)
-  || (read_intensity(address2) < 255 && read_intensity(address2) > 0) || (read_intensity(address4) < 255 && read_intensity(address4) > 0)
-  )
+     (read_intensity(mag1) < 255 && read_intensity(mag1) > 0) 
+  || (read_intensity(mag2) < 255 && read_intensity(mag2) > 0)
+    )
   {
-//  Serial.print(read_angle(address1)/AMS5048_scaling_factor);Serial.print("    ");Serial.print(read_intensity(address1));Serial.print("    ");
-//  Serial.print(read_angle(address2)/AMS5048_scaling_factor);Serial.print("    ");Serial.print(read_intensity(address2));Serial.print("    ");
-//  Serial.print(read_angle(address3)/AMS5048_scaling_factor);Serial.print("    ");Serial.print(read_intensity(address3));Serial.print("    ");
-//  Serial.print(read_angle(address4)/AMS5048_scaling_factor);Serial.print("    ");Serial.println(read_intensity(address4));
-  
-  reading_1 = round(read_angle(address1)/AMS5048_scaling_factor);
-  reading_2 = round(read_angle(address2)/AMS5048_scaling_factor);
+    
  ////////////////////////// Determine if Cube is present - and if so its ID#
-if((reading_1 >= 0 && reading_1 < 15) || (reading_2 >= 0 && reading_2 < 15) || (reading_1 > 355 && reading_1 < 361) || (reading_2 > 355 && reading_2 < 361)) {read_id = 1;}
+if((reading_1 >= 0 && reading_1 < 15) || (reading_2 >= 0 && reading_2 < 15) || (reading_1 > 355 && reading_1 < 361) 
+|| (reading_2 > 355 && reading_2 < 361)) {read_id = 1;}
 
  ////////////////////////// DETERMINE FACE AND ORIENTATION
   // FACE # 1
@@ -225,9 +194,11 @@ if((reading_1 >= 0 && reading_1 < 15) || (reading_2 >= 0 && reading_2 < 15) || (
   }
   }
 }
+*/
 
 int read_intensity(int address)
-// AGC is the "strength" of the magnet returned as an 8-bit number, 255 = magnet field is too weak, 0 = very strong magnetic field.
+// AGC is the "strength" of the magnet returned as an 8-bit number, 
+// 255 = magnet field is too weak, 0 = very strong magnetic field.
 {
   Wire.beginTransmission(address);
   Wire.write(0xFA);
