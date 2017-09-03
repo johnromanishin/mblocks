@@ -9,32 +9,42 @@ Adafruit_7segment matrix2 = Adafruit_7segment();
 
 ///////////////////////////////////////////////////////////
 /////////////// FACE + ORIENTATION BIT ////////////////////
-  int v1a = 348; // Magnet centerpoint for face 1 magnet position a
-  int v1b = 336;
-  int v2a = 324;
-  int v2b = 312;
-  int v3a = 300;
-  int v3b = 288;
-  int v4a = 276;
-  int v4b = 264; 
-  int v5a = 252;
-  int v5b = 240;
-  int v6a = 228;
-  int v6b = 216; 
+  int face1A = 29; // Magnet centerpoint for face 1 magnet position a
+  int face1B = 28;
+  int face2A = 27;
+  int face2B = 26;
+  int face3A = 25;
+  int face3B = 24;
+  int face4A = 23;
+  int face4B = 22; 
+  int face5A = 21;
+  int face5B = 20;
+  int face6A = 19;
+  int face6B = 18; 
   
-  int passive_ID = 90;
-  int passive_A  = 180;
-  int passive_B  = 0;
+  int passiveID = 90;
+  int passiveA  = 180;
+  int passiveB  = 0;
+
+  int tag1 = 6;
+  int tag2 = 5;
+
 
 ///////////////////
-int mode_switch = 0;
+String tagType = "nothing";
+int    tagID   = 0;
+int    tagFace = 0;
+int    tagAngle = 0;
 
-int mag1 = 0x42;
-int mag2 = 0x43;
+int mode_switch = 0;
+int mag1 = 0x43;
+int mag2 = 0x42;
 int angle1 = 0;
 int angle2 = 0;
 int agc1   = 0;
 int agc2   = 0;
+int magDigit1 = 0;
+int magDigit2 = 0;
 
 float AMS5048_scaling_factor = 45.5111;
 
@@ -62,9 +72,19 @@ void setup()
   delay(20);
   angle2 = round(read_angle(mag2)/AMS5048_scaling_factor);
   delay(20);
+  
+        if (agc1 == 0 || agc1 == 255)       {magDigit1 = 0;}
+   else if (angle1 < 6 || angle1 > 354)     {magDigit1 = 1;}
+   else                                     {magDigit1 = int(angle1 + 18)/12;}
+
+        if (agc2 == 0 || agc2 == 255)       {magDigit2 = 0;}
+   else if(angle2 < 6 || angle2 > 354)      {magDigit2 = 1;}  
+   else                                     {magDigit2 = int(angle2 + 18)/12;}
+
+  analyzeTag(magDigit1, magDigit2, angle1, angle2, agc1, agc2);
+  
   if(mode_switch > 0) // JUST SHOW NUMBERS
     {
-
     if(agc1 < 255 && agc1 > 0)
       {
       matrix1.blinkRate(0);
@@ -96,16 +116,105 @@ void setup()
   
   else // CUBE NUMBER AND FACE NUMBER
   {
+    
+    if(agc1 < 255 && agc1 > 0)
+      {
+      matrix1.blinkRate(0);
+      matrix1.print(magDigit1);
+      matrix1.writeDisplay();
+      }
+    else
+      {
+      matrix1.blinkRate(1);
+      matrix1.print(angle1);
+      matrix1.writeDisplay();
+      }
 
-//            if (mag1 == 0)                      {mag_digit_1 = 0;}
-//   else if (angle1 < 6 || angle1 > 354)     {mag_digit_1 = 1;}
-//   else                                     {mag_digit_1 = int(angle1 + 18)/12;}
-//
-//        if (mag2 == 0)                      {mag_digit_2 = 0;}
-//   else if(angle2 < 6 || angle2 > 354)      {mag_digit_2 = 1;}  
-//   else                                     {mag_digit_2 = int(angle2 + 18)/12;}
-//   
+    if(agc2 < 255 && agc2 > 0)
+      {
+      matrix2.blinkRate(0);
+      matrix2.print(magDigit2);
+      matrix2.writeDisplay();
+      }
+    else
+      {
+      matrix2.blinkRate(1);
+      matrix2.print(angle2);
+      matrix2.writeDisplay();
+      }
+    delay(50);  
   }
+}
+
+String analyzeTag(int magDigit1, int magDigit2, int angle1, int angle2, int agc1, int agc2)
+{
+  String abc = "NothingBurger...";
+/*
+ * CHECK IF TAG REPRESENTS A MODULE
+ */
+  if((magDigit1 >= 17 && magDigit1 <= 29) &&  // Means magdigit1 is a faceID
+     (magDigit2 >= 1 && magDigit2 <= 17))     // Means magdifit2 stores an ID # 
+    {
+      if(magDigit1 % 2 ==0){Serial.println("Found an actual Cube, **1** ");delay(1000);}
+      else                 {Serial.println("Found an actual Cube, **2** ");delay(1000);}
+    }
+    
+  if((magDigit2 >= 17 && magDigit2 <= 29) &&  // Means magdigit1 is a faceID
+     (magDigit1 >= 1 && magDigit1 <= 17))     // Means magdifit2 stores an ID # 
+    {
+      if(magDigit2 % 2 ==0){Serial.println("Found an actual Cube, **3** ");delay(1000);}
+      else                 {Serial.println("Found an actual Cube, **4** ");delay(1000);}
+    }
+
+/*
+ * CHECK IF TAG REPRESENTS A PASSIVE MODULE
+ */
+ 
+       if((magDigit1 == 15 || magDigit1 == 16 || magDigit1 == 17  // Means magdigit1 is a faceID
+        || magDigit1 == 30 || magDigit1 == 1  || magDigit1 == 2 ) &&
+          (magDigit2 == 8  || magDigit2 == 9  || magDigit2 == 10))     // Means magdifit2 stores an ID # 
+          {
+              if(magDigit1 == 30 || magDigit1 == 1  || magDigit1 == 2)
+                  {
+                    Serial.println("FOUND A PASSIVE CUBE ORIENTATION **3** WOOO!");delay(1000);
+                  }
+              else 
+                  {
+                    Serial.println("FOUND A PASSIVE CUBE ORIENTATION **4** WOOO!");delay(1000);
+                  }
+          }
+       if((magDigit2 == 15 || magDigit2 == 16 || magDigit2 == 17  // Means magdigit1 is a faceID
+        || magDigit2 == 30 || magDigit2 == 1  || magDigit2 == 2 ) &&
+          (magDigit1 == 8  || magDigit1 == 9  || magDigit1 == 10))     // Means magdifit2 stores an ID # 
+          {
+              if(magDigit2 == 30 || magDigit2 == 1  || magDigit2 == 2)
+                  {
+                    Serial.println("FOUND A PASSIVE CUBE ORIENTATION **1** WOOO!");delay(1000);
+                  }
+              else 
+                  {
+                    Serial.println("FOUND A PASSIVE CUBE ORIENTATION **2** WOOO!");delay(1000);
+                  }
+          }
+
+/*
+ * CHECK IF TAG REPRESENTS A COMMAND TAG
+ */
+  if((magDigit1 == magDigit2) &&  // Means magdigit1 is a faceID
+     (magDigit1 != 17 && magDigit2 != 17) &&
+     (magDigit1 != 30 && magDigit2 != 30)
+     )     // Means magdifit2 stores an ID # 
+    {
+      if(magDigit1 == 25)
+        {Serial.println("Found an COMMAND TAG... Go to SLEEP! SLEEPY TIME ! WOO MUCH SLEEP ");delay(1000);}
+    }
+
+    
+  String tagType = "nothing";
+  int    tagID   = 0;
+  int    tagFace = 0;
+  int    tagAngle = 0;
+  
 }
 /*
   int reading_1 = 0;
