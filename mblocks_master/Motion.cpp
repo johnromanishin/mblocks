@@ -1,8 +1,6 @@
 #include "Motion.h"
 #include "SerialDecoder.h"
 
-//extern Mesh mesh;
-
 //                      moveName    , brake   , rpm   , timout, current, brakeTime, difficult
 Motion traverse     = {"traverse"   , true    , 6500  , 6000  , 3000   , 12        , 9         };
 Motion roll         = {"roll"       , false   , 6500  ,    0  ,    0   , 0        , 1         };
@@ -12,6 +10,7 @@ Motion cornerClimb  = {"cornerClimb", true    , 14000 , 5000  , 4000   , 20     
  * This command takes predefined motion Structs and attempts to mvoe 
  * usage would work like: Move(traverse, 1);
  */
+ 
 bool Move(Motion* motion, String Direction, int numberOfAttempts, SerialDecoderBuffer* buf)
 {
   long beginTime = millis();

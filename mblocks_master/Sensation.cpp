@@ -49,7 +49,6 @@ int magnetSensorRead(int i2cAddress, byte dataRegisterAddress) {
   Wire.endTransmission();
   Wire.requestFrom(i2cAddress, 2); // request 2 bytes
 
-
   if (2 <= Wire.available())
   {
     int sensorValue;
@@ -58,6 +57,6 @@ int magnetSensorRead(int i2cAddress, byte dataRegisterAddress) {
     sensorValue |= Wire.read();
     return sensorValue;
   }
-  return 0;
+  return -1;
 }
 

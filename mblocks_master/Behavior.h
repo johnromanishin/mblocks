@@ -2,8 +2,13 @@
 #define BEHAVIOR_H
 
 #include "Cube.h"
+#include "Face.h"
 #include "SerialDecoder.h"
+#include "CBuff.h" 
 #include "Defines.h"
+#include "Communication.h"        // Includes wifi 
+#include "MagTag.h"
+
 ////////////////////////////////////////////////////////////////////////////////////
 // I. Behaviors involving non lattice connected Cubes or small mobile assemblies////
 ////////////////////////////////////////////////////////////////////////////////////

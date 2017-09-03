@@ -4,6 +4,7 @@
 #include "Defines.h"
 #include <Arduino.h>
 
+/// Sensor Helper Functions ///
 int readAmbient(int address);
 void activateLightSensor(int address);
 void readGyroAndAccel(int i2cAddress);

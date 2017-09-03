@@ -13,6 +13,7 @@
 #include "Motion.h"
 #include "Defines.h"
 #include "SerialDecoder.h"
+#include "MagTag.h"
 
 Behavior followArrows()
 {

@@ -5,6 +5,7 @@
 #include "SerialDecoder.h"
 #include <Arduino.h>
 
+// This is a struct for organizing information about motions
 typedef struct Motion
 {
   String moveName;      // name of move, used when we instantiate the type of movement
@@ -16,10 +17,12 @@ typedef struct Motion
   int difficulty;     // Estimated difficulty of the move on a scale 1-255; with 1 == easy, 255 == very hard;
 } Motion;
 
+// List of Possible Motions, defined in Motion.cpp
 extern Motion traverse;
 extern Motion roll;
 extern Motion cornerClimb;
 
+// Functions involving Motion
 bool Move(Motion*, String Direction, int numberOfAttempts, SerialDecoderBuffer*);
 bool setCorePlane(int targetCorePlane);
 int currentCorePlane();

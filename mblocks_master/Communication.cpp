@@ -42,7 +42,7 @@ void sendMessage() {
 
 void receivedCallback(uint32_t from, String & msg) 
 {
-  Serial.printf("startHere: Received from %u msg=%s\n", from, msg.c_str());
+  //Serial.printf("startHere: Received from %u msg=%s\n", from, msg.c_str());
   //if(String(msg.c_str()) == "green"){turn_color(green); Serial.println("HEY BRO!!");}
   //else if(String(msg.c_str()) == "red"){turn_color(red); Serial.println("HEY BRO!!");}
   //else if(String(msg.c_str()) == "purple"){turn_color(purple); Serial.println("HEY BRO!!");}

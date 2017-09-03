@@ -3,7 +3,17 @@
 
 #include <Arduino.h>
 
-// Global Variables:
+/// ESP ID to CUBE MAP ////
+typedef struct EspToCubeMapping
+{
+  int esp;
+  int cube;
+} EspToCubeMapping;
+
+int getEspIDFromCube(int);
+int getCubeIDFromEsp(int);
+
+/// Global Variables ///
 #define FACES 6
 #define PLANE_0321 ((int)'A')
 #define PLANE_0425 ((int)'B') 
@@ -52,7 +62,5 @@ typedef enum Behavior
 #define FB_B2 2
 #define FB_R2 1
 #define FB_G2 0
-
-
 
 #endif

@@ -57,7 +57,7 @@ void checkFaceVersion()
       Wire.beginTransmission(0x04);
       error = Wire.endTransmission();  
       if(error == 0){faceVersion = 0; return;}
-      delay(1000);
+      delay(500);
     }
     Serial.println("I am not connected to any face boards, going to sleep now!");
     for(int i = 0; i < 10; i++) {Serial.println("sleep"); delay(500);}
@@ -82,7 +82,7 @@ void initializeHardware()
     }
   }
   disableAutoReset();
-  digitalWrite(Switch, HIGH); // turns on power to the Boards
+  digitalWrite(Switch, HIGH); // turns on power to the face Boards
 }
 
 void disableAutoReset() // this tells the slave board not to accidently turn off its power, it prints it three times incase it is lost
@@ -93,6 +93,7 @@ void disableAutoReset() // this tells the slave board not to accidently turn off
   delay(100);
   Serial.println("espprogram");
 }
+
 int inputVoltage()
 // Obtains the input voltage from the slave board to detect when the block is charging, and to put the master board to sleep
 {
@@ -176,14 +177,12 @@ void lookUpCalibrationValues()
       traverseBrakeCurrent_F = 2800;
       traverseBrakeCurrent_R = 2800;
       cornerClimbBrakeCurrent_F = 3000;
-      cornerClimbBrakeCurrent_R = 3000;
-      plane0321Magnet = 0;
-      plane0425Magnet = 120;
-      plane1435Magnet = 240;
+      cornerClimbBrakeCurrent_R = 3000;     
       break;
-    case 2:
-    
+      
+    case 2:    
       break;
+      
     break;
   }
 }
