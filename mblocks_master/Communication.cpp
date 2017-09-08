@@ -1,6 +1,11 @@
+#include <Arduino.h>
+#include <ESP8266WiFi.h>
 #include <painlessMesh.h>         // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
+#include <ArduinoJson.h>
 #include "Communication.h"
 #include "Cube.h"
+#include "espconn.h"
+#include "CBuff.h"
 
 #define   BLINK_PERIOD    3000000 // microseconds until cycle repeat
 #define   BLINK_DURATION  100000  // microseconds LED is on for
@@ -9,6 +14,10 @@
 #define   MESH_PORT       5555
 
 painlessMesh  mesh;
+
+extern Cube c;
+String jsonBufferSpace[16];
+CircularBuffer<String> jsonBuffer(16, jsonBufferSpace);
 
 bool calc_delay = false;
 SimpleList<uint32_t> nodes;
@@ -25,7 +34,7 @@ void initializeWifiMesh()
     randomSeed(analogRead(A0));
 }
 
-bool sendMessage(String message) 
+bool sendMessage(String message)
 {
   String msg = ""; // create empty string
   msg = message;   // assign contents of "message"
@@ -42,7 +51,7 @@ bool sendMessage(String message)
 }
 
 
-void receivedCallback(uint32_t from, String & msg) 
+void receivedCallback(uint32_t from, String & msg)
 {
   Serial.printf(msg.c_str());
   //if(String(msg.c_str()) == "green"){turn_color(green); Serial.println("HEY BRO!!");}
@@ -51,7 +60,7 @@ void receivedCallback(uint32_t from, String & msg)
   cmd = msg.c_str();
 }
 
-void newConnectionCallback(uint32_t nodeId) 
+void newConnectionCallback(uint32_t nodeId)
 {
   //Serial.printf("--> startHere: New Connection, nodeId = %u\n", nodeId);
 }
@@ -84,7 +93,7 @@ void delayReceivedCallback(uint32_t from, int32_t delay) {
 //void checkForMessage(Cube* c, String message)
 //{
 //  Serial.printf(message.c_str());
-//  //if(String(msg.c_str()) == "sleep"){}//c.shutDown();}  
+//  //if(String(msg.c_str()) == "sleep"){}//c.shutDown();}
 //}
 
 //   Serial.println(c.returnTopFace());
@@ -94,14 +103,14 @@ void delayReceivedCallback(uint32_t from, int32_t delay) {
    //Serial.print("IMU_gx: ");Serial.println(c.gxFrameBuffer.access(0));
    //Serial.print("IMU_gy: ");Serial.println(c.gyFrameBuffer.access(0));
    //Serial.print("IMU_gz: ");Serial.println(c.gzFrameBuffer.access(0));
-   
+
    // c.lightFace(c.returnTopFace());
    // delay(100);
-   
+
 //
  //c.updateBothIMUs();
    //c.updateCoreMagnetSensor();
-   
+
 //   String newmsg = "Angle: " + String(c.coreMagnetAngleBuffer.access(0) - initialMagnetReadingOffset)
 //   + " core.ax: " + String(c.axCoreBuffer.access(0))
 //   + " core.ay: " + String(c.ayCoreBuffer.access(0))
@@ -110,7 +119,7 @@ void delayReceivedCallback(uint32_t from, int32_t delay) {
 //   + " Frame.ay: " + String(c.ayFrameBuffer.access(0))
 //   + " Frame.az: " + String(c.azFrameBuffer.access(0))
 //   + " CoreMagAGC: " + String(c.coreMagnetStrengthBuffer.access(0));
-   
+
    //Serial.print("Angle: ");Serial.print(c.coreMagnetAngleBuffer.access(0));Serial.print(" Magnitude: ");Serial.println(c.coreMagnetStrengthBuffer.access(0));
    //String newmsg = "Angle: ";
    //mesh.sendBroadcast(newmsg);

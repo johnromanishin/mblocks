@@ -1,13 +1,13 @@
-#ifndef COMMUNICATION_H 
+#ifndef COMMUNICATION_H
 #define COMMUNICATION_H
 
 #include <painlessMesh.h>  // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
 #include <Arduino.h>
+#include <ArduinoJson.h>
+#include "CBuff.h"
 
-#include "Cube.h"
-#include "Initialization.h"
-
-extern painlessMesh  mesh;
+extern painlessMesh mesh;
+extern CircularBuffer<String> jsonBuffer;
 
 void initializeWifiMesh();
 bool sendMessage(String message);
