@@ -22,6 +22,9 @@
 
 // Global Objects
 Cube c; // Initialize the Cube Object c globally so that things don't crash
+// This is a temporary location where the contents of WIFI messages are stores 
+                 // will be replaced soon with a fancy string buffer thing
+
 char storage[256];    
 SerialDecoderBuffer buf = {storage, 256, 0}; //Struct used to detect serial messages from Kyles Board 
 
@@ -48,15 +51,16 @@ void setup() // Actually the main loop...
       behavior = testTestingThangs(&c, &buf);
     else if (behavior == CHILLING)
       behavior = chilling(&c, true, false, true);
+    else if (behavior == ATTRACTIVE)
+      behavior = attractive(&c);
         
     if(millis() > timerCounter)
     {
-      String msg_new = "";
-      msg_new = ("HEY I AM A CUBE");// + String(msg_id); //+ " Sensor Magnitude: " +String(read_5048_agc(address4)) + "   Angle: " + String(read_5048_angle(address4)/45.5) + "  ");
+      //sendMessage("hey!!");
       timerCounter += 5000;
-      mesh.sendBroadcast(msg_new);
-    }
+    } 
     mesh.update();
+    processCommands();
   }
   c.blockingBlink(0,0,1);
   c.shutDown();
@@ -67,12 +71,13 @@ void loop()
 {  
 }
 
-/////////// Global Variables
-int faceVersion = 1;
-int cubeID = 0;
-int planeChangeTime = 60;
-int planeChangeRPM = 5000;
-int traverseBrakeCurrent_F = 2800;
-int traverseBrakeCurrent_R = 2800;
-int cornerClimbBrakeCurrent_F = 3000;
-int cornerClimbBrakeCurrent_R = 3000;
+void processCommands()
+{
+     if(cmd == "attract") {sendMessage("attract");  behavior = ATTRACTIVE;}
+else if(cmd == "chill")   {sendMessage("chill");    behavior = CHILLING;}
+else if(cmd == "sleep")   {sendMessage("sleep");    delay(4000); c.shutDown();}
+else if(cmd == "red")     {}
+else if(cmd == "purple")  {}
+else if(cmd == "green")   {}
+}
+

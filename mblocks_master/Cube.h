@@ -4,6 +4,7 @@
 #include "Defines.h"
 #include "CBuff.h"
 #include "Face.h"
+#include "MagTag.h"
 #include <Arduino.h>
 
 typedef enum PlaneEnum {plane0123, plane0425, plane1453, planeNone} PlaneEnum;
@@ -32,7 +33,6 @@ class Cube
       // Data storage spaces
       
     long faceSensorUpdateTimeData[10];
-    
     
     int axCoreData[32];
     int ayCoreData[32];
@@ -89,6 +89,7 @@ class Cube
     int returnForwardFace();
     int returnReverseFace();
     int returnTopFace();
+    int returnBottomFace();
     PlaneEnum findLikelyPlane();
     
     void shutDown();                   // Turns off the entire cube

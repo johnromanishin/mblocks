@@ -1,5 +1,15 @@
 #include "defines.h"
 
+String cmd = "";
+int faceVersion = 1;
+int cubeID = 0;
+int planeChangeTime = 60;
+int planeChangeRPM = 5000;
+int traverseBrakeCurrent_F = 2800;
+int traverseBrakeCurrent_R = 2800;
+int cornerClimbBrakeCurrent_F = 3000;
+int cornerClimbBrakeCurrent_R = 3000;
+
 EspToCubeMapping espCubeMap[] =
 {
   {960242, 7},

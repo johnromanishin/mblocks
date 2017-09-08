@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 
-
 void initializeCube();
 void initializeClasses(int faceVersion);
 void checkFaceVersion();

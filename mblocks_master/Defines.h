@@ -19,6 +19,7 @@ int getCubeIDFromEsp(int);
 #define PLANE_0425 ((int)'B') 
 #define PLANE_1534 ((int)'C') 
 
+extern String cmd;
 extern int faceVersion;
 extern int cubeID;
 extern int planeChangeTime;
@@ -30,6 +31,16 @@ extern int cornerClimbBrakeCurrent_R;
 extern int plane0321Magnet;
 extern int plane0425Magnet;
 extern int plane1435Magnet;
+
+/////////// Global Variables
+//int faceVersion = 1;
+//int cubeID = 0;
+//int planeChangeTime = 60;
+//int planeChangeRPM = 5000;
+//int traverseBrakeCurrent_F = 2800;
+//int traverseBrakeCurrent_R = 2800;
+//int cornerClimbBrakeCurrent_F = 3000;
+//int cornerClimbBrakeCurrent_R = 3000;
 //
 
 // Behaviors
@@ -39,8 +50,9 @@ typedef enum Behavior
  SOLO_LIGHT_TRACK,
  DUO_LIGHT_TRACK,
  FOLLOW_ARROWS,
- TEST_TESTING_THANGS,
  CHILLING,
+ TEST_TESTING_THANGS,
+ ATTRACTIVE,
  TESTING
 } Behavior;
 

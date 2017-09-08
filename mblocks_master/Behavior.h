@@ -9,6 +9,8 @@
 #include "Communication.h"        // Includes wifi 
 #include "MagTag.h"
 
+// Behaviors are enumerated
+
 ////////////////////////////////////////////////////////////////////////////////////
 // I. Behaviors involving non lattice connected Cubes or small mobile assemblies////
 ////////////////////////////////////////////////////////////////////////////////////
@@ -33,22 +35,63 @@ Behavior latticeAlign(Cube* c, SerialDecoderBuffer* buf);
  * b. Checks to see if it has tried and failed to move repeaditly      >>>> go to sleep 
  */
 
-/////////////////////////////////////////////////////////
-// II. Behaviors Cubes connected on a large lattice////
-/////////////////////////////////////////////////////////
 Behavior duoSeekLight();
-
-// Lattice Related 
-
-Behavior crystolLattice();
-
+/*        --- What it does ---
+ * 0.
+ * 1.
+ *        --- Exit Conditions ---
+ * a.
+ * b.
+ */
+///////////////////////////////////////////////////////////
+// II. Behaviors for Cubes connected on a large lattice////
+///////////////////////////////////////////////////////////
+Behavior crystallize();
+/*        --- What it does ---
+ * 0.
+ * 1.
+ *        --- Exit Conditions ---
+ * a.
+ * b.
+ */
 Behavior chilling(Cube* c, bool r, bool g, bool b);
+/*        --- What it does ---
+ * 0.
+ * 1.
+ *        --- Exit Conditions ---
+ * a.
+ * b.
+ */
 
+Behavior attractive(Cube* c);
+/*        --- What it does ---
+ * 0.   Attempts to attract other cubes to it by turning on its lights
+ * 1.   Determines which faces are not top/bottom/ or connected
+ * 2.   Turns on the 4 Face LEDs on these faces
+ * 
+ *        --- Exit Conditions ---
+ * a.   Told to do something else
+ * b.   All 4 faces are blocked with something --> Chilling
+ */
+ 
 Behavior followArrows();
-
+/*        --- What it does ---
+ * 0.
+ * 1.
+ *        --- Exit Conditions ---
+ * a.
+ * b.
+ */
 //////////////////////////////
 // III. Misc. Behaviors   ////
 //////////////////////////////
-Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf);
 
+Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf);
+/*        --- What it does ---
+ * 0.
+ * 1.
+ *        --- Exit Conditions ---
+ * a.
+ * b.
+ */
 #endif

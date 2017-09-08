@@ -11,7 +11,7 @@ Face::Face()
     magnetAngleBuffer_A(ARRAY_SIZEOF(this->magnetAngleData_A), this->magnetAngleData_A),
     magnetStrengthBuffer_A(ARRAY_SIZEOF(this->magnetStrengthData_A), this->magnetStrengthData_A),
     
-    magnetAngleBuffer_B(ARRAY_SIZEOF(this->magnetAngleData_A), this->magnetAngleData_A),
+    magnetAngleBuffer_B(ARRAY_SIZEOF(this->magnetAngleData_B), this->magnetAngleData_B),
     magnetStrengthBuffer_B(ARRAY_SIZEOF(this->magnetStrengthData_B), this->magnetStrengthData_B),
     
     neighborIDBuffer(ARRAY_SIZEOF(this->neighborIDData), this->neighborIDData),
@@ -173,13 +173,16 @@ bool Face::setPinHigh(int pin)
 bool Face::updateMagneticBarcode()
 {
     this->getMagnetEncoderAddresses(this->faceMagnetAddresses);
-    int angle_A  = readMagnetSensorAngle(faceMagnetAddresses[0])/45.5;
-    int mag_A    = readMagnetSensorFieldStrength(faceMagnetAddresses[0]);//(this->getMagnetEncoderAddresses(this->*faceMagnetAddresses))[0]);
-    int angle_B  = readMagnetSensorAngle(faceMagnetAddresses[1]);//(this->getMagnetEncoderAddresses(this->*faceMagnetAddresses)[1]))/45.5;
-    int mag_B    = readMagnetSensorFieldStrength(faceMagnetAddresses[1]);//(this->getMagnetEncoderAddresses(this->*faceMagnetAddresses))[1]);
+    float AMS5048_scaling_factor = 45.5111;
+
+    int angle_A  = round(readMagnetSensorAngle(this->faceMagnetAddresses[0])/AMS5048_scaling_factor);
+    Serial.print("Angle1: ");Serial.println(angle_A);
+    int mag_A    = readMagnetSensorFieldStrength(this->faceMagnetAddresses[0]);//(this->getMagnetEncoderAddresses(this->*faceMagnetAddresses))[0]);
+    int angle_B  = round(readMagnetSensorAngle(this->faceMagnetAddresses[1])/AMS5048_scaling_factor);//(this->getMagnetEncoderAddresses(this->*faceMagnetAddresses)[1]))/45.5;
+    Serial.print("Angle2: ");Serial.println(angle_B);
+    int mag_B    = readMagnetSensorFieldStrength(this->faceMagnetAddresses[1]);//(this->getMagnetEncoderAddresses(this->*faceMagnetAddresses))[1]);
     if((mag_A == 0) || (mag_B == 0)) {return(false);}
 
-    //if(
     this->magnetAngleBuffer_A.push(angle_A);
     this->magnetStrengthBuffer_A.push(mag_A);
    

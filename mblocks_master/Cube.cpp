@@ -124,10 +124,14 @@ bool Cube::updateFaces()
 for(int i = 0; i< 6; i++)
     {
       delay(2);
+      Serial.print("Checking face: "); Serial.println(i);
       this->faces[i].updateFace();
+      
+      analyzeTag(this->faces[i].returnMagnetAngle_A(0), this->faces[i].returnMagnetStrength_A(0),this->faces[i].returnMagnetAngle_B(0), this->faces[i].returnMagnetStrength_B(0));
       delay(2);
     }
 }
+
 bool Cube::updateBothIMUs()
 {
   bool a = this->updateCoreIMU();
@@ -195,6 +199,10 @@ int Cube::returnTopFace()
   return (this->topFace);
 }
 
+int Cube::returnBottomFace()
+{
+  return(oppositeFace(this->topFace));
+}
 bool Cube::clearRGB()
 /*
  * Switches all of the bits to HIGH (or off) for all 8 corner RGBLED's

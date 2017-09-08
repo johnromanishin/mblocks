@@ -1,15 +1,9 @@
-// We wish to define four behaviors, in order of coding priority:
-//  1. Step toward a light source, solo
-//  2. Step toward a light source, in tandem with an adjacent block
-//  3. Step in the direction of an arrow, provided on an adjacent face
-//  4. Step in a direction provided via external communication (WiFi)
-
 #include "Behavior.h"
-#include "Initialization.h"       // Includes .h files for each of the "tabs" in arduino
-#include "Cube.h"     // Includes .h files for each of the "tabs" in arduino
-#include "Face.h"     // Includes .h files for each of the "tabs" in arduino
-#include "CBuff.h"                // Includes .h files for each of the "tabs" in arduino
-#include "Communication.h"        // Includes wifi 
+#include "Initialization.h"     // Includes .h files for each of the "tabs" in arduino
+#include "Cube.h"               // Includes .h files for each of the "tabs" in arduino
+#include "Face.h"               // Includes .h files for each of the "tabs" in arduino
+#include "CBuff.h"              // Includes .h files for each of the "tabs" in arduino
+#include "Communication.h"      // Includes wifi 
 #include "Motion.h"
 #include "Defines.h"
 #include "SerialDecoder.h"
@@ -93,11 +87,28 @@ Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf)
 
 Behavior chilling(Cube* c, bool r, bool g, bool b)
 {
-  Serial.println("WTF");
-  c->blockingBlink(r,g,b,200,30);
-  c->shutDown();
+  c->blockingBlink(1, 0, 1);
+  mesh.update();
+  c->updateSensors();
+  delay(100);
+  return(CHILLING);
 }
 
+Behavior attractive(Cube* c)
+{
+  c->updateSensors();
+  for(int i = 0; i < 6; i++)
+    {
+      if(i == c->returnTopFace() || i == c->returnBottomFace()) // This ensures we only turn on 4 faces in horizontal plane
+        break;
+      else
+        c->faces[i].turnOnFaceLEDs(1,1,1,1); // turns on LEDs
+    }
+  mesh.update();
+  delay(100);
+  return(CHILLING);
+}
+ 
 Behavior duoSeekLight()
 {
 
@@ -145,7 +156,7 @@ Behavior duoSeekLight()
 //  int movement = 0;
 //  delay(50);
 //  String command = "bldcaccel "+ for_rev + " " + String(2800 + 3*plane_change_offset) + " " + String(700 + plane_change_offset);
-//  Serial.println(command);
+//  Serial.println(command);mesh.sendBroadcast
 //  ////////////////////////////// Reads the gyro for 12*65 ms
 //  for(int i = 0; i < 12; i++)
 //  {

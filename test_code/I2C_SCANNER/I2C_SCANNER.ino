@@ -69,7 +69,8 @@ int nDevices;
     // a device did acknowledge to the address.
     Wire.beginTransmission(byte(address));
     error = Wire.endTransmission();
- 
+    Serial.print("Address = ");Serial.println(address);
+    Serial.print("Error = ");Serial.println(error);
     if (error == 0)
     {
       Serial.print("I2C device found at address 0x");
