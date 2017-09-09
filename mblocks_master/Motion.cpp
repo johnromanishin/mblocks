@@ -16,7 +16,7 @@ bool Move(Motion* motion, String Direction, int numberOfAttempts, SerialDecoderB
   long beginTime = millis();
   while(numberOfAttempts)
   {
-    //Step 1:  Set Motor to a specific speed
+    //Step 1:  Set Motor to a specific speed HEY
     String rpmString = String("bldcspeed") + " " + Direction + " " + String(motion->rpm);
     String brakeString = String("brake") + String(" ") + Direction +
       " " + String(motion->current) + " " + String(motion->brakeTime);
