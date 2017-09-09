@@ -213,7 +213,7 @@ Behavior crystalize(Cube* c, painlessMesh* m)
             c->setFaceLEDsAtEdge(i, subsequentFace);
           }
           else
-            c->turnOnFaceLEDs(false, false, false, false);
+            c->faces[i].turnOnFaceLEDs(false, false, false, false);
         }
       }
       else if((ledCounter >= 8) && (ledCounter < 12))
@@ -229,7 +229,7 @@ Behavior crystalize(Cube* c, painlessMesh* m)
             c->setFaceLEDsAtEdge(i, subsequentFace);
           }
           else
-            c->turnOnFaceLEDs(false, false, false, false);
+            c->faces[i].turnOnFaceLEDs(false, false, false, false);
         }
       }
       else if((ledCounter >= 12) && (ledCounter < 16))
@@ -250,7 +250,7 @@ Behavior crystalize(Cube* c, painlessMesh* m)
     else
     {
       //check for neighbors
-
+    }
   }
 }
 
