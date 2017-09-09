@@ -14,6 +14,7 @@ int getEspIDFromCube(int);
 int getCubeIDFromEsp(int);
 
 /// Global Variables ///
+#define DEBUG 0
 #define FACES 6
 #define PLANE_0321 ((int)'A')
 #define PLANE_0425 ((int)'B')
