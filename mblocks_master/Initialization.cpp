@@ -3,25 +3,12 @@
 #include "Defines.h"
 #include <Wire.h>  
 
-//// Global Calibration Variables
-//int faceVersion = 1;
-//int cubeID = 0;
-//int planeChangeTime = 60;
-//int planeChangeRPM = 5000;
-//int traverseBrakeCurrent_F = 2800;
-//int traverseBrakeCurrent_R = 2800;
-//int cornerClimbBrakeCurrent_F = 3000;
-//int cornerClimbBrakeCurrent_R = 3000;
-//int plane0321Magnet = 0;
-//int plane0425Magnet = 120;
-//int plane1435Magnet = 240;
-//// Global Variables
-
 // Hardware Pin Definitions
-#define Switch 12 // Digital Output | Switch which controlls power to the face boards,  High = power given to faceboards, Low = ability to charge
-#define LED 13    // Digital Output | Directly Controlls a small white LED on the "Master" circuit board
-#define SDA 2     // Managed by the wire.begin in initializeCube()
-#define SCL 14    // Managed by the wire.begin in initializeCube() 
+#define Switch 12 //  Digital Output | Switch which controlls power to the face boards,  
+                  //  High = power given to faceboards, Low = ability to charge
+#define LED 13    //  Digital Output | Directly Controlls a small white LED on the "Master" circuit board
+#define SDA 2     //  Managed by the wire.begin in initializeCube()
+#define SCL 14    //  Managed by the wire.begin in initializeCube() 
 
 void initializeCube()
 {
@@ -81,15 +68,17 @@ void checkFaceVersion()
   
 void initializeHardware()
 {
-  Serial.begin(115200); // open serial connection to the Slave Board
+  Serial.begin(115200);       // open serial connection to the Slave Board
   Serial.println("stillalive");
   delay(1000);
-  pinMode(Switch, OUTPUT); // Initialize the pin to controll the power switching circuitry
-  digitalWrite(Switch, LOW); // Set the power switch to be OFF - this is so that we don't disrupt charging if we are on a charging pad
-  pinMode(LED, OUTPUT); // Initialize the pin to control the blinky LED
-  Wire.begin(SDA, SCL); // Begin Two Wire Bus (i2c) to contact all of the sensors
+  pinMode(Switch, OUTPUT);    // Initialize the pin to controll the power switching circuitry
+  digitalWrite(Switch, LOW);  // Set the power switch to be OFF - 
+                              //this is so that we don't disrupt charging if we are on a charging pad
+  pinMode(LED, OUTPUT);       // Initialize the pin to control the blinky LED
+  Wire.begin(SDA, SCL);       // Begin Two Wire Bus (i2c) to contact all of the sensors
   
-  int timesToCheck = 2; // We need to verify that the cube is not being charged at startup, we do this by asking
+  int timesToCheck = 2;       // We need to verify that the cube is not 
+                              // being charged at startup, we do this by asking
   for(int i = 0; i < timesToCheck; i++)
   {
     if (inputVoltage() > 3400) {
@@ -101,7 +90,11 @@ void initializeHardware()
   digitalWrite(Switch, HIGH); // turns on power to the face Boards
 }
 
-void disableAutoReset() // this tells the slave board not to accidently turn off its power, it prints it three times incase it is lost
+/*
+ *this tells the slave board not to accidently turn off its power, 
+ *it prints it three times incase it is lost
+ */ 
+void disableAutoReset() 
 {
   Serial.println("espprogram");
   delay(50);
@@ -110,8 +103,11 @@ void disableAutoReset() // this tells the slave board not to accidently turn off
   Serial.println("espprogram");
 }
 
+/*
+ * Obtains the input voltage from the slave board to 
+ * detect when the block is charging, and to put the master board to sleep
+ */
 int inputVoltage()
-// Obtains the input voltage from the slave board to detect when the block is charging, and to put the master board to sleep
 {
   int timeout = 60; // ms - how long the function will attempt to parse text for.
   long startTime = millis();
@@ -122,7 +118,8 @@ int inputVoltage()
   }
   Serial.println("vin");
   delay(25);                                // We need to wait for the slave board to process the command
-  while (Serial.available() != 0 && (millis() - startTime) < timeout) // while there are things in the serial buffer to read, and timeout has not passed
+  while (Serial.available() != 0 && (millis() - startTime) < timeout) 
+  // while there are things in the serial buffer to read, and timeout has not passed
   {
     char currentCharacter = Serial.read();
     if (previousCharacter == ':' && currentCharacter == ' ')
@@ -156,7 +153,8 @@ int get_battery_voltage()
     char prev_char = ' ';
     String temp_string = "";
     int battery_counter = 1;
-    while (Serial.available() > 0 && (millis()-begin_function) < 60) // while there are things in the serial buffer...
+    while (Serial.available() > 0 && (millis()-begin_function) < 60) 
+    // while there are things in the serial buffer...
     {
         char c = Serial.read();
         if(c == ' ' && prev_char == ':')
@@ -181,6 +179,10 @@ int get_battery_voltage()
   return (vbat[0]);
 }
 
+/*
+ * 
+ * Updates global variables with values according to the esp.getchipid
+ */
 void lookUpCalibrationValues()
 {
   switch (ESP.getChipId()) 

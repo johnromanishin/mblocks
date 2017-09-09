@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
-#include <painlessMesh.h>         // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
+#include <painlessMesh.h> // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
 #include <ArduinoJson.h>
 #include "Communication.h"
 #include "Cube.h"
@@ -86,12 +86,6 @@ void delayReceivedCallback(uint32_t from, int32_t delay) {
   //Serial.printf("Delay to node %u is %d us\n", from, delay);
 }
 
-//void checkForMessage(Cube* c, String message)
-//{
-//  Serial.printf(message.c_str());
-//  //if(String(msg.c_str()) == "sleep"){}//c.shutDown();}
-//}
-
 //   Serial.println(c.returnTopFace());
 //   Serial.print("IMU_ax: ");Serial.println(c.axFrameBuffer.access(0));
 //   Serial.print("IMU_ay: ");Serial.println(c.ayFrameBuffer.access(0));
@@ -99,13 +93,9 @@ void delayReceivedCallback(uint32_t from, int32_t delay) {
    //Serial.print("IMU_gx: ");Serial.println(c.gxFrameBuffer.access(0));
    //Serial.print("IMU_gy: ");Serial.println(c.gyFrameBuffer.access(0));
    //Serial.print("IMU_gz: ");Serial.println(c.gzFrameBuffer.access(0));
-
-   // c.lightFace(c.returnTopFace());
-   // delay(100);
-
 //
  //c.updateBothIMUs();
-   //c.updateCoreMagnetSensor();
+ //c.updateCoreMagnetSensor();
 
 //   String newmsg = "Angle: " + String(c.coreMagnetAngleBuffer.access(0) - initialMagnetReadingOffset)
 //   + " core.ax: " + String(c.axCoreBuffer.access(0))
@@ -115,7 +105,3 @@ void delayReceivedCallback(uint32_t from, int32_t delay) {
 //   + " Frame.ay: " + String(c.ayFrameBuffer.access(0))
 //   + " Frame.az: " + String(c.azFrameBuffer.access(0))
 //   + " CoreMagAGC: " + String(c.coreMagnetStrengthBuffer.access(0));
-
-   //Serial.print("Angle: ");Serial.print(c.coreMagnetAngleBuffer.access(0));Serial.print(" Magnitude: ");Serial.println(c.coreMagnetStrengthBuffer.access(0));
-   //String newmsg = "Angle: ";
-   //mesh.sendBroadcast(newmsg);

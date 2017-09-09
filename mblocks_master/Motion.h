@@ -24,7 +24,5 @@ extern Motion cornerClimb;
 
 // Functions involving Motion
 bool Move(Motion*, String Direction, int numberOfAttempts, SerialDecoderBuffer*);
-bool setCorePlane(int targetCorePlane);
-int currentCorePlane();
 
 #endif

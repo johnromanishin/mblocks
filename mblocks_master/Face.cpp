@@ -18,7 +18,6 @@ Face::Face()
     neighborInfoBuffer(ARRAY_SIZEOF(this->neighborInfoData), this->neighborInfoData)
     
 {
-//  this->faceVersion = faceVersion;
   this->IOExpanderState[0] = (this->IOExpanderState[1] = byte(0xff)); // sets bytes of IO expander to be all 1's
 }
 
@@ -67,44 +66,51 @@ bool Face::updateAmbient()
    * legacy version (when faceVerstion ==0);
    */
   if(faceVersion == 0) // Alternate method for Old Face Version
-  {
-    int final_reading = 0;
-    int lightSensorGain = 10;
-    for(int i = 0; i < 3; i++)
     {
-      int reading = 0;
-      delay(6);
-      Wire.beginTransmission(this->IOExpanderAddress - this->versionOffset); 
-      Wire.write(byte(0x10)); // this is the register where the ambient values are stored
-      Wire.endTransmission();
-      Wire.requestFrom((this->IOExpanderAddress - this->versionOffset), 2);
-      if (2 <= Wire.available()) //ambientLight  = twiBuf[0] << 2;
-      {
-        reading =  Wire.read()<<1;     //  ambientLight |= twiBuf[1] >> 6;
-        reading |=  Wire.read()>>7;
-      }
-      else  {return(false);}
-      final_reading += reading*lightSensorGain;
+      int final_reading = 0;
+      int lightSensorGain = 10;
+      
+      for(int i = 0; i < 3; i++) // We read the actual sensor 3 times, and return average
+        { 
+          int reading = 0;
+          delay(6);
+          Wire.beginTransmission(this->IOExpanderAddress - this->versionOffset); 
+          Wire.write(byte(0x10)); // this is the register where the ambient values are stored
+          Wire.endTransmission();
+          Wire.requestFrom((this->IOExpanderAddress - this->versionOffset), 2);
+          if (2 <= Wire.available()) //ambientLight  = twiBuf[0] << 2;
+            {
+              reading =  Wire.read()<<1;     //  ambientLight |= twiBuf[1] >> 6;
+              reading |=  Wire.read()>>7;   // Bit shifting for ambient values
+            }
+          else 
+            {
+              return(false);
+            }
+          final_reading += reading*lightSensorGain;
+        }
+      this->ambientBuffer.push(final_reading);
+      return(true);
     }
-    this->ambientBuffer.push(final_reading);
-    return(true);
-  }
-  
-  //// Code runs for Regular faceVersion
-  activateLightSensor(this->ambientSensorAddress);
-  delay(15);
-  int reading = 0;
-  Wire.beginTransmission(this->ambientSensorAddress); 
-  Wire.write(byte(0x8C)); // this is the register where the Ambient values are stored
-  Wire.endTransmission();
-  Wire.requestFrom(this->ambientSensorAddress, 2);
-  if (2 <= Wire.available()) 
-  {
-    reading = Wire.read();
-    reading |= Wire.read()<<8;
-  }
-  this->ambientBuffer.push(reading);
-  return(true);
+
+  else   //// Code runs for Regular faceVersion
+    {
+      activateLightSensor(this->ambientSensorAddress);
+      bool error = false; // not yet implemented
+      delay(15); // 15ms delay to ensure integration period for light sensor works
+      int reading = 0;
+      Wire.beginTransmission(this->ambientSensorAddress); 
+      Wire.write(byte(0x8C)); // this is the register where the Ambient values are stored
+      Wire.endTransmission();
+      Wire.requestFrom(this->ambientSensorAddress, 2);
+      if (2 <= Wire.available())  // request data from the sensor
+        {
+          reading = Wire.read();
+          reading |= Wire.read()<<8;
+        }
+      this->ambientBuffer.push(reading); // adds the sensor value to the buffer
+      return(true);
+    }
 }
 
 int Face::returnAmbientValue(int index)
@@ -165,38 +171,37 @@ bool Face::setPinHigh(int pin)
   {
     this->IOExpanderState[1] |= (1 << (pin - 8));
   }
-  
-  //return this->updateIOExpander();
 }
 
-//***
+/*
+ * This code actually reads and pushes the values from the magnetic sensors
+ * into the buffers. Returns true if it successfully communicates with both 
+ * sensors. False if either sensor is not able to be accessed.
+ */
 bool Face::updateMagneticBarcode()
 {
     this->getMagnetEncoderAddresses(this->faceMagnetAddresses);
     float AMS5048_scaling_factor = 45.5111;
 
     int angle_A  = round(readMagnetSensorAngle(this->faceMagnetAddresses[0])/AMS5048_scaling_factor);
-    int mag_A    = readMagnetSensorFieldStrength(this->faceMagnetAddresses[0]);//(this->getMagnetEncoderAddresses(this->*faceMagnetAddresses))[0]);
-    int angle_B  = round(readMagnetSensorAngle(this->faceMagnetAddresses[1])/AMS5048_scaling_factor);//(this->getMagnetEncoderAddresses(this->*faceMagnetAddresses)[1]))/45.5;
-    int mag_B    = readMagnetSensorFieldStrength(this->faceMagnetAddresses[1]);//(this->getMagnetEncoderAddresses(this->*faceMagnetAddresses))[1]);
-    if((mag_A == 0) || (mag_B == 0)) {return(false);}
+    int mag_A    = readMagnetSensorFieldStrength(this->faceMagnetAddresses[0]);
+    int angle_B  = round(readMagnetSensorAngle(this->faceMagnetAddresses[1])/AMS5048_scaling_factor);
+    int mag_B    = readMagnetSensorFieldStrength(this->faceMagnetAddresses[1]);
 
-    this->magnetAngleBuffer_A.push(angle_A);
-    this->magnetStrengthBuffer_A.push(mag_A);
+    this->magnetAngleBuffer_A.push(angle_A);  // push these values to a circular buffer 
+    this->magnetStrengthBuffer_A.push(mag_A); // push these values to a circular buffer 
    
-    this->magnetAngleBuffer_B.push(angle_B);
-    this->magnetStrengthBuffer_B.push(mag_B);
-   
-//        if (mag_A == 0)                     {mag_digit_1 = 0;}
-//   else if (angle_A < 6 || angle_A > 354)   {mag_digit_1 = 1;}
-//   else                                     {mag_digit_1 = int(angle1 + 18)/12;}
-//
-//  
-//        if (mag2 == 0)                      {mag_digit_2 = 0;}
-//   else if(angle2 < 6 || angle2 > 354)      {mag_digit_2 = 1;}  
-//   else                                     {mag_digit_2 = int(angle2 + 18)/12;}
-//   
-  return(true);
+    this->magnetAngleBuffer_B.push(angle_B);  // push these values to a circular buffer 
+    this->magnetStrengthBuffer_B.push(mag_B); // push these values to a circular buffer 
+    
+    if((mag_A == 0) || (mag_B == 0))  // if either sensor shows a field strength of 0 then it is disconnected
+      {
+        return(false);
+      }
+    else
+      {
+        return(true);
+      }
 }
 
 
@@ -272,127 +277,16 @@ bool Face::disableSensors()
    */
   if(faceVersion == 0) // Alternate method for Old Face Version
   {
-    Wire.beginTransmission(this->IOExpanderAddress - this->versionOffset); // this goes from 0x20 to 0x01 addresses
+    Wire.beginTransmission(this->IOExpanderAddress - this->versionOffset);// this goes from 0x20 to 0x01 addresses
     Wire.write(byte(0x43)); // access FBRXEN register
     Wire.write(byte(0x00)); // sets FBRXEN register to ACTIVE
     Wire.endTransmission(); 
-    this->turnOffFaceLEDs();
+    this->turnOffFaceLEDs(); // On version 0 sensors are turned off using the same pins as the LEDs
     return(true);
   }
   
   //// Code runs for Regular faceVersion
   
-  this->IOExpanderState[0] |= (1 << FB_EN1);
+  this->IOExpanderState[0] |= (1 << FB_EN1); // Toggles FB_EN1 to deactivate sensors
   return(this->updateIOExpander());
 }
-
-/*
-
-//FACE      orient    forward     reverse     ...
-//Face 1    1234           90  -- 180
-//Face 2    1234           90  -- 180
-//Face 3    1234           0   -- 90 
-//Face 4    1234           90  -- 180
-//Face 5    1234
-//Face 6    1234
-//Face 1    2546           90  -- 180
-//Face 2    2546
-//Face 3    2546
-//Face 4    1234f
-//Face 5    1234
-//Face 6    1234
-//Face 1    1234           90  -- 180
-//Face 2    1234
-//Face 3    1234
-//Face 4    1234
-//Face 5    1234
-//Face 6    1234
-
-////                            1   2   3   4   5   6   7   8   9   10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28  29  30
-//// FACE Numbers/Orientations                                                                      6B  6A  5B  5A  4B  4A  3B  3A  2B  2A  1B  1A  
-//// Cube ID Numbers            1   1                                                                                                               1
-//// Passive Cube ID Numbers    P_2 P_2                     P_D P_D                     P_3 P_3 P_3                                                 P_2
-//// Commands                               R   R   G   G               B   B   P   P   Y   Y                                                                                    
-
-void process_5048()
-{
-    {
-      // mag_digit_1 = 0; -+ 1 to 30 or 0 if no face
-      // mag_digit_2 = 0; -+ 1 to 30 or 0 if no face
-      // magnetic_neighbors[face] = 0 (No Neighbors)  | 1 one sensor indicates neighbor or | 2 Both sensors show Neighbors
-      //mag1 = read_5048_agc(address1);             delay(3);
-      //angle1 = read_5048_angle(address1)/45.5;    delay(10);
-      //mag2 = read_5048_agc(address2);             delay(3);
-      //angle2 = read_5048_angle(address2)/45.5;    delay(10);
-//        if(mag1 > 0 || mag2 > 0)
-//          {
-//            Serial.print("mag_digit_1: "); Serial.print(mag_digit_1); Serial.print("    ");  Serial.print("ANGLE1: "); Serial.println(angle1); 
-//            Serial.print("mag_digit_2: "); Serial.print(mag_digit_2); Serial.print("    ");  Serial.print("ANGLE2: "); Serial.println(angle2);
-//          }
-          
-           if(magnetic_neighbors_most_recent[face] > 1 && magnetic_neighbors[face] == 0)                    {face_rgb(face,0,0,0,1);} // turns off LED's if no longer connected
-           
-      else if(magnetic_neighbors[face] > 1 && angle1 > 250 && angle1 < 270 && angle2 > 80 && angle2 < 100)  {face_rgb(face,1,0,1,1);} // Purple
-      else if(magnetic_neighbors[face] > 1 && angle2 > 250 && angle2 < 270 && angle1 > 80 && angle1 < 100)  {face_rgb(face,0,1,0,1);}
-      else if(magnetic_neighbors[face] > 1 && angle1 > 330 && angle1 < 350 && angle2 > 170 && angle2 < 190) {face_rgb(face,0,0,1,1);}
-      else if(magnetic_neighbors[face] > 1 && angle2 > 330 && angle2 < 350 && angle1 > 170 && angle1 < 190) {face_rgb(face,1,0,0,1);}
-
-      // NEED TO WORK ON THIS
-      else if(magnetic_neighbors[face] > 1 && (face == 1 || face == 2 || face == 4) && angle1 > 70 && angle1 < 110 && angle2 > 165 && angle2 < 195)   {Serial.println("ia f 6000 2200 10");delay(1500);Serial.println("stillalive");delay(1300);Serial.println("stillalive");}//cmd = "forward_traverse";} 
-      else if(magnetic_neighbors[face] > 1 && face == 3 && angle2 < 105 && angle2 > 75 && (angle1 > 348 || angle1 < 12))                              {Serial.println("ia f 6000 2200 10");delay(1500);Serial.println("stillalive");delay(1300);Serial.println("stillalive");}
-      //
-      
-      else if(magnetic_neighbors[face] > 1 && angle1 > 300 && angle2 > 300)                                 {face_rgb(face,1,1,0,1);} // yellow
-      else if(magnetic_neighbors[face] > 1)                                                                 {face_rgb(face,1,1,0,1);} //cmd = "rain";} // yellow
-      magnetic_neighbors_most_recent[face] = magnetic_neighbors[face]; // shift the time value by one step
-    }
-}
-
-void check_5048_frame()
-{
-  mag4 = read_5048_agc(address4);             delay(3);
-  angle4 = read_5048_angle(address4)/45.5;    delay(10);
-  if(mag4 >= 255) {signed_angle4 = angle4*(-1);}  else{signed_angle4 = angle4;}
-}
-
-
-void check_and_process_mag_sensors(int face) // This function updates a bunch of variables for the magnetic connections
-{
-  int mag_digit_1 = 0;
-  int mag_digit_2 = 0;
-  int signed_angle1;
-  int signed_angle2;
-
-  int mag1 = read_5048_agc(address1);             delay(3);  // reads the value of the magnetic field strength for sensor_1
-  int angle1 = read_5048_angle(address1)/45.5;    delay(10); // reads the ANGLE value for sensor_1 - converts from 14 Bit to an integer in degrees.
-  int mag2 = read_5048_agc(address2);             delay(3);  // reads the value of the magnetic field strength for sensor_2
-  int angle2 = read_5048_angle(address2)/45.5;    delay(10); // reads the ANGLE value for sensor_2 - converts from 14 Bit to an integer in degrees.
-
-////{ These two blocks of code "digitize" the magnet readings into numbers from -30 to +30 and with 0 being an error, +1-30 representing digits with measureable 
-//// strength in the magnetic field (We are confident the sensor is reading an actual magnet) while -1-30 represents a digitized angle reading where we are NOT
-//// condifent that the magnet is an actual magnet...
-        if (mag1 == 0)                      {mag_digit_1 = 0;}
-   else if (angle1 < 6 || angle1 > 354)     {mag_digit_1 = 1;}
-   else                                     {mag_digit_1 = int(angle1 + 18)/12;}
-
-        if (mag2 == 0)                      {mag_digit_2 = 0;}
-   else if(angle2 < 6 || angle2 > 354)      {mag_digit_2 = 1;}  
-   else                                     {mag_digit_2 = int(angle2 + 18)/12;}
-
-  if(mag1 >= 255) {signed_angle1 = angle1*(-1); mag_digit_1 = mag_digit_1*(-1);}  else{signed_angle1 = angle1;}
-  if(mag2 >= 255) {signed_angle2 = angle2*(-1); mag_digit_2 = mag_digit_2*(-1);}  else{signed_angle2 = angle2;}
-  if(mag1 == 0 || mag2 == 0) {mag1 = 0; mag2 = 0; magnetic_neighbors[face] = 0; error_flag = 1;}
-  
-     else if((mag1 < 255 && mag1 > 0) && (mag2 < 255 && mag2 > 0)) // If precense of both BOTH magnets are detected, magnetic_neighbors[face] entry holds a 2
-          {
-            magnetic_neighbors[face] = 2;
-          }
-     else if(mag1 < 255 || mag2 < 255) 
-            magnetic_neighbors[face] = 1; // if ONLY one of 
-     else 
-          {
-            magnetic_neighbors[face] = 0;
-          }
-}
-
-*/

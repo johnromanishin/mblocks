@@ -79,9 +79,6 @@ Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf)
       }
     }
   }
-   //if(
-   //if
-   //Move(&traverse, "f", 4, buf);
    return(CHILLING);
 }
 
@@ -97,25 +94,6 @@ Behavior chilling(Cube* c)
   while(nextBehavior == CHILLING)
   {
     c->updateSensors();
-    mesh.update();
-
-    //======= check for wifi commands =======
-    if(!jsonCircularBuffer.empty())
-    {
-      StaticJsonBuffer<256> jb;
-      JsonObject& root = jb.parseObject(jsonCircularBuffer.pop());
-
-      if((root["cubeID"] == getCubeIDFromEsp(ESP.getChipId())) ||
-         (root["cubeID"] == -1))
-      {
-        if(root["cmd"] == "sleep")
-        {
-          nextBehavior = SHUT_DOWN;
-          mesh.update();
-        }
-      }
-    }
-    
     //======= Check for magnetic tags =======
     for(int i = 0; i < 6; i++)
     {
@@ -128,8 +106,31 @@ Behavior chilling(Cube* c)
       {
         nextBehavior = RELAY_SLEEP;
       }
+      if(t.command == TAGCOMMAND_PURPLE)
+      {
+        c->blockingBlink(1,0,1);
+      }
     }
+    //=======end Check for Magnetic Tags=====
+    wifiDelay(200);
+    
+    //======= check for wifi commands =======
+    if(!jsonCircularBuffer.empty())
+    {
+      StaticJsonBuffer<256> jb;
+      JsonObject& root = jb.parseObject(jsonCircularBuffer.pop());
 
+      if((root["cubeID"] == getCubeIDFromEsp(ESP.getChipId())) || // If message matches your ID
+         (root["cubeID"] == -1))                                  // or if message is brodcast
+      {
+        if(root["cmd"] == "sleep")
+        {
+          nextBehavior = SHUT_DOWN;
+          mesh.update();
+        }
+      }
+    }
+    
     //======= blink =======
     long m = millis();
     millisAccum += (m - millisPrev);
@@ -140,9 +141,11 @@ Behavior chilling(Cube* c)
       c->lightCube(false, false, false);
     else
       millisAccum -= 1500;
-
+    //===== end blink =====
+    
     delay(10);
   }
+  
   return nextBehavior;
 }
 
@@ -151,7 +154,8 @@ Behavior attractive(Cube* c)
   c->updateSensors();
   for(int i = 0; i < 6; i++)
     {
-      if(i == c->returnTopFace() || i == c->returnBottomFace()) // This ensures we only turn on 4 faces in horizontal plane
+      if(i == c->returnTopFace() || i == c->returnBottomFace()) // This ensures we only 
+                                                                // turn on 4 faces in horizontal plane
         break;
       else
         c->faces[i].turnOnFaceLEDs(1,1,1,1); // turns on LEDs
@@ -308,138 +312,33 @@ Behavior crystalize(Cube* c, painlessMesh* m)
 
 Behavior relaySleepMessage(Cube* c)
 {
-  Serial.println("telling others to go to sleep");
+  if(DEBUG1) Serial.println("telling others to go to sleep");
+
+  //============= Generates a Broadcast message ==========
   StaticJsonBuffer<256> jsonBuffer;
   JsonObject& root = jsonBuffer.createObject();
   root["type"] = "cmd";
   root["cubeID"] = -1;
   root["cmd"] = "sleep";
-  
   String str;
   root.printTo(str);
   mesh.sendBroadcast(str);
-
-  long millisNow = millis();
-  while((millis() - millisNow) < 1000)
-  {
-    mesh.update();
-  }
-  
+  //======== End Generating of Broadcast message ==========
+  wifiDelay(2000);
   return SHUT_DOWN;
 }
 
-//int display_brightest_face()
-//{
-//  for(int x = 1; x < 7; x++){fblight_list[x] = read_ambient(x);} // Populates temp. array of light values
-//
-//  if(up_face > 0 && up_face <7)    {fblight_list[up_face] = -1;} // Zeros out the exclude face
-//
-//  else                             {for(int x = 1; x < 7; x++){fblight_list[x] = 0;}} // this means cube isn't stable, so we zero everything
-//
-//  for(int x = 1; x < 7; x++){sum_of_horizontal+=fblight_list[x];}
-//
-//  int brightest[2] = {which_face_is_brightest(fblight_list),which_face_is_brightest(fblight_list)};
-//
-//  Serial.print("Brightest face is: ");Serial.println(brightest[0]);
-//
-//  //Serial.print("
-//
-//  face_rgb(brightest[0],0,1,1,1);
-//}
+//================ Utilities ==============================
 
+void wifiDelay(int delayTime)
+{
+  long millisNow = millis();
+  while((millis() - millisNow) < delayTime)
+  {
+    mesh.update();
+  }
+}
 ////////// How Long did this take?
 ////long begin_time = millis();
 ////Serial.print("Function took: ");Serial.println(millis()-begin_time);
 //////////
-//
-
-//void light_track_update_part2()
-//{
-//
-//  bool result = false;
-//  if   (change_plane_counter < 3){change_plane_counter++;change_plane_to_parallel(which_face_is_up(12000));}
-//  else  // now we do
-//    {
-//      if(which_plane_fast() > 1000){move_randomly_in_horizontal_plane_three_times();}
-//    }
-//
-//  // Step 1: Look up up face...
-//  // Step 2: Figure out what plane corresponds to horizontal...
-//  // if(current_plane != horizontal plane)
-////  {
-////    change plane...
-////  }
-//     // else if(not 100% connected){Serial.println("ia f/r 5000 4000 10");
-//     // else if(100% connected){flash_green(5);cmd = "g"}
-//     // else {  }// we don't know what is going on here...
-//}
-//
-//
-//int wiggle_test(String for_rev)
-////
-////read_accel() read_gyro();
-////AcX,AcY,AcZ,GyX,GyY,GyZ,
-//{
-//  if(for_rev == "f")        {}
-//  else if(for_rev == "r")   {}
-//  else                      {for_rev = "f";}
-//  Serial.println("stillalive");
-//  if(DEBUG){Serial.println("BEGINNING WIGGLE_TEST");}
-//  int movement = 0;
-//  delay(50);
-//  String command = "bldcaccel "+ for_rev + " " + String(2800 + 3*plane_change_offset) + " " + String(700 + plane_change_offset);
-//  Serial.println(command);mesh.sendBroadcast
-//  ////////////////////////////// Reads the gyro for 12*65 ms
-//  for(int i = 0; i < 12; i++)
-//  {
-//   movement += read_gyro(MPU_parasite)/100;
-//   delay(65);
-//  }
-//  Serial.print("stillalive");
-//  delay(40);
-//  delay(plane_change_offset);
-//  //////////////////////////////
-//  Serial.println("bldcstop b");
-//  delay(40);
-//  Serial.println("bldcstop b");
-//  delay(40);
-//  Serial.print("stillalive");
-//  ////////////////////////////// Reads the gyro for 12*65 ms
-//  for(int i = 0; i < 8; i++)
-//  {
-//   movement += read_gyro(MPU_parasite)/100;
-//   delay(30);
-//  }
-//  //////////////////////////////
-//  Serial.println("stillalive");
-//  return(movement);
-//}
-//
-//int which_face_is_brightest(int fblight_temp[])
-//// Sorts input list (fblight_temp). Running it a second time, returns 2nd brightest...
-//// running a 3rd time returns 3rd brightest...
-//{
-//  int brightest_list[6] = {0,0,0,0,0,0};
-//  for(int i = 1; i < 7 ;i++){if(fblight_temp[brightest_list[0]] < fblight_temp[i]){brightest_list[0] = (i);}}
-//  fblight_temp[brightest_list[0]] = 0;
-//  return(brightest_list[0]);
-//}
-//
-//
-//  void light_track_part_2()
-//  {
-//    light_track_update_part2();
-//  }
-//
-//  void light_track_update_part_2() {light_track_update_part2();}
-//
-//  void roll_to_plane()
-//  {
-//    if(ambient_values[face_that_is_up][0] > 0)
-//    {
-//           if(most_recent_traverse_result == 180 )   {cmd = "g"; demo = "nothing";}
-//      else if(attempts_traverse > 5)                 {cmd = "r"; demo = "nothing";}
-//      else if(most_recent_traverse_result == 90)     {Serial.println("stillalive"); most_recent_traverse_result = move_normal("f","90 deg",6000, 24, 12,"e 10", 4000);attempts_traverse++;}
-//      else if(most_recent_traverse_result == 0)      {Serial.println("stillalive"); most_recent_traverse_result = move_normal("f","90 deg",6000, 24, 12,"e 10", 4000);attempts_traverse++;}
-//    }
-//    else if(ambient_values[face_that_is_up][0])   {y_counter = 8;}

@@ -22,10 +22,8 @@
 
 // Global Objects
 Cube c; // Initialize the Cube Object c globally so that things don't crash
-// This is a temporary location where the contents of WIFI messages are stores
-                 // will be replaced soon with a fancy string buffer thing
 
-char storage[256];
+char storage[256]; // This creates storage space for decoding serial messages
 SerialDecoderBuffer buf = {storage, 256, 0}; //Struct used to detect serial messages from Kyles Board
 
 // Beginning Behavior
@@ -42,6 +40,7 @@ void setup() // Actually the main loop...
   ///////////////////////ACTUAL LOOP////////////////////
   while((millis() < c.shutDownTime) && (!shutDown))
   {
+    loopCounter++;
     if      (behavior == SOLO_LIGHT_TRACK)
       behavior = soloSeekLight(&c, &buf);
     else if (behavior == DUO_LIGHT_TRACK)
@@ -64,14 +63,12 @@ void setup() // Actually the main loop...
       behavior = CHILLING;
     }
   }
-
-  //
-  
-  c.blockingBlink(0,0,1);
+  c.blockingBlink(1,0,0);
   c.shutDown();
 }
 
-// This is here only becuase arduino won't compile without it, but it is never used, the real loop is "while(1)" in the void setup() Function
+// This is here only becuase arduino won't compile without it, but it is never used, 
+//the real loop is "while(1)" in the void setup() Function
 void loop()
 {
 }

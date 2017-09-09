@@ -111,4 +111,8 @@ Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf);
  * a.
  * b.
  */
+
+ //==================Utilities===============================
+ void wifiDelay(int delayTime);
+
 #endif

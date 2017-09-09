@@ -1,8 +1,5 @@
 #include "Defines.h"
 
-#define DEBUG1 0
-
-String cmd = "";
 int faceVersion = 1;
 int cubeID = 0;
 int planeChangeTime = 60;

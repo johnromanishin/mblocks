@@ -14,13 +14,14 @@ int getEspIDFromCube(int);
 int getCubeIDFromEsp(int);
 
 /// Global Variables ///
-#define DEBUG1 0
-#define FACES 6
+#define DEBUG1 1 // DEBUG was already used somewhere
+#define DEBUG_VERBOSE
+
+#define FACES 6  // Number of faces on a cube...
 #define PLANE_0321 ((int)'A')
 #define PLANE_0425 ((int)'B')
 #define PLANE_1534 ((int)'C')
 
-extern String cmd;
 extern int faceVersion;
 extern int cubeID;
 extern int planeChangeTime;
@@ -29,9 +30,7 @@ extern int traverseBrakeCurrent_F;
 extern int traverseBrakeCurrent_R;
 extern int cornerClimbBrakeCurrent_F;
 extern int cornerClimbBrakeCurrent_R;
-extern int plane0321Magnet;
-extern int plane0425Magnet;
-extern int plane1435Magnet;
+
 
 //These tables define connectivity between faces for the cube
 const extern int faceRotations[][4];

@@ -72,30 +72,32 @@ class Cube
     bool updateCoreIMU();
     bool updateCoreMagnetSensor();
     bool wakeIMU(int i2cAddress);
-    void printOutDebugInformation();
+    int returnXthBrightestFace(int index);
+    int returnSumOfAmbient(); // returns the sum of all of the light sensors
+
+        // Related to the state itself
+    int returnCurrentPlane();
+    int returnForwardFace();
+    int returnReverseFace();
+    int returnTopFace();
+    int returnBottomFace();
+
+    // Functions involving PLane Changing
+    bool setCorePlane(int targetCorePlane); 
+    int currentCorePlane();
+    PlaneEnum findLikelyPlane();
 
       // Functions involving LED's
     bool clearRGB(); // Turns off all LED's on the cube DUAL VERSIONS
     bool lightFace(int face, bool r = true, bool g = false, bool  b = true); //DUAL VERSIONS
     bool lightCube(bool r = true, bool g = true, bool b = false); // lights entire cube, defaults to yellow
     bool blockingBlink(bool r, bool g, bool b, int howManyTimes = 6, int waitTime = 100);
-
-    // Useful Functions
     void setFaceLEDsAtEdge(int, int);
 
+    // Misc. Useful Functions
     bool determineIfLatticeConnected();
-
-    int returnXthBrightestFace(int index);
-    int returnSumOfAmbient(); // returns the sum of all of the light sensors
-
-    int returnCurrentPlane();
-    int returnForwardFace();
-    int returnReverseFace();
-    int returnTopFace();
-    int returnBottomFace();
-    PlaneEnum findLikelyPlane();
-
-    void shutDown();                   // Turns off the entire cube
+    void printOutDebugInformation();
+    void shutDown();                   // Turns off the entire cub
     //
     long cubeMAC = ESP.getChipId();
 
@@ -120,7 +122,6 @@ class Cube
     CircularBuffer<int> coreMagnetStrengthBuffer;
 
     ArrowMap arrowMap;
-
     //
     Face faces[6];
     Cube();
@@ -128,4 +129,7 @@ class Cube
 
 int sortList(int*, int, int);
 int oppositeFace(int face);
+static int32_t vector_distance_squared(const int32_t* a, const int32_t* b);
+static void apply_3x3_mult(const int32_t* R, const int32_t* V, int32_t* target);
+
 #endif
