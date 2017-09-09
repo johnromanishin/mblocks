@@ -1,5 +1,7 @@
 #include <Arduino.h>
 #include "MagTag.h"
+#include "Defines.h"
+
 //  int face1A = 29; // Magnet centerpoint for face 1 magnet position a
 //  int face1B = 28;
 //  int face2A = 27;
@@ -36,12 +38,13 @@ void analyzeTag(int angle1, int agc1, int angle2, int agc2, Tag* t)
    else if(angle2 < 6 || angle2 > 354)      {magDigit2 = 1;}  
    else                                     {magDigit2 = int(angle2 + 18)/12;}
    
-  if(agc1 != 0 && DEBUG)
+  if((agc1 != 0) && DEBUG1)
     {
-      //Serial.print("angle1: "); Serial.println(angle1);
-      //Serial.print("agc1:   "); Serial.println(agc1);
-      //Serial.print("angle2: "); Serial.println(angle2);
-      //Serial.print("agc2:   "); Serial.println(agc2);
+      Serial.println(DEBUG1);
+      Serial.print("angle1: "); Serial.println(angle1);
+      Serial.print("agc1:   "); Serial.println(agc1);
+      Serial.print("angle2: "); Serial.println(angle2);
+      Serial.print("agc2:   "); Serial.println(agc2);
       Serial.print("magDigit1: "); Serial.println(magDigit1);
       Serial.print("magDigit2: "); Serial.println(magDigit2);
     }

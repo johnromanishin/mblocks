@@ -1,5 +1,7 @@
 #include "Defines.h"
 
+#define DEBUG1 0
+
 String cmd = "";
 int faceVersion = 1;
 int cubeID = 0;
@@ -55,8 +57,6 @@ int getCubeIDFromEsp(int espID)
     return espCubeMap[idex].cube;
 }
 
-#include "Defines.h"
-
 /**
  * For the ith face, faceRotations[i][0] will tell which face the intrisic arrow points towards.
  * faceRotations[i][1] tells which face the arrow rotated 90 degrees counter-clockwise from the
@@ -64,6 +64,7 @@ int getCubeIDFromEsp(int espID)
  *
  * For cubes
  */
+ 
 const int faceRotations[][4] =
 {
   {4, 1, 5, 3},

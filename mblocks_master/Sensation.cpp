@@ -35,8 +35,6 @@ void activateLightSensor(int address)
 int readMagnetSensorAngle(int i2cAddress) {
   // Returns the angle of the measured magnet as a 14 bit number
   int value = magnetSensorRead(i2cAddress, byte(0xFF));
-  Serial.print("Sensor Address: ");Serial.println(i2cAddress);
-  Serial.print("Magnetic Reading: ");Serial.println(value/45.51);
   return(value);
 }
 

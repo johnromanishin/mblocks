@@ -176,10 +176,8 @@ bool Face::updateMagneticBarcode()
     float AMS5048_scaling_factor = 45.5111;
 
     int angle_A  = round(readMagnetSensorAngle(this->faceMagnetAddresses[0])/AMS5048_scaling_factor);
-    Serial.print("Angle1: ");Serial.println(angle_A);
     int mag_A    = readMagnetSensorFieldStrength(this->faceMagnetAddresses[0]);//(this->getMagnetEncoderAddresses(this->*faceMagnetAddresses))[0]);
     int angle_B  = round(readMagnetSensorAngle(this->faceMagnetAddresses[1])/AMS5048_scaling_factor);//(this->getMagnetEncoderAddresses(this->*faceMagnetAddresses)[1]))/45.5;
-    Serial.print("Angle2: ");Serial.println(angle_B);
     int mag_B    = readMagnetSensorFieldStrength(this->faceMagnetAddresses[1]);//(this->getMagnetEncoderAddresses(this->*faceMagnetAddresses))[1]);
     if((mag_A == 0) || (mag_B == 0)) {return(false);}
 

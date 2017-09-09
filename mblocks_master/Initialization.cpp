@@ -50,10 +50,26 @@ void checkFaceVersion()
     int error;
     for(int i = 0; i < 6; i++)
     {
-      Wire.beginTransmission(0x21);
+      Wire.beginTransmission(0x20); // Check for i2c address 0x20
       error = Wire.endTransmission();  
       if(error == 0){faceVersion = 1; return;}
       delay(100);
+      
+      Wire.beginTransmission(0x21); // Check for i2c address 0x21
+      error = Wire.endTransmission();  
+      if(error == 0){faceVersion = 1; return;}
+      delay(100);
+
+      Wire.beginTransmission(0x22); // Check for i2c address 0x22
+      error = Wire.endTransmission();  
+      if(error == 0){faceVersion = 1; return;}
+      delay(100);
+
+      Wire.beginTransmission(0x23); // Check for i2c address 0x22
+      error = Wire.endTransmission();  
+      if(error == 0){faceVersion = 1; return;}
+      delay(100);
+      
       Wire.beginTransmission(0x04);
       error = Wire.endTransmission();  
       if(error == 0){faceVersion = 0; return;}

@@ -6,6 +6,7 @@
 #include "Cube.h"
 #include "Communication.h"
 #include "Initialization.h"
+#include "Defines.h"
 
 typedef enum TagType
 {
