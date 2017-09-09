@@ -13,6 +13,7 @@
 //  int face6A = 19;
 //  int face6B = 18; 
 
+
   
 void analyzeTag(int angle1, int agc1, int angle2, int agc2)
 {
@@ -27,7 +28,6 @@ void analyzeTag(int angle1, int agc1, int angle2, int agc2)
  * 
  * 
  */
-  
   int magDigit1 = 0;
   int magDigit2 = 0;
         if (agc1 == 0 || agc1 >= 255)       {magDigit1 = 0;}
@@ -38,15 +38,15 @@ void analyzeTag(int angle1, int agc1, int angle2, int agc2)
    else if(angle2 < 6 || angle2 > 354)      {magDigit2 = 1;}  
    else                                     {magDigit2 = int(angle2 + 18)/12;}
    
-  if(agc1 != 0)
-    {
-      Serial.print("angle1: "); Serial.println(angle1);
-      Serial.print("agc1:   "); Serial.println(agc1);
-      Serial.print("angle2: "); Serial.println(angle2);
-      Serial.print("agc2:   "); Serial.println(agc2);
-      Serial.print("magDigit1: "); Serial.println(magDigit1);
-      Serial.print("magDigit2: "); Serial.println(magDigit2);
-    }
+//  if(agc1 != 0)
+//    {
+//      Serial.print("angle1: "); Serial.println(angle1);
+//      Serial.print("agc1:   "); Serial.println(agc1);
+//      Serial.print("angle2: "); Serial.println(angle2);
+//      Serial.print("agc2:   "); Serial.println(agc2);
+//      Serial.print("magDigit1: "); Serial.println(magDigit1);
+//      Serial.print("magDigit2: "); Serial.println(magDigit2);
+//    }
 
 /*
  * CHECK IF TAG REPRESENTS A MODULE
@@ -54,8 +54,8 @@ void analyzeTag(int angle1, int agc1, int angle2, int agc2)
   if((magDigit1 >= 17 && magDigit1 <= 29) &&  // Means magdigit1 is a faceID
      (magDigit2 >= 1 && magDigit2 <= 17))     // Means magdifit2 stores an ID # 
     {
-      if(magDigit1 % 2 ==0){Serial.println("Found an actual Cube, **1** ");delay(1000);}
-      else                 {Serial.println("Found an actual Cube, **2** ");delay(1000);}
+      if(magDigit1 % 2 == 0){Serial.println("Found an actual Cube, **1** ");delay(1000);}
+      else                  {Serial.println("Found an actual Cube, **2** ");delay(1000);}
     }
     
   if((magDigit2 >= 17 && magDigit2 <= 29) &&  // Means magdigit1 is a faceID

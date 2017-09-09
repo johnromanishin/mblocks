@@ -33,20 +33,7 @@ extern int plane0425Magnet;
 extern int plane1435Magnet;
 
 //These tables define connectivity between faces for the cube
-const external int faceRotations[][4];
-
-// Behaviors
-
-typedef enum Behavior
-{
- SOLO_LIGHT_TRACK,
- DUO_LIGHT_TRACK,
- FOLLOW_ARROWS,
- CHILLING,
- TEST_TESTING_THANGS,
- ATTRACTIVE,
- TESTING
-} Behavior;
+const extern int faceRotations[][4];
 
 #define ARRAY_SIZEOF(x) ((sizeof(x) / sizeof(x[0])))
 
