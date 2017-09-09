@@ -151,8 +151,9 @@ for(int i = 0; i< 6; i++)
       delay(2);
       Serial.print("Checking face: "); Serial.println(i);
       this->faces[i].updateFace();
-      
-      analyzeTag(this->faces[i].returnMagnetAngle_A(0), this->faces[i].returnMagnetStrength_A(0),this->faces[i].returnMagnetAngle_B(0), this->faces[i].returnMagnetStrength_B(0));
+
+      Tag t;
+      analyzeTag(this->faces[i].returnMagnetAngle_A(0), this->faces[i].returnMagnetStrength_A(0),this->faces[i].returnMagnetAngle_B(0), this->faces[i].returnMagnetStrength_B(0), &t);
       delay(2);
     }
 }

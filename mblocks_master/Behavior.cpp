@@ -85,13 +85,65 @@ Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf)
    return(CHILLING);
 }
 
-Behavior chilling(Cube* c, bool r, bool g, bool b)
+/**
+ * Checks for WiFi commands and magnetic tags.
+ */
+Behavior chilling(Cube* c)
 {
-  c->blockingBlink(1, 0, 1);
-  mesh.update();
-  c->updateSensors();
-  delay(100);
-  return(CHILLING);
+  Behavior nextBehavior = CHILLING;
+  long millisAccum = 0;
+  long millisPrev = millis();
+  
+  while(nextBehavior == CHILLING)
+  {
+    c->updateSensors();
+    mesh.update();
+
+    //======= check for wifi commands =======
+    if(!jsonCircularBuffer.empty())
+    {
+      StaticJsonBuffer<256> jb;
+      JsonObject& root = jb.parseObject(jsonCircularBuffer.pop());
+
+      if((root["cubeID"] == getCubeIDFromEsp(ESP.getChipId())) ||
+         (root["cubeID"] == -1))
+      {
+        if(root["cmd"] == "sleep")
+        {
+          nextBehavior = SHUT_DOWN;
+          mesh.update();
+        }
+      }
+    }
+    
+    //======= Check for magnetic tags =======
+    for(int i = 0; i < 6; i++)
+    {
+      Tag t;
+      analyzeTag(c->faces[i].returnMagnetAngle_A(0), 
+                 c->faces[i].returnMagnetStrength_A(0),
+                 c->faces[i].returnMagnetAngle_B(0), 
+                 c->faces[i].returnMagnetStrength_B(0), &t);
+      if(t.command == TAGCOMMAND_SLEEP)
+      {
+        nextBehavior = RELAY_SLEEP;
+      }
+    }
+
+    //======= blink =======
+    long m = millis();
+    millisAccum += (m - millisPrev);
+    millisPrev = m;
+    if((millisAccum >= 0) && (millisAccum < 500))
+      c->lightCube(false, false, true);
+    else if(millisAccum < 1500)
+      c->lightCube(false, false, false);
+    else
+      millisAccum -= 1500;
+
+    delay(10);
+  }
+  return nextBehavior;
 }
 
 Behavior attractive(Cube* c)
@@ -134,10 +186,10 @@ Behavior crystalize(Cube* c, painlessMesh* m)
     c->updateSensors();
 
     // ======= service commands that come from the json buffer =======
-    if(!jsonBuffer.empty())
+    if(!jsonCircularBuffer.empty())
     {
       StaticJsonBuffer<256> jb;
-      JsonObject& root = jb.parseObject(jsonBuffer.pop());
+      JsonObject& root = jb.parseObject(jsonCircularBuffer.pop());
 
       if((root["cubeID"] == getCubeIDFromEsp(ESP.getChipId())) ||
          (root["cubeID"] == -1))
@@ -252,6 +304,27 @@ Behavior crystalize(Cube* c, painlessMesh* m)
       //check for neighbors
     }
   }
+}
+
+Behavior relaySleepMessage(Cube* c)
+{
+  StaticJsonBuffer<256> jsonBuffer;
+  JsonObject& root = jsonBuffer.createObject();
+  root["type"] = "cmd";
+  root["cubeID"] = -1;
+  root["cmd"] = "sleep";
+  
+  String str;
+  root.printTo(str);
+  mesh.sendBroadcast(str);
+
+  long millisNow = millis();
+  while((millis() - millisNow) < 1000)
+  {
+    mesh.update();
+  }
+  
+  return SHUT_DOWN;
 }
 
 //int display_brightest_face()

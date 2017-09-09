@@ -17,7 +17,9 @@ typedef enum Behavior
     CHILLING,
     TEST_TESTING_THANGS,
     ATTRACTIVE,
-    TESTING
+    TESTING, 
+    SHUT_DOWN,
+    RELAY_SLEEP
 } Behavior;
 
 // Behaviors are enumerated
@@ -65,7 +67,7 @@ Behavior crystallize();
  * a.
  * b.
  */
-Behavior chilling(Cube* c, bool r, bool g, bool b);
+Behavior chilling(Cube* c);
 /*        --- What it does ---
  * 0.
  * 1.
@@ -96,6 +98,10 @@ Behavior followArrows();
 //////////////////////////////
 // III. Misc. Behaviors   ////
 //////////////////////////////
+/**
+ * Tells all other cubes to go to sleep and then goes to sleep.
+ */
+Behavior relaySleepMessage(Cube* c);
 
 Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf);
 /*        --- What it does ---

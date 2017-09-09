@@ -1,4 +1,3 @@
-
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <painlessMesh.h>         // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
@@ -18,7 +17,7 @@ painlessMesh  mesh;
 
 extern Cube c;
 String jsonBufferSpace[16];
-CircularBuffer<String> jsonBuffer(16, jsonBufferSpace);
+CircularBuffer<String, true> jsonCircularBuffer(16, jsonBufferSpace);
 
 bool calc_delay = false;
 SimpleList<uint32_t> nodes;
@@ -54,11 +53,7 @@ bool sendMessage(String message)
 
 void receivedCallback(uint32_t from, String & msg)
 {
-  Serial.printf(msg.c_str());
-  //if(String(msg.c_str()) == "green"){turn_color(green); Serial.println("HEY BRO!!");}
-  //else if(String(msg.c_str()) == "red"){turn_color(red); Serial.println("HEY BRO!!");}
-  //checkForMessage(&c, msg.c_str());
-  cmd = msg.c_str();
+  jsonCircularBuffer.push(msg);
 }
 
 void newConnectionCallback(uint32_t nodeId)

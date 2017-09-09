@@ -7,7 +7,7 @@
 #include "CBuff.h"
 
 extern painlessMesh mesh;
-extern CircularBuffer<String> jsonBuffer;
+extern CircularBuffer<String, true> jsonCircularBuffer;
 
 void initializeWifiMesh();
 bool sendMessage(String message);

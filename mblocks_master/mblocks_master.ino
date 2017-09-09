@@ -35,11 +35,12 @@ void setup() // Actually the main loop...
 {
   int loopCounter = 0;
   long timerCounter = millis(); // start time
+  bool shutDown = false;
   initializeCube(); // Runs this code once to setup input/outputs, communication networks...
                     // (Wifi, i2c, serial) and instantiates classes and calibration values
   c.updateSensors(); // populates initial readings for variables such as which face is up, and # of neighbors
   ///////////////////////ACTUAL LOOP////////////////////
-  while(millis() < c.shutDownTime)
+  while((millis() < c.shutDownTime) && (!shutDown))
   {
     if      (behavior == SOLO_LIGHT_TRACK)
       behavior = soloSeekLight(&c, &buf);
@@ -50,18 +51,15 @@ void setup() // Actually the main loop...
     else if (behavior == TEST_TESTING_THANGS)
       behavior = testTestingThangs(&c, &buf);
     else if (behavior == CHILLING)
-      behavior = chilling(&c, true, false, true);
+      behavior = chilling(&c);
     else if (behavior == ATTRACTIVE)
       behavior = attractive(&c);
-
-    if(millis() > timerCounter)
-    {
-      //sendMessage("hey!!");
-      timerCounter += 5000;
-    }
-    mesh.update();
-    processCommands();
+    else if(behavior == SHUT_DOWN)
+      shutDown = true;
   }
+
+  //
+  
   c.blockingBlink(0,0,1);
   c.shutDown();
 }
@@ -69,14 +67,4 @@ void setup() // Actually the main loop...
 // This is here only becuase arduino won't compile without it, but it is never used, the real loop is "while(1)" in the void setup() Function
 void loop()
 {
-}
-
-void processCommands()
-{
-     if(cmd == "attract") {sendMessage("attract");  behavior = ATTRACTIVE;}
-else if(cmd == "chill")   {sendMessage("chill");    behavior = CHILLING;}
-else if(cmd == "sleep")   {sendMessage("sleep");    delay(4000); c.shutDown();}
-else if(cmd == "red")     {}
-else if(cmd == "purple")  {}
-else if(cmd == "green")   {}
 }
