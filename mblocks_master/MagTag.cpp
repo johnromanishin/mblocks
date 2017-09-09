@@ -38,10 +38,10 @@ void analyzeTag(int angle1, int agc1, int angle2, int agc2, Tag* t)
    
   if(agc1 != 0)
     {
-      Serial.print("angle1: "); Serial.println(angle1);
-      Serial.print("agc1:   "); Serial.println(agc1);
-      Serial.print("angle2: "); Serial.println(angle2);
-      Serial.print("agc2:   "); Serial.println(agc2);
+      //Serial.print("angle1: "); Serial.println(angle1);
+      //Serial.print("agc1:   "); Serial.println(agc1);
+      //Serial.print("angle2: "); Serial.println(angle2);
+      //Serial.print("agc2:   "); Serial.println(agc2);
       Serial.print("magDigit1: "); Serial.println(magDigit1);
       Serial.print("magDigit2: "); Serial.println(magDigit2);
     }

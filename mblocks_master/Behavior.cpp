@@ -308,6 +308,7 @@ Behavior crystalize(Cube* c, painlessMesh* m)
 
 Behavior relaySleepMessage(Cube* c)
 {
+  Serial.println("telling others to go to sleep");
   StaticJsonBuffer<256> jsonBuffer;
   JsonObject& root = jsonBuffer.createObject();
   root["type"] = "cmd";

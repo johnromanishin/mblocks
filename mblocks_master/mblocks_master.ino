@@ -54,8 +54,15 @@ void setup() // Actually the main loop...
       behavior = chilling(&c);
     else if (behavior == ATTRACTIVE)
       behavior = attractive(&c);
+    else if (behavior == RELAY_SLEEP)
+      behavior = relaySleepMessage(&c);
     else if(behavior == SHUT_DOWN)
       shutDown = true;
+    else
+    {
+      Serial.println("ERROR: unknown behavior.  Reverting to \"CHILLING\"");
+      behavior = CHILLING;
+    }
   }
 
   //
