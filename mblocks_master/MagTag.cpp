@@ -36,7 +36,7 @@ void analyzeTag(int angle1, int agc1, int angle2, int agc2, Tag* t)
    else if(angle2 < 6 || angle2 > 354)      {magDigit2 = 1;}  
    else                                     {magDigit2 = int(angle2 + 18)/12;}
    
-  if(agc1 != 0)
+  if(agc1 != 0 && DEBUG)
     {
       //Serial.print("angle1: "); Serial.println(angle1);
       //Serial.print("agc1:   "); Serial.println(agc1);
@@ -53,15 +53,16 @@ void analyzeTag(int angle1, int agc1, int angle2, int agc2, Tag* t)
      (magDigit2 >= 1 && magDigit2 <= 17))     // Means magdifit2 stores an ID # 
     {
       t->type = TAGTYPE_REGULAR_CUBE;
+      t->id   = magDigit2;
       if(magDigit1 % 2 ==0)
       {
-        Serial.println("Found an actual Cube, **1** ");
-        delay(1000);
+        t->angle = 1;
+        Serial.println("Found an actual Cube, *1* ");
       }
       else
-      {
-        Serial.println("Found an actual Cube, **2** ");
-        delay(1000);
+      { 
+        t->angle = 2;
+        Serial.println("Found an actual Cube, *2* ");
       }
     }
     
@@ -69,8 +70,17 @@ void analyzeTag(int angle1, int agc1, int angle2, int agc2, Tag* t)
      (magDigit1 >= 1 && magDigit1 <= 17))     // Means magdifit2 stores an ID # 
     {
       t->type = TAGTYPE_REGULAR_CUBE;
-      if(magDigit2 % 2 ==0){Serial.println("Found an actual Cube, **3** ");delay(1000);}
-      else                 {Serial.println("Found an actual Cube, **4** ");delay(1000);}
+      t->id   = magDigit1;
+      if(magDigit2 % 2 ==0)
+        {
+          t->angle = 3;
+          Serial.println("Found an actual Cube, *3* ");
+        }
+      else                 
+        {
+          t->angle = 4;
+          Serial.println("Found an actual Cube, *4* ");
+        }
     }
     
 /*
@@ -84,11 +94,11 @@ void analyzeTag(int angle1, int agc1, int angle2, int agc2, Tag* t)
             t->type = TAGTYPE_PASSIVE_CUBE;
               if(magDigit1 == 30 || magDigit1 == 1  || magDigit1 == 2)
                   {
-                    Serial.println("FOUND A PASSIVE CUBE ORIENTATION **3** WOOO!");delay(1000);
+                    Serial.println("FOUND A PASSIVE CUBE ORIENTATION **3**");
                   }
               else 
                   {
-                    Serial.println("FOUND A PASSIVE CUBE ORIENTATION **4** WOOO!");delay(1000);
+                    Serial.println("FOUND A PASSIVE CUBE ORIENTATION **4**");
                   }
           }
        if((magDigit2 == 15 || magDigit2 == 16 || magDigit2 == 17  // Means magdigit1 is a faceID
@@ -98,11 +108,11 @@ void analyzeTag(int angle1, int agc1, int angle2, int agc2, Tag* t)
             t->type = TAGTYPE_PASSIVE_CUBE;
               if(magDigit2 == 30 || magDigit2 == 1  || magDigit2 == 2)
                   {
-                    Serial.println("FOUND A PASSIVE CUBE ORIENTATION **1** WOOO!");delay(1000);
+                    Serial.println("FOUND A PASSIVE CUBE ORIENTATION **1** WOOO!");
                   }
               else 
                   {
-                    Serial.println("FOUND A PASSIVE CUBE ORIENTATION **2** WOOO!");delay(1000);
+                    Serial.println("FOUND A PASSIVE CUBE ORIENTATION **2** WOOO!");
                   }
           }
 
