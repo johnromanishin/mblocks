@@ -3,12 +3,11 @@
 #include "Defines.h"
 #include "Cube.h"
 #include "Sensation.h"
+#include "SerialDecoder.h"
 #include "Face.h"
 #include "ArrowMap.h"
 #include <Wire.h> 
 #include <stdint.h>
-
-//PLANE_0321  PLANE_0425  PLANE_1534 // ENUM for the different planes
 
 Cube::Cube()
   :    
@@ -59,7 +58,6 @@ bool Cube::processState()
 {
   this->updateBothIMUs();
   this->determineTopFace();
-  this->determineCurrentPlane();
   this->determineForwardFace();
 }
 
@@ -103,7 +101,7 @@ int Cube::returnBottomFace()
   return(oppositeFace(this->topFace));
 }
 
-int Cube::returnCurrentPlane()
+PlaneEnum Cube::returnCurrentPlane()
 {
   /*
    * Current plane is the orientation of the cube with respect to the frame
@@ -125,47 +123,166 @@ int Cube::returnReverseFace()
   return(oppositeFace(this->returnForwardFace()));
 }
 
+void wifiDelay(int delayTime)
+{
+  long millisNow = millis();
+  while((millis() - millisNow) < delayTime)
+  {
+    mesh.update();
+  }
+}
+
+/*
+ * Delays for specified ammount of time, and returns an integer 
+ * representing the average rotational motion of the core over the time
+ */
+int Cube::wifiDelayWithMotionDetection(int delayTime)
+{
+  int motionSum = 0;
+  int updateCount = 0;
+  long millisNow = millis();
+  while((millis() - millisNow) < delayTime)
+  {
+    mesh.update();
+    if(this->updateCoreIMU())
+    {
+      updateCount++;
+      motionSum += (abs(this->gxCoreBuffer.access(0)) + 
+                    abs(this->gyCoreBuffer.access(0)) + 
+                    abs(this->gzCoreBuffer.access(0)));     
+    }
+    mesh.update();    
+    delay(10);
+  }
+  return(motionSum/(updateCount));
+}
+
 ////////////////////////////////////////////////////////////////////////////////////
 //////////////////////REGARDING PLANE CHANGING//////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
+//typedef enum PlaneEnum {plane0123, plane0425, plane1453, planeNone} PlaneEnum;
+//RESPONSE_SMA_RETRACTED},
+//{"SMA extending\r\n", RESPONSE_SMA_EXTENDING
+//int GlobalplaneChangeTime = 60;
+//int GlobalplaneChangeRPM = 5000;
 
-bool setCorePlane(int targetCorePlane) 
+//PlaneEnum Cube::goToPlaneFaces(int face1, int face2, SerialDecoderBuffer* buf)
+//{
+//
+//}
+
+bool Cube::goToPlaneParallel(int faceExclude, SerialDecoderBuffer* buf)
+{
+  bool result = false;
+  if(faceExclude == 4 || faceExclude == 5)
   {
-    if (targetCorePlane) {
-    return true;
+    result = this->setCorePlane(PLANE0123, buf, 8000);
   }
-
-  // ADD CODE HERE
-  // physically adjust core plane to match target
-
-  if (targetCorePlane) {
-    return true;
+  else if(faceExclude == 1 || faceExclude == 3)
+  {
+    result = this->setCorePlane(PLANE0123, buf, 8000);
   }
-  return false;
+  else if(faceExclude == 0 || faceExclude == 2)
+  {
+    result = this->setCorePlane(PLANE0123, buf, 8000);
+  }
+  else
+  {
+    return(false);
+  } 
 }
 
-int currentCorePlane() {
-  // ADD CODE HERE
-  // use accelerometers and maybe magnet sensor to identify
+bool Cube::setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int attemptTime) 
+{
+    int attempts = 0;
+    int notMovingThreshold = 1200;
+    int planeChangeRPM = GlobalplaneChangeRPM; // this takes into account global
+                                               // calibrated values for each cube
+    PlaneEnum currentPlane = this->findPlaneStatus();
+    while(1)
+    {
+      if(this->findPlaneStatus() == PLANEMOVING)
+        {     
+          wifiDelay(100);
+        }
+      else
+        {
+          break;
+        }
+    }    
+    if(this->currentPlane == targetCorePlane)
+    {
+      return(true);
+    }
+    else // Ok we are not in the correct plane, so we are going to spin up RPM,
+         // then retract SMA, and then Brake the motor
+    {
+    String bldcSpeedString = "bldcspeed f " + String(planeChangeRPM);
+    Serial.println(bldcSpeedString);
+    while(!waitForSerialResponse(RESPONSE_START_BLDC_F ,300 ,buf)) // if we haven't seen the response
+    {
+      attempts++;
+      Serial.println(bldcSpeedString);
+      if(attempts > 3) {break;}
+    }
+    attempts = 0;
+    waitForSerialResponse(RESPONSE_BLDC_STABLE, 4000, buf); // waits until bldc stabalizes or 4000 ms.
+    Serial.println("sma retract 8000");
+    waitForSerialResponse(RESPONSE_SMA_RETRACTED, 3000, buf);
+    long startTime = millis(); // Start recording timer after we retract the SMA
+    Serial.println("bldcstop b");
+    wifiDelay(50);
+    Serial.println("bldcstop b");
+    wifiDelay(50);
+    while(wifiDelayWithMotionDetection(100) > notMovingThreshold)
+    {
+      delay(1);
+    }
+    wifiDelay(100);
+    
+    while((this->findPlaneStatus() != targetCorePlane) && 
+          ((millis()-startTime) < attemptTime))
+    {
+      if(this->currentPlane == PLANE0123 ||
+         this->currentPlane == PLANE0425 ||
+         this->currentPlane == PLANE1453)
+      {
+        this->blockingBlink(0,1,1);
+      }
+      else if(this->currentPlane == PLANENONE)
+      {
+        this->blockingBlink(1,0,0, 1, 200);
+        Serial.println("bldcaccel f 3000 330");
+        wifiDelay(400);
+        Serial.println("bldcstop b");
+        wifiDelay(100);
+        Serial.println("bldcstop b");
+      }
+      wifiDelay(100);
+    }
+  if(this->findPlaneStatus() == targetCorePlane)
+  {
+    delay(200);
+    if(this->findPlaneStatus() == targetCorePlane)
+    {
+      return(true);
+    }
+      else
+      {
+        return(false);
+      }
+    }
+    else
+    {
+      return(false);
+    }
+  }
 }
 
 #define ROOT2OVER2Q15_16 46341
 #define ONE_Q15_16 65536
 #define Q15_16_TO_DOUBLE(x) (((double)x) / (65536.0))
-
-bool Cube::determineCurrentPlane()
-{
-  /*
-   * 
-   */
- // this->updateCoreMagnetSensor();
-  this->currentPlane = PLANE_0321;
-  return(true);
-  
-}
-
-static PlaneEnum planeEnumMap[] = {plane0123, plane0425, plane1453};
- 
+static PlaneEnum planeEnumMap[] = {PLANE0123, PLANE0425, PLANE1453};
  /**
  * 0, 120, -120
  */
@@ -188,26 +305,34 @@ static const int32_t rotationMatricies[3][3][3] =
  * This function uses the 
  * We expect raw, signed 14-bit accelerometer readings
  */
-PlaneEnum Cube::findLikelyPlane()
+PlaneEnum Cube::findPlaneStatus()
 {
-  
   if(this->updateBothIMUs()) // This is true if we get valid readings from both IMUs
   {
-    int32_t coreAccel[3] =  {this->axCoreBuffer.access(0), this->ayCoreBuffer.access(0),
-                             this->azCoreBuffer.access(0)};
-    int32_t frameAccel[3] = {this->axFrameBuffer.access(0), this->ayFrameBuffer.access(0),
-                          this->azFrameBuffer.access(0)};
-
+    const int validPlaneThreshold = 100;
+    const int gyroMovingThreshold  = 1000;
+    
+    int32_t coreAccel[3] =   {this->axCoreBuffer.access(0),     
+                              this->ayCoreBuffer.access(0),
+                              this->azCoreBuffer.access(0)};
+    int32_t frameAccel[3] =  {this->axFrameBuffer.access(0), 
+                              this->ayFrameBuffer.access(0),
+                              this->azFrameBuffer.access(0)};
     int32_t transformed[3][3];
     int32_t distance[3];
-
+    
+    int     centralGyro[3] =  {this->gxCoreBuffer.access(0),
+                               this->gyCoreBuffer.access(0),
+                               this->gzCoreBuffer.access(0)};
+                               
+    int     sumOfGyros = (abs(centralGyro[0]) + abs(centralGyro[0]) + abs(centralGyro[0]));
+    
     //test each of the rotation matricies.  Store all results for debug purposes.
     for(int i = 0; i < 3; i++)
     {
       apply_3x3_mult(&rotationMatricies[i][0][0], coreAccel, &transformed[i][0]);
       distance[i] = vector_distance_squared(&transformed[i][0], frameAccel);
     }
-
     int mindist = distance[0];
     int minidx = 0;
     for(int i = 1; i < 3; i++)
@@ -218,16 +343,37 @@ PlaneEnum Cube::findLikelyPlane()
         mindist = distance[i];
       }
     }
-
-    Serial.print("Mindist = ");
-    Serial.println(mindist);
-    this->currentPlane = -1;
-  
-    return planeEnumMap[minidx];
+    
+//    String Str =  " distance[0]: " + String(distance[0]) +
+//                  " distance[1]: " + String(distance[1]) +
+//                  " distance[2]: " + String(distance[2]) +
+//                  " sumGYROS: "    + String(sumOfGyros); 
+//                 
+//    mesh.sendBroadcast(Str);
+//    delay(10);
+    
+    if(sumOfGyros > gyroMovingThreshold)
+    {
+      this->currentPlane = PLANEMOVING;
+      return(PLANEMOVING);
+    }
+    else if((distance[minidx] < validPlaneThreshold) && 
+            (sumOfGyros < gyroMovingThreshold))
+    {
+      this->currentPlane = planeEnumMap[minidx];
+      return(planeEnumMap[minidx]);
+    }
+    else
+    { 
+      this->currentPlane = PLANENONE;
+      return(PLANENONE);
+    }  
+    //this->currentPlane = -1;
   }
   else // this gets called if reading one of the IMUs has failed
   {
-    this->currentPlane = -1;
+    this->currentPlane = PLANEERROR;
+    return(PLANEERROR);
   }
 }
 
@@ -637,28 +783,28 @@ bool Cube::determineForwardFace() // FUN3 // plane should be either int 1234, 15
    * plane PLANE_1534 /4
    */
   int topFace = this->returnTopFace(); // 
-  int plane = this->returnCurrentPlane();
+  PlaneEnum plane = this->returnCurrentPlane();
   
-       if( (topFace == 1 && plane == PLANE_0321)  ||  (topFace == 5 && plane == PLANE_0425) )   
+       if( (topFace == 1 && plane == PLANE0123)  ||  (topFace == 5 && plane == PLANE0425) )   
         {this->forwardFace = 0;}
-  else if( (topFace == 2 && plane == PLANE_0321)  ||  (topFace == 4 && plane == PLANE_1534) )    
+  else if( (topFace == 2 && plane == PLANE0123)  ||  (topFace == 4 && plane == PLANE1453) )    
         {this->forwardFace = 1;}
-  else if( (topFace == 3 && plane == PLANE_0321)  ||  (topFace == 4 && plane == PLANE_0425) )
+  else if( (topFace == 3 && plane == PLANE0123)  ||  (topFace == 4 && plane == PLANE0425) )
         {this->forwardFace = 2;}
-  else if( (topFace == 0 && plane == PLANE_0321)  ||  (topFace == 5 && plane == PLANE_1534) )    
+  else if( (topFace == 0 && plane == PLANE0123)  ||  (topFace == 5 && plane == PLANE1453) )    
         {this->forwardFace = 3;}
-  else if( (topFace == 3 && plane == PLANE_1534)  ||  (topFace == 0 && plane == PLANE_0425) )    
+  else if( (topFace == 3 && plane == PLANE1453)  ||  (topFace == 0 && plane == PLANE0425) )    
         {this->forwardFace = 4;}
-  else if( (topFace == 1 && plane == PLANE_1534)  ||  (topFace == 2 && plane == PLANE_0425) )    
+  else if( (topFace == 1 && plane == PLANE1453)  ||  (topFace == 2 && plane == PLANE0425) )    
         {this->forwardFace = 5;}
   
-  else if(  (topFace == 4 && plane == PLANE_0321) || 
-            (topFace == 0 && plane == PLANE_1534) || 
-            (topFace == 1 && plane == PLANE_0425) ) 
+  else if(  (topFace == 4 && plane == PLANE0123) || 
+            (topFace == 0 && plane == PLANE1453) || 
+            (topFace == 1 && plane == PLANE0425) ) 
         {this->forwardFace = -1;}
-  else if(  (topFace == 5 && plane == PLANE_0321) || 
-            (topFace == 2 && plane == PLANE_1534) || 
-            (topFace == 3 && plane == PLANE_0425) ) 
+  else if(  (topFace == 5 && plane == PLANE0123) || 
+            (topFace == 2 && plane == PLANE1453) || 
+            (topFace == 3 && plane == PLANE0425) ) 
         {this->forwardFace = -1;}
   else                                                                                                    
         {return(false);}
@@ -783,12 +929,26 @@ int oppositeFace(int face)
 /////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////DEBUG THINGS/////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
-
-
+bool waitForSerialResponse(SerialResponse response, int timeOutTime, SerialDecoderBuffer* buf)
+{
+   bool result = false;
+   long startTime = millis();
+   while(millis()-startTime < timeOutTime)
+   {
+    delay(1);
+    SerialResponse resp = pushNewChar(buf);
+    mesh.update();
+    if(resp == response)
+        { 
+          result = true;
+          break;
+        }
+   }
+   return(result);
+}
 
 void Cube::printOutDebugInformation()
 {
-      Serial.print("Plane: ");Serial.println(this->returnCurrentPlane());
       Serial.print("Top Face: ");Serial.println(this->returnTopFace());
       Serial.print("Forward Face: ");Serial.println(this->returnForwardFace());
       Serial.print("Brightest Face: ");Serial.println(this->returnXthBrightestFace(0));

@@ -71,6 +71,8 @@ void initializeHardware()
   Serial.begin(115200);       // open serial connection to the Slave Board
   Serial.println("stillalive");
   delay(1000);
+  Serial.print("ESP Chip ID");
+  Serial.println(ESP.getChipId());
   pinMode(Switch, OUTPUT);    // Initialize the pin to controll the power switching circuitry
   digitalWrite(Switch, LOW);  // Set the power switch to be OFF - 
                               //this is so that we don't disrupt charging if we are on a charging pad
@@ -190,8 +192,8 @@ void lookUpCalibrationValues()
     case 9086927:
       Serial.println("WOOO!");
       cubeID = 0;
-      planeChangeTime = 60;
-      planeChangeRPM = 5000;
+      GlobalplaneChangeTime = 60;
+      GlobalplaneChangeRPM = 5000;
       traverseBrakeCurrent_F = 2800;
       traverseBrakeCurrent_R = 2800;
       cornerClimbBrakeCurrent_F = 3000;

@@ -6,9 +6,10 @@
 #include "Face.h"
 #include "MagTag.h"
 #include "ArrowMap.h"
+#include "SerialDecoder.h"
 #include <Arduino.h>
 
-typedef enum PlaneEnum {plane0123, plane0425, plane1453, planeNone} PlaneEnum;
+//typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING, PLANEERROR} PlaneEnum;
 
 class Cube
 /*
@@ -19,7 +20,7 @@ class Cube
       // General information
     int cubeID = 1;
     int batteryVoltage = 0;
-    int currentPlane; // The plane (out of three) that the central actuator is in - 0
+    PlaneEnum currentPlane; // The plane (out of three) that the central actuator is in - 0
     int coreAngle;    // current angle of the core
     int topFace;      // face this is point upwards, as determined by the accelerometer
     int forwardFace;  // face that is pointing forwards
@@ -61,6 +62,7 @@ class Cube
 
   public:
       // Public Variables
+    int wifiDelayWithMotionDetection(int delayTime);
     long shutDownTime = (60000*5); // time until board goes to sleep
 
       // Update Functions involving SENSORS
@@ -76,16 +78,18 @@ class Cube
     int returnSumOfAmbient(); // returns the sum of all of the light sensors
 
         // Related to the state itself
-    int returnCurrentPlane();
+    PlaneEnum returnCurrentPlane();
     int returnForwardFace();
     int returnReverseFace();
     int returnTopFace();
     int returnBottomFace();
 
     // Functions involving PLane Changing
-    bool setCorePlane(int targetCorePlane); 
+    bool setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int attemptTime = 6000); 
     int currentCorePlane();
-    PlaneEnum findLikelyPlane();
+    PlaneEnum findPlaneStatus();
+    bool goToPlaneParallel(int faceExclude, SerialDecoderBuffer* buf);
+    
 
       // Functions involving LED's
     bool clearRGB(); // Turns off all LED's on the cube DUAL VERSIONS
@@ -131,5 +135,7 @@ int sortList(int*, int, int);
 int oppositeFace(int face);
 static int32_t vector_distance_squared(const int32_t* a, const int32_t* b);
 static void apply_3x3_mult(const int32_t* R, const int32_t* V, int32_t* target);
+void wifiDelay(int delayTime);
+bool waitForSerialResponse(SerialResponse response, int timeOutTime, SerialDecoderBuffer* buf);
 
 #endif

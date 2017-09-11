@@ -50,7 +50,7 @@ void setup() // Actually the main loop...
     else if (behavior == TEST_TESTING_THANGS)
       behavior = testTestingThangs(&c, &buf);
     else if (behavior == CHILLING)
-      behavior = chilling(&c);
+      behavior = chilling(&c, &buf);
     else if (behavior == ATTRACTIVE)
       behavior = attractive(&c);
     else if (behavior == RELAY_SLEEP)

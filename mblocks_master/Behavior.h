@@ -67,7 +67,7 @@ Behavior crystallize();
  * a.
  * b.
  */
-Behavior chilling(Cube* c);
+Behavior chilling(Cube* c, SerialDecoderBuffer* buf);
 /*        --- What it does ---
  * 0.
  * 1.
@@ -113,6 +113,7 @@ Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf);
  */
 
  //==================Utilities===============================
- void wifiDelay(int delayTime);
-
+void wifiDelay(int delayTime);
+Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf);
+Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf);
 #endif

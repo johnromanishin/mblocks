@@ -11,6 +11,7 @@
 
 Behavior followArrows()
 {
+
 // Set rmp(6000);
 // wait  (4000ms);
 // ebrake //////
@@ -45,7 +46,6 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
           {Serial.println("bldcspeed r 6000");c->blockingBlink(1,0,0);delay(3000);Serial.println("bldcstop b");}
       else
           delay(100);
-          //{Serial.println("bldcaccel f 5000 1000"); delay(2000); Serial.println("bldcstop b");delay(5000);}
     }
   Serial.println("Changing Loops");
   return(nextBehavior);
@@ -53,99 +53,26 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
 
 Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf)
 {
-   Serial.println("sma retract 6000");
-   while(1)
-  {
-    switch(c->findLikelyPlane())
-    {
-      case plane0123:
-      {
-        c->blockingBlink(0,1,0,1,50);
-        break;
-      }
-      case plane0425:
-      {
-        c->blockingBlink(1, 0, 0, 1, 50);
-        break;
-      }
-      case plane1453:
-      {
-        c->blockingBlink(0, 0, 1, 1, 50);
-        break;
-      }
-      default:
-      {
-        break;
-      }
-    }
-  }
-   return(CHILLING);
+
 }
 
-/**
- * Checks for WiFi commands and magnetic tags.
- */
-Behavior chilling(Cube* c)
+//================================================================
+//==========================CHILLING==============================
+//================================================================
+Behavior chilling(Cube* c, SerialDecoderBuffer* buf)
 {
+  long loopCounter = 0;
   Behavior nextBehavior = CHILLING;
-  long millisAccum = 0;
-  long millisPrev = millis();
-  
-  while(nextBehavior == CHILLING)
+  while(nextBehavior == CHILLING) // loop until something changes the next behavior
   {
     c->updateSensors();
-    //======= Check for magnetic tags =======
-    for(int i = 0; i < 6; i++)
-    {
-      Tag t;
-      analyzeTag(c->faces[i].returnMagnetAngle_A(0), 
-                 c->faces[i].returnMagnetStrength_A(0),
-                 c->faces[i].returnMagnetAngle_B(0), 
-                 c->faces[i].returnMagnetStrength_B(0), &t);
-      if(t.command == TAGCOMMAND_SLEEP)
-      {
-        nextBehavior = RELAY_SLEEP;
-      }
-      if(t.command == TAGCOMMAND_PURPLE)
-      {
-        c->blockingBlink(1,0,1);
-      }
-    }
-    //=======end Check for Magnetic Tags=====
-    wifiDelay(200);
-    
-    //======= check for wifi commands =======
-    if(!jsonCircularBuffer.empty())
-    {
-      StaticJsonBuffer<256> jb;
-      JsonObject& root = jb.parseObject(jsonCircularBuffer.pop());
-
-      if((root["cubeID"] == getCubeIDFromEsp(ESP.getChipId())) || // If message matches your ID
-         (root["cubeID"] == -1))                                  // or if message is brodcast
-      {
-        if(root["cmd"] == "sleep")
-        {
-          nextBehavior = SHUT_DOWN;
-          mesh.update();
-        }
-      }
-    }
-    
-    //======= blink =======
-    long m = millis();
-    millisAccum += (m - millisPrev);
-    millisPrev = m;
-    if((millisAccum >= 0) && (millisAccum < 500))
-      c->lightCube(false, false, true);
-    else if(millisAccum < 1500)
-      c->lightCube(false, false, false);
-    else
-      millisAccum -= 1500;
-    //===== end blink =====
-    
+    nextBehavior = checkForMagneticTagsStandard(c, nextBehavior, buf);
+    wifiDelay(400);
+    nextBehavior = checkForBasicWifiCommands(c, nextBehavior, buf);
+    c->lightCube(false, false, !(loopCounter%4));
     delay(10);
+    loopCounter++;
   }
-  
   return nextBehavior;
 }
 
@@ -170,6 +97,10 @@ Behavior duoSeekLight()
 
 }
 
+
+//================================================================
+//=================CRYSTALIZE==============================
+//================================================================
 /**
  * Cubes in the crystalize mode
  *
@@ -240,7 +171,7 @@ Behavior crystalize(Cube* c, painlessMesh* m)
     if(amICrystalized)
     {
       //turn all of the corner lights blue
-      c->lightCube(0, 0, 0.5);
+      c->lightCube(0, 0, 1);
 
       //blink faces to point in directions of arrows
       //in the first step of the blink animation, we light faces pointing "into" the center of the cube.
@@ -310,35 +241,129 @@ Behavior crystalize(Cube* c, painlessMesh* m)
   }
 }
 
+//================================================================
+//=================relaySleepMessage==============================
+//================================================================
 Behavior relaySleepMessage(Cube* c)
 {
   if(DEBUG1) Serial.println("telling others to go to sleep");
 
-  //============= Generates a Broadcast message ==========
-  StaticJsonBuffer<256> jsonBuffer;
-  JsonObject& root = jsonBuffer.createObject();
+  //======Temporarily Generated a Broadcast message =========
+  StaticJsonBuffer<256> jsonBuffer; //Space Allocated to store json instance
+  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
+  //^class type||^ Root         ^class method                   
   root["type"] = "cmd";
   root["cubeID"] = -1;
-  root["cmd"] = "sleep";
+  root["cmd"] = "sleep"; // Make all messages have a "cmd" field representing message type
+  //^ "key"   |  ^ "Value"
   String str;
   root.printTo(str);
-  mesh.sendBroadcast(str);
   //======== End Generating of Broadcast message ==========
-  wifiDelay(2000);
+  for(int i = 0; i < 10; i++);
+  {
+    mesh.sendBroadcast(str);
+    wifiDelay(200);
+  }
+  wifiDelay(200);
   return SHUT_DOWN;
 }
-
-//================ Utilities ==============================
-
-void wifiDelay(int delayTime)
+//=============================================================================================
+//=============================WIFI Checking  CHECKING=========================================
+//=============================================================================================
+Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf)
 {
-  long millisNow = millis();
-  while((millis() - millisNow) < delayTime)
+  Behavior resultBehavior = currentBehavior;
+  if(!jsonCircularBuffer.empty())
   {
-    mesh.update();
+    StaticJsonBuffer<256> jb;
+    JsonObject& root = jb.parseObject(jsonCircularBuffer.pop());
+    //if(root == JsonObject::invalid
+    if((root["cubeID"] == getCubeIDFromEsp(ESP.getChipId())) || // If message matches your ID
+       (root["cubeID"] == -1))                                  // or if message is brodcast
+    {
+      if(root["cmd"] == "sleep") 
+      {
+        resultBehavior = SHUT_DOWN;
+        mesh.update();
+      }
+      if(root["cmd"] == "debugMSG" && ESP.getChipId() == 13374829)
+      {
+        String str = root["msg"];
+        Serial.println(str);      
+      }
+    }
   }
+  return(resultBehavior);
 }
+
+//=============================================================================================
+//=============================MAGNETIC TAGS CHECKING==========================================
+//=============================================================================================
+
+Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf)
+{
+  Behavior resultBehavior = currentBehavior;
+  Tag t;
+  for(int i = 0; i < 6; i++)
+    {
+      analyzeTag(c->faces[i].returnMagnetAngle_A(0), 
+                 c->faces[i].returnMagnetStrength_A(0),
+                 c->faces[i].returnMagnetAngle_B(0), 
+                 c->faces[i].returnMagnetStrength_B(0), &t);    
+                          
+      if(((t.type != TAGTYPE_NOTHING) && (ESP.getChipId() != 13374829)) && (t.type != TAGTYPE_COMMAND))
+        {  
+          //====================SEND DEBUG ===================     
+          StaticJsonBuffer<256> jsonBuffer; //Space Allocated to store json instance
+          JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
+          String Str = "  My ID# is: " + String(ESP.getChipId()) +
+                       "  Found Tag on face: " + String(i) + "  " +
+                       "  t.type: " + String(t.type) +
+                       "  t.angle: " + String(t.angle) +
+                       "  t.id: " + String(t.id) +
+                       "  t.face: " + String(t.face) +
+                       "  t.Strength: " + String(t.strength) +
+                       "  t.command: " + String(t.command);
+          root["msg"] = Str;       
+          root["cmd"]      = "debugMSG";   
+          mesh.sendBroadcast(Str);
+          //====================END SEND DEBUG ===================        
+        }
+        
+      if(t.angle != -1)
+      {
+        c->lightFace(faceArrowPointsTo(i, t.angle),0,1,0);
+      }
+      
+      if(t.command == TAGCOMMAND_SLEEP)
+      {
+        resultBehavior = RELAY_SLEEP;
+      }
+      if(t.command == TAGCOMMAND_PURPLE)
+      {
+        c->lightCube(1,0,1);
+        //====================SEND DEBUG =====================        
+         String Str = String(c->setCorePlane(PLANE0425, buf, 8000));
+         mesh.sendBroadcast(Str);
+        //==================END SEND DEBUG ===================  
+      }
+   }
+   return(resultBehavior);
+}
+
+
 ////////// How Long did this take?
 ////long begin_time = millis();
 ////Serial.print("Function took: ");Serial.println(millis()-begin_time);
 //////////
+
+//
+//    long m = millis();
+//    millisAccum += (m - millisPrev);
+//    millisPrev = m;
+//    if((millisAccum >= 0) && (millisAccum < 800))
+//      c->lightCube(false, false, true);
+//    else if(millisAccum < 1500)
+//      c->lightCube(false, false, false);
+//    else
+//      millisAccum -= 1500;

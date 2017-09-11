@@ -58,6 +58,7 @@ void addArrowMappingOneFace(ArrowMap* map, int id, int face, int newEntry)
  * Given a cube ID, an arrow map, and a face, this will tell what direction the "virtual 
  * arrow" points.
  */
+ 
 int lookupMapping(ArrowMap* map, int id, int face)
 {
     for(int i = 0; i < map->size; i++)

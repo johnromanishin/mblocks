@@ -2,6 +2,7 @@
 #define DEFINES
 
 #include <Arduino.h>
+#include "Communication.h"
 
 /// ESP ID to CUBE MAP ////
 typedef struct EspToCubeMapping
@@ -13,19 +14,18 @@ typedef struct EspToCubeMapping
 int getEspIDFromCube(int);
 int getCubeIDFromEsp(int);
 
+typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING, PLANEERROR} PlaneEnum;
+
 /// Global Variables ///
-#define DEBUG1 1 // DEBUG was already used somewhere
+#define DEBUG1 0 // DEBUG was already used somewhere
 #define DEBUG_VERBOSE
 
 #define FACES 6  // Number of faces on a cube...
-#define PLANE_0321 ((int)'A')
-#define PLANE_0425 ((int)'B')
-#define PLANE_1534 ((int)'C')
 
 extern int faceVersion;
 extern int cubeID;
-extern int planeChangeTime;
-extern int planeChangeRPM;
+extern int GlobalplaneChangeTime;
+extern int GlobalplaneChangeRPM;
 extern int traverseBrakeCurrent_F;
 extern int traverseBrakeCurrent_R;
 extern int cornerClimbBrakeCurrent_F;
@@ -33,7 +33,12 @@ extern int cornerClimbBrakeCurrent_R;
 
 
 //These tables define connectivity between faces for the cube
-const extern int faceRotations[][4];
+const extern PlaneEnum facePlanes[FACES][FACES];
+const extern int faceRotations[FACES][4];
+
+PlaneEnum returnPlane(int face1, int face2);
+
+int faceArrowPointsTo(int readingFace, int connectionAngle);
 
 #define ARRAY_SIZEOF(x) ((sizeof(x) / sizeof(x[0])))
 

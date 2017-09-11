@@ -53,6 +53,7 @@ bool sendMessage(String message)
 
 void receivedCallback(uint32_t from, String & msg)
 {
+  Serial.println(msg);
   jsonCircularBuffer.push(msg);
 }
 
@@ -61,20 +62,17 @@ void newConnectionCallback(uint32_t nodeId)
   //Serial.printf("--> startHere: New Connection, nodeId = %u\n", nodeId);
 }
 
-void changedConnectionCallback() {
+void changedConnectionCallback() 
+{
 //  Serial.printf("Changed connections %s\n", mesh.subConnectionJson().c_str());
-//
 //  nodes = mesh.getNodeList();
-//
 //  Serial.printf("Num nodes: %d\n", nodes.size());
 //  Serial.printf("Connection list:");
-//
 //  SimpleList<uint32_t>::iterator node = nodes.begin();
 //  while (node != nodes.end()) {
 //    Serial.printf(" %u", *node);
 //    node++;
 //  }
-//  Serial.println();
 //  calc_delay = true;
 }
 
@@ -85,17 +83,6 @@ void nodeTimeAdjustedCallback(int32_t offset) {
 void delayReceivedCallback(uint32_t from, int32_t delay) {
   //Serial.printf("Delay to node %u is %d us\n", from, delay);
 }
-
-//   Serial.println(c.returnTopFace());
-//   Serial.print("IMU_ax: ");Serial.println(c.axFrameBuffer.access(0));
-//   Serial.print("IMU_ay: ");Serial.println(c.ayFrameBuffer.access(0));
-//   Serial.print("IMU_az: ");Serial.println(c.azFrameBuffer.access(0));
-   //Serial.print("IMU_gx: ");Serial.println(c.gxFrameBuffer.access(0));
-   //Serial.print("IMU_gy: ");Serial.println(c.gyFrameBuffer.access(0));
-   //Serial.print("IMU_gz: ");Serial.println(c.gzFrameBuffer.access(0));
-//
- //c.updateBothIMUs();
- //c.updateCoreMagnetSensor();
 
 //   String newmsg = "Angle: " + String(c.coreMagnetAngleBuffer.access(0) - initialMagnetReadingOffset)
 //   + " core.ax: " + String(c.axCoreBuffer.access(0))

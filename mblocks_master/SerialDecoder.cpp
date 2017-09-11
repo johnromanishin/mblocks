@@ -4,18 +4,22 @@
 
 const SerialResponsePairing pairings[] =
 {
-    {"Successfully actuated mechanical brake\r\n", RESPONSE_MECHBRAKE_SUCCESS},
-    {"Failed to actuate mechanical brake\r\n", RESPONSE_MECHBRAKE_FAILURE},
-    {"Timeout while actuating mechanical brake\r\n", RESPONSE_MECHBRAKE_TIMEOUT},
-    {"SMA retracted\r\n", RESPONSE_SMA_RETRACTED},
-    {"SMA extending\r\n", RESPONSE_SMA_EXTENDING},
-    {"SMA extended\r\n", RESPONSE_SMA_EXTENDED},
-    {"BLDC motor speed stabilized\r\n", RESPONSE_BLDC_STABLE},
-    {"BLDC motor timeout\r\n", RESPONSE_BLDC_TIMEOUT},
-    {"BLDC motor acceleration complete\r\n", RESPONSE_BLDC_ACCEL_COMPLETE},
-    {"BLDC motor coasting to stop\r\n", RESPONSE_BLDC_COASTING},
-    {"BLDC motor stopped\r\n", RESPONSE_BLDC_STOPPED},
-    {"Motion primitive unrecognized\r\n", RESPONSE_COMMAND_UNRECOGNIZED},
+    {"Successfully actuated mechanical brake\r\n",    RESPONSE_MECHBRAKE_SUCCESS},
+    {"Failed to actuate mechanical brake\r\n",        RESPONSE_MECHBRAKE_FAILURE},
+    {"Timeout while actuating mechanical brake\r\n",  RESPONSE_MECHBRAKE_TIMEOUT},
+    {"SMA retracted\r\n",                             RESPONSE_SMA_RETRACTED},
+    {"SMA extending\r\n",                             RESPONSE_SMA_EXTENDING},
+    {"SMA extended\r\n",                              RESPONSE_SMA_EXTENDED},
+    {"BLDC motor speed stabilized\r\n",               RESPONSE_BLDC_STABLE},
+    {"BLDC motor timeout\r\n",                        RESPONSE_BLDC_TIMEOUT},
+    {"BLDC motor acceleration complete\r\n",          RESPONSE_BLDC_ACCEL_COMPLETE},
+    {"BLDC motor coasting to stop\r\n",               RESPONSE_BLDC_COASTING},
+    {"BLDC motor stopped\r\n",                        RESPONSE_BLDC_STOPPED},
+    {"Motion primitive unrecognized\r\n",             RESPONSE_COMMAND_UNRECOGNIZED},
+    {"Stopping BLDC motor with electric brake...\r\n",RESPONSE_STOP_BLDC_EB},
+    {"Problem stopping BLDC motor\r\n",               RESPONSE_STOPPING_BLDC_ERROR},
+    {"Starting BLDC motor spinning forward...\r\n",   RESPONSE_START_BLDC_F},
+    {"Starting BLDC motor spinning reverse...\r\n",   RESPONSE_START_BLDC_R},
     {0, RESPONSE_NONE_YET}
 };
 
