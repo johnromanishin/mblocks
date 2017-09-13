@@ -62,6 +62,9 @@ class Cube
 
   public:
       // Public Variables
+    void disconnectI2C();
+    void reconnectI2C();
+    void blinkParasiteLED(int blinkTime = 100);
     int wifiDelayWithMotionDetection(int delayTime);
     long shutDownTime = (60000*5); // time until board goes to sleep
 

@@ -2,19 +2,6 @@
 #include "MagTag.h"
 #include "Defines.h"
 
-//  int face1A = 29; // Magnet centerpoint for face 1 magnet position a
-//  int face1B = 28;
-//  int face2A = 27;
-//  int face2B = 26;
-//  int face3A = 25;
-//  int face3B = 24;
-//  int face4A = 23;
-//  int face4B = 22; 
-//  int face5A = 21;
-//  int face5B = 20;
-//  int face6A = 19;
-//  int face6B = 18; 
-
 //typedef struct Tag
 //{
 //  TagType type;   //
@@ -25,51 +12,9 @@
 //  TagCommand command; // Text of command or behavior to go to... if it exists
 //} Tag;
 
-// Move_towards_face(faceA, faceB)
-// check if 
-
-//const int faceRotations[][4] =
-//{
-//  {4, 1, 5, 3},
-//  {0, 4, 2, 5},
-//  {3, 5, 1, 4},
-//  {5, 2, 4, 0},
-//  {1, 0, 3, 2},
-//  {2, 3, 0, 1}
-//};
-//            FOLLOWING ARROWS
-//orient      ReadFace    ANGLE0    ANGLE1    ANGLE2    ANGLE3          
- 
-//PLANE_0123  Face 0     GO_0425    FORWARD   GO_0425   REVERSE       
-//PLANE_0123  Face 1     GO_1435    FORWARD   GO_1435   REVERSE                
-//PLANE_0123  Face 2     REVERSE    GO_0425   FORWARD   GO_0425                             
-//PLANE_0123  Face 3     GO_1435    FORWARD   GO_1435   REVERSE                 
-//PLANE_0123  Face 4     GO_0425    GO_1435   GO_0425   GO_1435
-//PLANE_0123  Face 5     GO_1435    GO_0425   GO_1435   GO_0425 
-
-//PLANE_1435  Face 0     GO_0425    GO_0123   GO_0425   GO_0123
-//PLANE_1435  Face 1     REVERSE    GO_0123   FORWARD   GO_0123
-//PLANE_1435  Face 2     GO_0123    GO_0425   GO_0123   GO_0425                            
-//PLANE_1435  Face 3     FORWARD    GO_0123   REVERSE   GO_0123
-//PLANE_1435  Face 4     
-//PLANE_1435  Face 5    
-
-//PLANE_0425  Face 0           
-//PLANE_0425  Face 1                    
-//PLANE_0425  Face 2                                 
-//PLANE_0425  Face 3                      
-//PLANE_0425  Face 4     
-//PLANE_0425  Face 5
-
 /*
  * Analyze Tag takes as arguements two magnetic sensor angles, and two 
  * corresponding AGC (Valid Magnetic field strength) values.
- * 
- * The function then generates an integer of the form - 
- * 
- * X
- * 
- * 
  */
  
 void analyzeTag(int angle1, int agc1, int angle2, int agc2, Tag* t)

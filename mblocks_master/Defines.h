@@ -21,6 +21,12 @@ typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING,
 #define DEBUG_VERBOSE
 
 #define FACES 6  // Number of faces on a cube...
+// Hardware Pin Definitions
+#define Switch 12 //  Digital Output | Switch which controlls power to the face boards,  
+                  //  High = power given to faceboards, Low = ability to charge
+#define LED 13    //  Digital Output | Directly Controlls a small white LED on the "Master" circuit board
+#define SDA 2     //  Managed by the wire.begin in initializeCube()
+#define SCL 14    //  Managed by the wire.begin in initializeCube() 
 
 extern int faceVersion;
 extern int cubeID;

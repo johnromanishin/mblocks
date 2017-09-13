@@ -43,6 +43,21 @@ Cube::Cube()
 // In later sections, super long...
 // bool Cube::lightCube(bool r, bool g, bool b)
 
+
+void Cube::disconnectI2C()
+{
+  digitalWrite(Switch, LOW); 
+}
+void Cube::reconnectI2C()
+{
+  digitalWrite(Switch, HIGH); 
+}
+void Cube::blinkParasiteLED(int blinkTime)
+{
+  digitalWrite(LED, HIGH);
+  wifiDelay(blinkTime);
+  digitalWrite(LED, LOW);
+}
 bool Cube::updateSensors()
 {
   /*
@@ -65,10 +80,10 @@ bool Cube::blockingBlink(bool r, bool g, bool b, int howManyTimes, int waitTime)
 {
   for(int times = 0; times < howManyTimes; times++)
   {
-  this->lightCube(r,g,b);
-  delay(waitTime);
-  this->lightCube(0,0,0);
-  delay(waitTime);
+    this->lightCube(r,g,b);
+    delay(waitTime);
+    this->lightCube(0,0,0);
+    delay(waitTime);
   }
 }
 
@@ -112,7 +127,7 @@ PlaneEnum Cube::returnCurrentPlane()
 
 int Cube::returnForwardFace()
 /*
- * Returns the face which is forward
+ * Returns the face which is "forward"
  */
 {
   return(this->forwardFace);
@@ -156,7 +171,6 @@ int Cube::wifiDelayWithMotionDetection(int delayTime)
   }
   return(motionSum/(updateCount));
 }
-
 ////////////////////////////////////////////////////////////////////////////////////
 //////////////////////REGARDING PLANE CHANGING//////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
@@ -170,7 +184,6 @@ int Cube::wifiDelayWithMotionDetection(int delayTime)
 //{
 //
 //}
-
 bool Cube::goToPlaneParallel(int faceExclude, SerialDecoderBuffer* buf)
 {
   bool result = false;
@@ -180,29 +193,36 @@ bool Cube::goToPlaneParallel(int faceExclude, SerialDecoderBuffer* buf)
   }
   else if(faceExclude == 1 || faceExclude == 3)
   {
-    result = this->setCorePlane(PLANE0123, buf, 8000);
+    result = this->setCorePlane(PLANE0425, buf, 8000);
   }
   else if(faceExclude == 0 || faceExclude == 2)
   {
-    result = this->setCorePlane(PLANE0123, buf, 8000);
+    result = this->setCorePlane(PLANE1453, buf, 8000);
   }
   else
   {
     return(false);
   } 
+  return(result);
 }
 
 bool Cube::setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int attemptTime) 
 {
+    PlaneEnum currentStatus;
+    int beginTime = millis();
     int attempts = 0;
-    int notMovingThreshold = 1200;
+    int notMovingThreshold = 1000;
     int planeChangeRPM = GlobalplaneChangeRPM; // this takes into account global
                                                // calibrated values for each cube
-    PlaneEnum currentPlane = this->findPlaneStatus();
-    while(1)
+    while((millis() - beginTime) < attemptTime)
     {
-      if(this->findPlaneStatus() == PLANEMOVING)
+      currentStatus = this->findPlaneStatus();
+      if(currentStatus == PLANEMOVING)
         {     
+          wifiDelay(100);
+        }
+      else if(currentStatus == PLANEERROR)
+        {
           wifiDelay(100);
         }
       else
@@ -210,7 +230,7 @@ bool Cube::setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int
           break;
         }
     }    
-    if(this->currentPlane == targetCorePlane)
+    if(currentStatus == targetCorePlane)
     {
       return(true);
     }
@@ -230,33 +250,49 @@ bool Cube::setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int
     Serial.println("sma retract 8000");
     waitForSerialResponse(RESPONSE_SMA_RETRACTED, 3000, buf);
     long startTime = millis(); // Start recording timer after we retract the SMA
+    /// Say it twice just to be sure...
     Serial.println("bldcstop b");
     wifiDelay(50);
     Serial.println("bldcstop b");
     wifiDelay(50);
-    while(wifiDelayWithMotionDetection(100) > notMovingThreshold)
-    {
-      delay(1);
-    }
-    wifiDelay(100);
     
     while((this->findPlaneStatus() != targetCorePlane) && 
-          ((millis()-startTime) < attemptTime))
+          ((millis()-startTime) < (attemptTime-1000)))
     {
-      if(this->currentPlane == PLANE0123 ||
-         this->currentPlane == PLANE0425 ||
-         this->currentPlane == PLANE1453)
+      while(wifiDelayWithMotionDetection(100) > notMovingThreshold) // Wait until we are not moving anymore
       {
-        this->blockingBlink(0,1,1);
+        delay(1);
       }
-      else if(this->currentPlane == PLANENONE)
+      wifiDelay(200); // wait a little bit more...
+      currentStatus = this->findPlaneStatus();
+      if(currentStatus != targetCorePlane)
       {
-        this->blockingBlink(1,0,0, 1, 200);
-        Serial.println("bldcaccel f 3000 330");
-        wifiDelay(400);
-        Serial.println("bldcstop b");
-        wifiDelay(100);
-        Serial.println("bldcstop b");
+        if( currentStatus == PLANE0123 ||
+            currentStatus == PLANE0425 ||
+            currentStatus == PLANE1453)
+        {
+          while(!waitForSerialResponse(RESPONSE_START_BLDC_F ,300,buf)) // if we haven't seen the response
+          {
+            attempts++;
+            Serial.println(bldcSpeedString);
+            if(attempts > 3) {break;}
+          }
+          attempts = 0;
+          waitForSerialResponse(RESPONSE_BLDC_STABLE, 4000, buf);
+          Serial.println("bldcstop b");
+          wifiDelay(50);
+          Serial.println("bldcstop b");
+          wifiDelay(50);
+        }
+        else if(this->currentPlane == PLANENONE)
+        {
+          this->blockingBlink(1,0,0, 1, 50);
+          Serial.println("bldcaccel f 3000 330");
+          wifiDelay(400);
+          Serial.println("bldcstop b");
+          wifiDelay(100);
+          Serial.println("bldcstop b");
+        }
       }
       wifiDelay(100);
     }
@@ -307,10 +343,11 @@ static const int32_t rotationMatricies[3][3][3] =
  */
 PlaneEnum Cube::findPlaneStatus()
 {
+  PlaneEnum likelyStatus = PLANEERROR; 
   if(this->updateBothIMUs()) // This is true if we get valid readings from both IMUs
   {
-    const int validPlaneThreshold = 100;
-    const int gyroMovingThreshold  = 1000;
+    const int validPlaneThreshold = 130;
+    const int gyroMovingThreshold  = 900;
     
     int32_t coreAccel[3] =   {this->axCoreBuffer.access(0),     
                               this->ayCoreBuffer.access(0),
@@ -343,38 +380,50 @@ PlaneEnum Cube::findPlaneStatus()
         mindist = distance[i];
       }
     }
-    
-//    String Str =  " distance[0]: " + String(distance[0]) +
-//                  " distance[1]: " + String(distance[1]) +
-//                  " distance[2]: " + String(distance[2]) +
-//                  " sumGYROS: "    + String(sumOfGyros); 
-//                 
-//    mesh.sendBroadcast(Str);
-//    delay(10);
+
     
     if(sumOfGyros > gyroMovingThreshold)
     {
       this->currentPlane = PLANEMOVING;
-      return(PLANEMOVING);
+      likelyStatus = PLANEMOVING;
     }
     else if((distance[minidx] < validPlaneThreshold) && 
             (sumOfGyros < gyroMovingThreshold))
     {
       this->currentPlane = planeEnumMap[minidx];
-      return(planeEnumMap[minidx]);
+      likelyStatus = planeEnumMap[minidx];
     }
     else
     { 
       this->currentPlane = PLANENONE;
-      return(PLANENONE);
+      likelyStatus = PLANENONE;
     }  
     //this->currentPlane = -1;
   }
   else // this gets called if reading one of the IMUs has failed
   {
     this->currentPlane = PLANEERROR;
-    return(PLANEERROR);
+    likelyStatus = PLANENONE;
   }
+  ///////////////////////////////////
+  String message = "";
+  if(likelyStatus == PLANE0123)       {message = "PLANE0123";}
+  else if(likelyStatus == PLANE0425)  {message = "PLANE0425";}
+  else if(likelyStatus == PLANE1453)  {message = "PLANE1453";}
+  else if(likelyStatus == PLANENONE)  {message = "PLANENONE";}
+  else if(likelyStatus == PLANEMOVING){message = "PLANEMOVING";}
+  else if(likelyStatus == PLANEERROR) {message = "PLANEERROR";}
+  //String(sumOfGyros);               
+  StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
+  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
+  root["msg"] = message;       
+  root["cmd"]  = "debugMSG";  
+  root["cubeID"] = -1;
+  String newStr;
+  root.printTo(newStr); 
+  mesh.sendBroadcast(newStr);
+///////////////////////
+  return(likelyStatus);
 }
 
 /**

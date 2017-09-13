@@ -275,9 +275,9 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior, SerialDeco
   Behavior resultBehavior = currentBehavior;
   if(!jsonCircularBuffer.empty())
   {
-    StaticJsonBuffer<256> jb;
+    //if(ESP.getChipId() == 13374829){Serial.println("GOt a message!! WOO!");}
+    StaticJsonBuffer<706> jb;
     JsonObject& root = jb.parseObject(jsonCircularBuffer.pop());
-    //if(root == JsonObject::invalid
     if((root["cubeID"] == getCubeIDFromEsp(ESP.getChipId())) || // If message matches your ID
        (root["cubeID"] == -1))                                  // or if message is brodcast
     {
@@ -286,10 +286,11 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior, SerialDeco
         resultBehavior = SHUT_DOWN;
         mesh.update();
       }
-      if(root["cmd"] == "debugMSG" && ESP.getChipId() == 13374829)
+      if(root["cmd"] == "debugMSG")
       {
+        mesh.update();
         String str = root["msg"];
-        Serial.println(str);      
+        Serial.println(str);   
       }
     }
   }
@@ -311,26 +312,31 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
                  c->faces[i].returnMagnetAngle_B(0), 
                  c->faces[i].returnMagnetStrength_B(0), &t);    
                           
-      if(((t.type != TAGTYPE_NOTHING) && (ESP.getChipId() != 13374829)) && (t.type != TAGTYPE_COMMAND))
-        {  
-          //====================SEND DEBUG ===================     
-          StaticJsonBuffer<256> jsonBuffer; //Space Allocated to store json instance
-          JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
-          String Str = "  My ID# is: " + String(ESP.getChipId()) +
-                       "  Found Tag on face: " + String(i) + "  " +
-                       "  t.type: " + String(t.type) +
-                       "  t.angle: " + String(t.angle) +
-                       "  t.id: " + String(t.id) +
-                       "  t.face: " + String(t.face) +
-                       "  t.Strength: " + String(t.strength) +
-                       "  t.command: " + String(t.command);
-          root["msg"] = Str;       
-          root["cmd"]      = "debugMSG";   
-          mesh.sendBroadcast(Str);
+      if(((t.type != TAGTYPE_NOTHING) && // If a valid tag exists...
+          (ESP.getChipId() != 13374829)) && // if the ID # is not that of the base station
+          (t.type != TAGTYPE_COMMAND))      // if it isn't a command tag...
+      {  
+        //====================SEND DEBUG =================== 
+        StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
+        JsonObject& root2 = jsonBuffer.createObject(); // & is "c++ reference"
+        String message =  "  My ID# is: " + String(ESP.getChipId()) +
+                          "  Found Tag on face: " + String(i) + "  " +
+                          "  t.type: " + String(t.type) +
+                          "  t.angle: " + String(t.angle) +
+                          "  t.id: " + String(t.id) +
+                          "  t.face: " + String(t.face) +
+                          "  t.Strength: " + String(t.strength) +
+                          "  t.command: " + String(t.command);
+        root2["msg"] = message;       
+        root2["cmd"]  = "debugMSG";  
+        root2["cubeID"] = -1;
+        String newStr;
+        root2.printTo(newStr); 
+        mesh.sendBroadcast(newStr);
           //====================END SEND DEBUG ===================        
         }
         
-      if(t.angle != -1)
+      if(t.angle != -1) // This means we are seeing some "arrow"
       {
         c->lightFace(faceArrowPointsTo(i, t.angle),0,1,0);
       }
@@ -342,9 +348,9 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
       if(t.command == TAGCOMMAND_PURPLE)
       {
         c->lightCube(1,0,1);
-        //====================SEND DEBUG =====================        
-         String Str = String(c->setCorePlane(PLANE0425, buf, 8000));
-         mesh.sendBroadcast(Str);
+        //====================SEND DEBUG =====================      
+        c->goToPlaneParallel(i, buf);
+        //mesh.sendBroadcast(Str);
         //==================END SEND DEBUG ===================  
       }
    }

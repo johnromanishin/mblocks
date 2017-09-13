@@ -1,21 +1,20 @@
 #include "Initialization.h"
 #include "Communication.h"
 #include "Defines.h"
+#include "Cube.h"
 #include <Wire.h>  
-
-// Hardware Pin Definitions
-#define Switch 12 //  Digital Output | Switch which controlls power to the face boards,  
-                  //  High = power given to faceboards, Low = ability to charge
-#define LED 13    //  Digital Output | Directly Controlls a small white LED on the "Master" circuit board
-#define SDA 2     //  Managed by the wire.begin in initializeCube()
-#define SCL 14    //  Managed by the wire.begin in initializeCube() 
+#include <Arduino.h>
+#include <painlessMesh.h>  // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
+#include <ArduinoJson.h>
 
 void initializeCube()
 {
   initializeHardware();
   lookUpCalibrationValues();
-  checkFaceVersion();
+  bool doIhaveFaces = checkFaceVersion();
   initializeWifiMesh();
+  wifiDelay(200);
+  if(!doIhaveFaces){whatToDoIfIamNotConnectedAtBeginning();}
 }
 //// Smaller Functions ////
 
@@ -27,45 +26,71 @@ void shutDownMasterBoard()
   }
 }
 
-void checkFaceVersion()
+bool checkFaceVersion()
 /*
  * This functions checks to see which version of the cube's Face hardware is running
  * It will first check for version 1: Containing i2c address 0x21,
  * Then it will check for version 0: Containing i2c address 
  */
+{
+  int error;
+  for(int i = 0; i < 6; i++)
   {
-    int error;
-    for(int i = 0; i < 6; i++)
-    {
-      Wire.beginTransmission(0x20); // Check for i2c address 0x20
-      error = Wire.endTransmission();  
-      if(error == 0){faceVersion = 1; return;}
-      delay(100);
-      
-      Wire.beginTransmission(0x21); // Check for i2c address 0x21
-      error = Wire.endTransmission();  
-      if(error == 0){faceVersion = 1; return;}
-      delay(100);
+    Wire.beginTransmission(0x20); // Check for i2c address 0x20
+    error = Wire.endTransmission();  
+    if(error == 0){faceVersion = 1; return(true);}
+    delay(100);      
+    
+    Wire.beginTransmission(0x21); // Check for i2c address 0x21
+    error = Wire.endTransmission();  
+    if(error == 0){faceVersion = 1; return(true);}
+    delay(100);
 
-      Wire.beginTransmission(0x22); // Check for i2c address 0x22
-      error = Wire.endTransmission();  
-      if(error == 0){faceVersion = 1; return;}
-      delay(100);
+    Wire.beginTransmission(0x22); // Check for i2c address 0x22
+    error = Wire.endTransmission();  
+    if(error == 0){faceVersion = 1; return(true);}
+    delay(100);
 
-      Wire.beginTransmission(0x23); // Check for i2c address 0x22
-      error = Wire.endTransmission();  
-      if(error == 0){faceVersion = 1; return;}
-      delay(100);
+    Wire.beginTransmission(0x23); // Check for i2c address 0x22
+    error = Wire.endTransmission();  
+    if(error == 0){faceVersion = 1; return(true);}
+    delay(100);
       
-      Wire.beginTransmission(0x04);
-      error = Wire.endTransmission();  
-      if(error == 0){faceVersion = 0; return;}
-      delay(500);
-    }
-    Serial.println("I am not connected to any face boards, going to sleep now!");
-    for(int i = 0; i < 10; i++) {Serial.println("sleep"); delay(500);}
+    Wire.beginTransmission(0x04);
+    error = Wire.endTransmission();  
+    if(error == 0){faceVersion = 0; return(true);}
+    delay(500);
   }
-  
+  return(false);
+}
+
+void whatToDoIfIamNotConnectedAtBeginning()
+{
+  while(1)
+  {
+    mesh.update();
+    int voltage = get_battery_voltage();
+    //////
+    StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
+    JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
+    String message =  "  My ID# is: " + String(ESP.getChipId()) +
+                      "  I have no faceboards connected to me =(   ... " +
+                      "  My Battery Voltage is: " + String(voltage);
+    root["msg"] = message;       
+    root["cmd"]  = "debugMSG";  
+    root["cubeID"] = -1;                 
+    String newStr;
+    
+    root.printTo(newStr); 
+    mesh.sendBroadcast(newStr);
+    digitalWrite(LED, HIGH);
+    wifiDelay(150);
+    digitalWrite(LED, LOW);
+    /////
+    wifiDelay(1000);
+    if(millis() > 4*1000*60){for(int i = 0; i < 10; i++) {Serial.println("sleep"); delay(500);}}
+  }
+}
 void initializeHardware()
 {
   Serial.begin(115200);       // open serial connection to the Slave Board

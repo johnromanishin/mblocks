@@ -14,20 +14,21 @@ int cornerClimbBrakeCurrent_R = 3000;
 
 EspToCubeMapping espCubeMap[] =
 {
+  {960348,    15},  // PEI ||  GREEN   || EC:47:A9:35:1F:02 01  || WORKS great!
+  {959694,    14},  // PEI ||  PURPLE  || FA:AA:25:19:C7:DF 01  || SPINS VERY FREELY
+  ////==============================
   {960242,    07},  // 
-  //{959839,    10},  // 
   {9      ,   99},  // PEI ||  ORANGE  || E6:F6:05:69:08:F2 01  || 
-  {959694,    99},  // PEI ||  BLUE    || FA:AA:25:19:C7:DF 01  ||  WIFI doesn't work great...
-  {959839,    14},  // PEI ||  PURPLE  || DB:9D:99:1A:BA:23 01  ||
   {15044426,  16},  // PEI ||  BLACK   ||                       ||  Face5 doesn't work great
-  {960348  ,  15},  // PEI ||  GREEN   || EC:47:A9:35:1F:02 01  || WORKS great!
   {10229112,  05},  // PEI ||  RED     || DF:DF:3C:A0:F1:77 01  || Works well
-  {1       ,  11},  // PEI ||  BROWN   ||
+  {1       ,  11},  // PEI ||  BROWN   || CC:F1:4F:AF:64:A8 01  || OLD FRAME
   {99      ,  22},  // PEI ||  YELLOW  || 
+  ////==============================
   {13374829,  99}   // ESP THING 
 
 };
-
+//{959839,    10},  // 
+//{959694,    99},  // PEI ||  BLUE    || FA:AA:25:19:C7:DF 01  ||  WIFI doesn't work great..
 int getEspIDFromCube(int cubeID)
 {
   int idex;
@@ -108,3 +109,9 @@ const int faceRotations[FACES][4] =
   {2, 3, 0, 1},  // FACE 4
   {1, 0, 3, 2}   // FACE 5
 };
+
+void generateAndSendDebugMSG(String message)
+{
+  
+}
+
