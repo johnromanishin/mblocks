@@ -896,6 +896,7 @@ bool Cube::determineForwardFace() // FUN3 // plane should be either int 1234, 15
 bool Cube::updateBothIMUs()
 {
   bool a = this->updateCoreIMU();
+  delay(2);
   bool b = this->updateFrameIMU();
   return(a && b);
 }
