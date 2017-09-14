@@ -24,8 +24,8 @@ EspToCubeMapping espCubeMap[] =
   {1       ,  11},  // PEI ||  BROWN   || CC:F1:4F:AF:64:A8 01  || OLD FRAME
   {99      ,  22},  // PEI ||  YELLOW  || 
   ////==============================
-  {13374829,  99}   // ESP THING 
-
+  {13374829,  99},   // ESP THING 
+  {9086927,   3}     // ESP thing "A" with orange board (magID 3)
 };
 //{959839,    10},  // 
 //{959694,    99},  // PEI ||  BLUE    || FA:AA:25:19:C7:DF 01  ||  WIFI doesn't work great..
