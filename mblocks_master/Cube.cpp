@@ -71,7 +71,39 @@ bool Cube::updateSensors()
 
 bool Cube::processState()
 {
-  this->updateBothIMUs();
+  if(this->updateBothIMUs())
+  {
+    StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
+    JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
+    String message =  "  My ID# is: " + String(ESP.getChipId()) +
+                      " I SUCCEEDED IN UPDATING BOTH IMUs";
+                      
+    root["msg"] = message;       
+    root["cmd"]  = "debugMSG";  
+    root["cubeID"] = -1;                 
+    String newStr;
+    
+    root.printTo(newStr); 
+    mesh.sendBroadcast(newStr);
+  }
+  else
+  {
+    StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
+    JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
+    String message =  "  My ID# is: " + String(ESP.getChipId()) +
+                      " MY i2c BUS LOCKED UP!!! UHOH, RESTARTING...";
+                      
+    root["msg"] = message;       
+    root["cmd"]  = "debugMSG";  
+    root["cubeID"] = -1;                 
+    String newStr;
+    
+    root.printTo(newStr); 
+    mesh.sendBroadcast(newStr);
+    this->disconnectI2C();
+    wifiDelay(100);
+    this->reconnectI2C();
+  }
   this->determineTopFace();
   this->determineForwardFace();
 }
@@ -740,11 +772,11 @@ bool Cube::updateFrameIMU()
   // This returns true if the i2c command was a success...
   if(error == 0)
     {
-      return true;
+      return(true);
     }
   else
     {
-      return false;
+      return(false);
     }
 }
 

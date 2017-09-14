@@ -319,14 +319,20 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
         //====================SEND DEBUG =================== 
         StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
         JsonObject& root2 = jsonBuffer.createObject(); // & is "c++ reference"
-        String message =  "  My ID# is: " + String(ESP.getChipId()) +
-                          "  Found Tag on face: " + String(i) + "  " +
+        String message =  "  ID#: " + String(ESP.getChipId()) +
+                          "  on Face: " + String(i) + "  " +
                           "  t.type: " + String(t.type) +
                           "  t.angle: " + String(t.angle) +
                           "  t.id: " + String(t.id) +
                           "  t.face: " + String(t.face) +
-                          "  t.Strength: " + String(t.strength) +
-                          "  t.command: " + String(t.command);
+                          //"  t.Strength: " + String(t.strength) +
+                          "  t.command: " + String(t.command) +
+                          " --- " +
+                          " A0: " +  String(c->faces[i].returnMagnetAngle_A(0)) + 
+                          " S0: " +  String(c->faces[i].returnMagnetStrength_A(0)) + 
+                          " A1: " +  String(c->faces[i].returnMagnetAngle_B(0)) + 
+                          " S1: " +  String(c->faces[i].returnMagnetStrength_B(0));                        
+                          
         root2["msg"] = message;       
         root2["cmd"]  = "debugMSG";  
         root2["cubeID"] = -1;
