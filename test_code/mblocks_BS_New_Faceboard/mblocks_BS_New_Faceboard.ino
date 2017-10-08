@@ -189,13 +189,25 @@ void loop()
 //if(loop_counter%10 == 0){reset_faces_power();}
 //blink_and_shout();
 //shift_and_update_IMU();
-all_faces_everything_on();
-delay(100);
-Serial.print("Infrared: ");Serial.println(read_infrared());
-Serial.print("AMBIENT : ");Serial.println(read_ambient());
-delay(1000);
-all_faces_everything_off();
-delay(1000);
+blink_blue_twice_fast();
+while(read_gyro_and_accel(MPU_frame) > 4000) 
+{
+  turn_color(purple);
+  delay(100);
+}
+for(int face = 1; face < 7; face ++)
+{
+
+  Serial.print("Checking face #: ");Serial.println(face);
+  activate_sensors(face);
+  delay(100);
+  process_5048(face);
+  Serial.print("Infrared: ");Serial.println(read_infrared());
+  Serial.print("AMBIENT : ");Serial.println(read_ambient());
+  delay(500);
+  deactivate_sensors(face);
+  delay(500);
+}
 //Serial.print("Infrared: ");Serial.println(read_infrared());
 //Serial.print("AMBIENT : ");Serial.println(read_ambient());
 //delay(1000);
@@ -311,6 +323,27 @@ void reset_faces_power()
 //  turn_color(purple);
 //  delay(60);
   all_faces_everything_off();
+}
+
+void everything_on(int face)
+{   
+    F1B1 = all_low;
+    F1B1 = all_low;
+    F1B1 = all_low;
+    F1B1 = all_low;
+    F1B1 = all_low;
+    F1B1 = all_low;
+    
+    F1B2 = all_low;
+    F2B2 = all_low;
+    F3B2 = all_low;
+    F4B2 = all_low;
+    F5B2 = all_low;
+    F6B2 = all_low;
+  for(int face = 1; face < 7; face++)
+  {
+    write_face(face);
+  }
 }
 
 void all_faces_everything_on()
@@ -523,24 +556,24 @@ else{}
 void activate_sensors(int face)
 {
   
-if     (face == 1) {F1B1 = sensors_active_with_light; write_face(face);}
-else if(face == 2) {F2B1 = sensors_active_with_light; write_face(face);}
-else if(face == 3) {F3B1 = sensors_active_with_light; write_face(face);}
-else if(face == 4) {F4B1 = sensors_active_with_light; write_face(face);}
-else if(face == 5) {F5B1 = sensors_active_with_light; write_face(face);}
-else if(face == 6) {F6B1 = sensors_active_with_light; write_face(face);}
+if     (face == 1) {F1B1 = sensors_active_with_light; F1B2 = all_low; write_face(face);}
+else if(face == 2) {F2B1 = sensors_active_with_light; F2B2 = all_low; write_face(face);}
+else if(face == 3) {F3B1 = sensors_active_with_light; F3B2 = all_low; write_face(face);}
+else if(face == 4) {F4B1 = sensors_active_with_light; F4B2 = all_low; write_face(face);}
+else if(face == 5) {F5B1 = sensors_active_with_light; F5B2 = all_low; write_face(face);}
+else if(face == 6) {F6B1 = sensors_active_with_light; F6B2 = all_low; write_face(face);}
 else{}
 
 }
 
 void deactivate_sensors(int face)
 {
-if     (face == 1) {F1B1 = all_high; write_face(face);}
-else if(face == 2) {F2B1 = all_high; write_face(face);}
-else if(face == 3) {F3B1 = all_high; write_face(face);}
-else if(face == 4) {F4B1 = all_high; write_face(face);}
-else if(face == 5) {F5B1 = all_high; write_face(face);}
-else if(face == 6) {F6B1 = all_high; write_face(face);}
+if     (face == 1) {F1B1 = all_high; F1B2 = all_high; write_face(face);}
+else if(face == 2) {F2B1 = all_high; F2B2 = all_high; write_face(face);}
+else if(face == 3) {F3B1 = all_high; F3B2 = all_high; write_face(face);}
+else if(face == 4) {F4B1 = all_high; F4B2 = all_high; write_face(face);}
+else if(face == 5) {F5B1 = all_high; F5B2 = all_high; write_face(face);}
+else if(face == 6) {F6B1 = all_high; F6B2 = all_high; write_face(face);}
 else{}
 }
 
@@ -885,5 +918,6 @@ void turn_off_esp()
 Serial.println("stillalive");
 for(int i = 0; i < 4;i++){Serial.println("espoff");delay(400);}// This should turn the lights completely off... Suicide basically
 }
+
 
 

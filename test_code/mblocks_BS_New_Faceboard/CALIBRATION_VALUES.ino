@@ -21,3 +21,4 @@ int forward_offset = 100; // These are the defaults if there isn't an entry for 
 int reverse_offset = 100;// These are the defaults if there isn't an entry for the specific Cube's  in the table.
 int special_offset = 0;// These are the defaults if there isn't an entry for the specific Cube's  in the table.
 int plane_change_offset = 0;// These are the defaults if there isn't an entry for the specific Cube's  in the table.
+

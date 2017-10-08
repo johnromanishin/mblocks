@@ -311,7 +311,6 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
                  c->faces[i].returnMagnetStrength_A(0),
                  c->faces[i].returnMagnetAngle_B(0), 
                  c->faces[i].returnMagnetStrength_B(0), &t);    
-                          
       if(((t.type != TAGTYPE_NOTHING) && // If a valid tag exists...
           (ESP.getChipId() != 13374829)) && // if the ID # is not that of the base station
           (t.type != TAGTYPE_COMMAND))      // if it isn't a command tag...
@@ -379,3 +378,10 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
 //      c->lightCube(false, false, false);
 //    else
 //      millisAccum -= 1500;
+//
+//      String testt = " A0: " +  String(c->faces[i].returnMagnetAngle_A(0)) + 
+//                     " S0: " +  String(c->faces[i].returnMagnetStrength_A(0)) + 
+//                     " A1: " +  String(c->faces[i].returnMagnetAngle_B(0)) + 
+//                     " S1: " +  String(c->faces[i].returnMagnetStrength_B(0));   
+//                   delay(500);
+//      Serial.println(testt);
