@@ -76,6 +76,9 @@ Behavior chilling(Cube* c, SerialDecoderBuffer* buf)
   return nextBehavior;
 }
 
+//================================================================
+//==========================ACTRACTIVE==============================
+//================================================================
 Behavior attractive(Cube* c)
 {
   c->updateSensors();
@@ -307,14 +310,17 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
   Tag t;
   for(int i = 0; i < 6; i++)
     {
+      int reflect = c->faces[i].returnReflectivityValue(0);
       analyzeTag(c->faces[i].returnMagnetAngle_A(0), 
                  c->faces[i].returnMagnetStrength_A(0),
                  c->faces[i].returnMagnetAngle_B(0), 
                  c->faces[i].returnMagnetStrength_B(0), &t);    
-      if(((t.type != TAGTYPE_NOTHING) && // If a valid tag exists...
-          (ESP.getChipId() != 13374829)) && // if the ID # is not that of the base station
-          (t.type != TAGTYPE_COMMAND))      // if it isn't a command tag...
+      if((t.type != TAGTYPE_NOTHING))//&& // If a valid tag exists...
+          //(ESP.getChipId() != 13374829)) // if the ID # is not that of the base station
+          
       {  
+        if(reflect < 300 && reflect > 50) 
+          {c->lightCube(1,1,0); wifiDelay(300);}
         //====================SEND DEBUG =================== 
         StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
         JsonObject& root2 = jsonBuffer.createObject(); // & is "c++ reference"
@@ -330,7 +336,8 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
                           " A0: " +  String(c->faces[i].returnMagnetAngle_A(0)) + 
                           " S0: " +  String(c->faces[i].returnMagnetStrength_A(0)) + 
                           " A1: " +  String(c->faces[i].returnMagnetAngle_B(0)) + 
-                          " S1: " +  String(c->faces[i].returnMagnetStrength_B(0));                        
+                          " S1: " +  String(c->faces[i].returnMagnetStrength_B(0)) +   
+                          " Reflectivity: " + String(reflect);                    
                           
         root2["msg"] = message;       
         root2["cmd"]  = "debugMSG";  

@@ -8,6 +8,7 @@
 
 Face::Face()
   : ambientBuffer(ARRAY_SIZEOF(this->ambientData), this->ambientData),
+    reflectivityBuffer(ARRAY_SIZEOF(this->ambientData), this->ambientData),
     magnetAngleBuffer_A(ARRAY_SIZEOF(this->magnetAngleData_A), this->magnetAngleData_A),
     magnetStrengthBuffer_A(ARRAY_SIZEOF(this->magnetStrengthData_A), this->magnetStrengthData_A),
     
@@ -39,8 +40,9 @@ bool Face::updateFace()
 {
   bool success = 
       (this->enableSensors() 
-    && this->turnOnFaceLEDs(1,0,0,0)
     && this->updateAmbient()
+    && this->turnOnFaceLEDs(0,0,1,0)    // TEMP
+    && this->updateReflectivity()            // temp
     && this->updateMagneticBarcode()
     && this->turnOffFaceLEDs()
     && this->disableSensors()); 
@@ -68,8 +70,7 @@ bool Face::updateAmbient()
   if(faceVersion == 0) // Alternate method for Old Face Version
     {
       int final_reading = 0;
-      int lightSensorGain = 10;
-      
+      int lightSensorGain = 10;      
       for(int i = 0; i < 3; i++) // We read the actual sensor 3 times, and return average
         { 
           int reading = 0;
@@ -96,7 +97,6 @@ bool Face::updateAmbient()
   else   //// Code runs for Regular faceVersion
     {
       activateLightSensor(this->ambientSensorAddress);
-      bool error = false; // not yet implemented
       delay(15); // 15ms delay to ensure integration period for light sensor works
       int reading = 0;
       Wire.beginTransmission(this->ambientSensorAddress); 
@@ -108,7 +108,64 @@ bool Face::updateAmbient()
           reading = Wire.read();
           reading |= Wire.read()<<8;
         }
-      this->ambientBuffer.push(reading); // adds the sensor value to the buffer
+      this->ambientBuffer.push(reading); // adds the sensor value to the buffer 
+      return(true);
+
+    }
+}
+
+bool Face::updateReflectivity()
+{
+  /*
+   * This function reads the ambient sensor on this instance of "Face" 
+   * There is the standard version (When faceVersion == 1), and a
+   * legacy version (when faceVerstion ==0);
+   */
+  if(faceVersion == 0) // Alternate method for Old Face Version
+    {
+      int final_reading = 0;
+      int lightSensorGain = 10;      
+      for(int i = 0; i < 3; i++) // We read the actual sensor 3 times, and return average
+        { 
+          int reading = 0;
+          delay(6);
+          Wire.beginTransmission(this->IOExpanderAddress - this->versionOffset); 
+          Wire.write(byte(0x10)); // this is the register where the ambient values are stored
+          Wire.endTransmission();
+          Wire.requestFrom((this->IOExpanderAddress - this->versionOffset), 2);
+          if (2 <= Wire.available()) //ambientLight  = twiBuf[0] << 2;
+            {
+              reading =  Wire.read()<<1;     //  ambientLight |= twiBuf[1] >> 6;
+              reading |=  Wire.read()>>7;   // Bit shifting for ambient values
+            }
+          else 
+            {
+              return(false);
+            }
+          final_reading += reading*lightSensorGain;
+        }
+      this->reflectivityBuffer.push(final_reading);
+      return(true);
+
+    }
+
+  else   //// Code runs for Regular faceVersion
+    {
+      activateLightSensor(this->ambientSensorAddress);
+      bool error = false; // not yet implemented
+      delay(20); // 15ms delay to ensure integration period for light sensor works
+      int reading = 0;
+      Wire.beginTransmission(this->ambientSensorAddress); 
+      Wire.write(byte(0x8C)); // this is the register where the Ambient values are stored
+      Wire.endTransmission();
+      Wire.requestFrom(this->ambientSensorAddress, 2);
+      if (2 <= Wire.available())  // request data from the sensor
+        {
+          reading = Wire.read();
+          reading |= Wire.read()<<8;
+        }
+      this->reflectivityBuffer.push(reading); // adds the sensor value to the buffer
+      //Serial.print("Reflectivity: ");Serial.println(reading);
       return(true);
     }
 }
@@ -116,6 +173,11 @@ bool Face::updateAmbient()
 int Face::returnAmbientValue(int index)
 {
   return(this->ambientBuffer.access(index));
+}
+
+int Face::returnReflectivityValue(int index)
+{
+  return(this->reflectivityBuffer.access(index));
 }
 
 int Face::returnMagnetStrength_A(int index)

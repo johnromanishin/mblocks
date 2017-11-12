@@ -31,7 +31,10 @@ class Face
     
       // Data storage spaces
     int ambientData[64];
+    int reflectivityData[8];
     CircularBuffer<int> ambientBuffer;
+    CircularBuffer<int> reflectivityBuffer;
+    
 
       // Magnetic data Buffers
     int magnetAngleData_A[10];
@@ -84,6 +87,7 @@ class Face
     bool enableSensors();   //DUAL VERSIONS
     bool disableSensors();  //DUAL VERSIONS
     bool updateAmbient();   //DUAL VERSIONS
+    bool updateReflectivity();
     bool updateMagneticBarcode(); // Reads both magnet sensors,
     bool updateFace(); // Enables sensors, Updates ambient values, updates magnetic sensors, neighbors...
     
@@ -93,6 +97,7 @@ class Face
     int returnMagnetStrength_A(int index);
     int returnMagnetStrength_B(int index); 
     int returnAmbientValue(int index);
+    int returnReflectivityValue(int index);
     int returnNeighborID(int index);
     int returnNeighborInfo(int index);
 };
