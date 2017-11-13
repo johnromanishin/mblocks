@@ -13,10 +13,11 @@ Motion cornerClimb  = {"cornerClimb", true    , 14000 , 5000  , 4000   , 20     
  
 bool Move(Motion* motion, String Direction, int numberOfAttempts, SerialDecoderBuffer* buf)
 {
+  int attempts = 0;
   long beginTime = millis();
-  while(numberOfAttempts)
+  while(numberOfAttempts) // we subtract 1 from "numberOfAttempts" each time around
   {
-    //Step 1:  Set Motor to a specific speed HEY
+    //Step 1:  Set Motor to a specific speed
     String rpmString = String("bldcspeed") + " " + Direction + " " + String(motion->rpm);
     String brakeString = String("brake") + String(" ") + Direction +
       " " + String(motion->current) + " " + String(motion->brakeTime);
@@ -26,18 +27,20 @@ bool Move(Motion* motion, String Direction, int numberOfAttempts, SerialDecoderB
       {
         delay(1);
         SerialResponse resp = pushNewChar(buf);
-        Serial.println(buf->size);
+        //Serial.println(buf->size);
         // update Wifi
         // maybe check gyro values
         // if(StringParser() == verifiedRPM)]
         if(resp == RESPONSE_BLDC_STABLE)
         { 
-          Serial.println("wooo! we parsed the sh*t out of that serial bitch");
+          //Serial.println("wooo! we parsed the sh*t out of that serial bitch");
           break;
         }
       }
     // Step 2 - Send the Brake Command
     if(motion->brake){Serial.println(brakeString);}
+    delay(10);
+    Serial.println("bldcstop b");
     delay(10);
     Serial.println("bldcstop b");
     // Step 3 - Make sure the move worked.

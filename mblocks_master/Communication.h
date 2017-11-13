@@ -20,3 +20,39 @@ void delayReceivedCallback(uint32_t from, int32_t delay);
 //void checkForMessage(Cube* c, String message);
 
 #endif
+
+
+// DEBUG MESSAGES
+//  bool debug = false;
+//  if(ESP.getChipId() == 9086927 ||ESP.getChipId() == 13374829)
+//  {
+//    debug = false;
+//  }
+
+
+
+//    if(debug)
+//    {
+//      StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
+//      JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
+//      String message =  "  My ID# is: " + String(ESP.getChipId()) +
+//                      " I SUCCEEDED IN UPDATING BOTH IMUs";                      
+//      root["msg"] = message;       
+//      root["cmd"]  = "debugMSG";  
+//      root["cubeID"] = -1;                 
+//      String newStr;
+//    
+//      root.printTo(newStr); 
+//      mesh.sendBroadcast(newStr);
+//    }
+
+//    StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
+//    JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
+//    String message =  "  My ID# is: " + String(ESP.getChipId()) +
+//                      " MY i2c BUS LOCKED UP!!! UHOH, RESTARTING...";                      
+//    root["msg"] = message;       
+//    root["cmd"]  = "debugMSG";  
+//    root["cubeID"] = -1;                 
+//    String newStr;
+//    root.printTo(newStr); 
+//    mesh.sendBroadcast(newStr);

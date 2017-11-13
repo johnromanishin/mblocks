@@ -5,7 +5,7 @@
 #include "Sensation.h"
 #include "SerialDecoder.h"
 #include "Face.h"
-#include "ArrowMap.h"
+#include "Z_ArrowMap.h"
 #include <Wire.h> 
 #include <stdint.h>
 
@@ -24,10 +24,10 @@ Cube::Cube()
     azCoreBuffer(ARRAY_SIZEOF(this->azCoreData), this->azCoreData),
     gxCoreBuffer(ARRAY_SIZEOF(this->gxCoreData), this->gxCoreData),
     gyCoreBuffer(ARRAY_SIZEOF(this->gyCoreData), this->gyCoreData),
-    gzCoreBuffer(ARRAY_SIZEOF(this->gzCoreData), this->gzCoreData),
+    gzCoreBuffer(ARRAY_SIZEOF(this->gzCoreData), this->gzCoreData)
 
-    coreMagnetAngleBuffer(ARRAY_SIZEOF(this->coreMagnetAngleData), this->coreMagnetAngleData),
-    coreMagnetStrengthBuffer(ARRAY_SIZEOF(this->coreMagnetStrengthData), this->coreMagnetStrengthData)
+//    coreMagnetAngleBuffer(ARRAY_SIZEOF(this->coreMagnetAngleData), this->coreMagnetAngleData),
+//    coreMagnetStrengthBuffer(ARRAY_SIZEOF(this->coreMagnetStrengthData), this->coreMagnetStrengthData)
     
 { 
   for(int i = 0; i < ARRAY_SIZEOF(this->faces); i++)
@@ -42,7 +42,6 @@ Cube::Cube()
 
 // In later sections, super long...
 // bool Cube::lightCube(bool r, bool g, bool b)
-
 
 void Cube::disconnectI2C()
 {
@@ -64,53 +63,25 @@ bool Cube::updateSensors()
    * This functions updates all of the sensor buffers on each cube
    * It also refreshes variables like this->topFace/ forwardFace/ ...
    */
-  this->updateCoreMagnetSensor();
+  //this->updateCoreMagnetSensor();
   this->processState();// -- this deals with anything involving IMUs 
   this->updateFaces(); // -- this checks all of the specific sensors on each face
 }
 
 bool Cube::processState()
 {
-  bool debug = true;
-  if(ESP.getChipId() == 9086927 ||ESP.getChipId() == 13374829)
-  {
-    debug = false;
-  }
   if(this->updateBothIMUs())
   {
-    if(debug)
-    {
-      StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
-      JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
-      String message =  "  My ID# is: " + String(ESP.getChipId()) +
-                      " I SUCCEEDED IN UPDATING BOTH IMUs";                      
-      root["msg"] = message;       
-      root["cmd"]  = "debugMSG";  
-      root["cubeID"] = -1;                 
-      String newStr;
-    
-      root.printTo(newStr); 
-      mesh.sendBroadcast(newStr);
-    }
+    delay(1);
   }
-  else if(debug)
+
+  else
   {
-    StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
-    JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
-    String message =  "  My ID# is: " + String(ESP.getChipId()) +
-                      " MY i2c BUS LOCKED UP!!! UHOH, RESTARTING...";
-                      
-    root["msg"] = message;       
-    root["cmd"]  = "debugMSG";  
-    root["cubeID"] = -1;                 
-    String newStr;
-    
-    root.printTo(newStr); 
-    mesh.sendBroadcast(newStr);
     this->disconnectI2C();
     wifiDelay(100);
     this->reconnectI2C();
   }
+  
   this->determineTopFace();
   this->determineForwardFace();
 }
@@ -223,6 +194,39 @@ int Cube::wifiDelayWithMotionDetection(int delayTime)
 //{
 //
 //}
+bool Cube::goToPlaneIncludingFaces(int face1, int face2, SerialDecoderBuffer* buf)
+/*
+ * I know there is a more elegant way to do this without all of the && and ||... but this works. Please forgive me.
+ */
+{
+  bool result = false;
+  if(((face1 == 0) && (face2 == 1)) || ((face2 == 0) && (face1 == 1)) ||
+     ((face1 == 1) && (face2 == 2)) || ((face2 == 1) && (face1 == 2)) ||
+     ((face1 == 2) && (face2 == 3)) || ((face2 == 2) && (face1 == 3)) ||
+     ((face1 == 3) && (face2 == 0)) || ((face2 == 3) && (face1 == 0)))
+  {
+    result = this->setCorePlane(PLANE0123, buf, 8000);
+  }
+
+  else if(((face1 == 0) && (face2 == 4)) || ((face2 == 0) && (face1 == 4)) ||
+          ((face1 == 4) && (face2 == 2)) || ((face2 == 4) && (face1 == 2)) ||
+          ((face1 == 2) && (face2 == 5)) || ((face2 == 2) && (face1 == 5)) ||
+          ((face1 == 5) && (face2 == 0)) || ((face2 == 5) && (face1 == 0)))
+  {
+    result = this->setCorePlane(PLANE0425, buf, 8000);
+  }
+  
+  else if(((face1 == 1) && (face2 == 4)) || ((face2 == 1) && (face1 == 4)) ||
+          ((face1 == 4) && (face2 == 3)) || ((face2 == 4) && (face1 == 3)) ||
+          ((face1 == 3) && (face2 == 5)) || ((face2 == 3) && (face1 == 5)) ||
+          ((face1 == 5) && (face2 == 1)) || ((face2 == 5) && (face1 == 1)))
+  {
+    result = this->setCorePlane(PLANE1453, buf, 8000);
+  }
+  
+  return(result);
+}
+
 bool Cube::goToPlaneParallel(int faceExclude, SerialDecoderBuffer* buf)
 {
   bool result = false;
@@ -238,120 +242,118 @@ bool Cube::goToPlaneParallel(int faceExclude, SerialDecoderBuffer* buf)
   {
     result = this->setCorePlane(PLANE1453, buf, 8000);
   }
-  else
-  {
-    return(false);
-  } 
   return(result);
 }
 
 bool Cube::setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int attemptTime) 
 {
-    PlaneEnum currentStatus;
-    int beginTime = millis();
-    int attempts = 0;
-    int notMovingThreshold = 1000;
-    int planeChangeRPM = GlobalplaneChangeRPM; // this takes into account global
+  PlaneEnum currentStatus;
+  int beginTime = millis();
+  int attempts = 0;
+  int notMovingThreshold = 1000;
+  int planeChangeRPM = GlobalplaneChangeRPM; // this takes into account global
                                                // calibrated values for each cube
-    while((millis() - beginTime) < attemptTime)
-    {
-      currentStatus = this->findPlaneStatus();
-      if(currentStatus == PLANEMOVING)
-        {     
-          wifiDelay(100);
-        }
-      else if(currentStatus == PLANEERROR)
-        {
-          wifiDelay(100);
-        }
-      else
-        {
-          break;
-        }
-    }    
-    if(currentStatus == targetCorePlane)
-    {
-      return(true);
-    }
-    else // Ok we are not in the correct plane, so we are going to spin up RPM,
-         // then retract SMA, and then Brake the motor
-    {
-    String bldcSpeedString = "bldcspeed f " + String(planeChangeRPM);
-    Serial.println(bldcSpeedString);
-    while(!waitForSerialResponse(RESPONSE_START_BLDC_F ,300 ,buf)) // if we haven't seen the response
-    {
-      attempts++;
-      Serial.println(bldcSpeedString);
-      if(attempts > 3) {break;}
-    }
-    attempts = 0;
-    waitForSerialResponse(RESPONSE_BLDC_STABLE, 4000, buf); // waits until bldc stabalizes or 4000 ms.
-    Serial.println("sma retract 8000");
-    waitForSerialResponse(RESPONSE_SMA_RETRACTED, 3000, buf);
-    long startTime = millis(); // Start recording timer after we retract the SMA
-    /// Say it twice just to be sure...
-    Serial.println("bldcstop b");
-    wifiDelay(50);
-    Serial.println("bldcstop b");
-    wifiDelay(50);
-    
-    while((this->findPlaneStatus() != targetCorePlane) && 
-          ((millis()-startTime) < (attemptTime-1000)))
-    {
-      while(wifiDelayWithMotionDetection(100) > notMovingThreshold) // Wait until we are not moving anymore
-      {
-        delay(1);
-      }
-      wifiDelay(200); // wait a little bit more...
-      currentStatus = this->findPlaneStatus();
-      if(currentStatus != targetCorePlane)
-      {
-        if( currentStatus == PLANE0123 ||
-            currentStatus == PLANE0425 ||
-            currentStatus == PLANE1453)
-        {
-          while(!waitForSerialResponse(RESPONSE_START_BLDC_F ,300,buf)) // if we haven't seen the response
-          {
-            attempts++;
-            Serial.println(bldcSpeedString);
-            if(attempts > 3) {break;}
-          }
-          attempts = 0;
-          waitForSerialResponse(RESPONSE_BLDC_STABLE, 4000, buf);
-          Serial.println("bldcstop b");
-          wifiDelay(50);
-          Serial.println("bldcstop b");
-          wifiDelay(50);
-        }
-        else if(this->currentPlane == PLANENONE)
-        {
-          this->blockingBlink(1,0,0, 1, 50);
-          Serial.println("bldcaccel f 3000 330");
-          wifiDelay(400);
-          Serial.println("bldcstop b");
-          wifiDelay(100);
-          Serial.println("bldcstop b");
-        }
-      }
-      wifiDelay(100);
-    }
-  if(this->findPlaneStatus() == targetCorePlane)
+  /*                                           
+   * The following Block to the next break delays, until plane is not moving...                                           
+   */
+  while((millis() - beginTime) < attemptTime) 
   {
-    delay(200);
-    if(this->findPlaneStatus() == targetCorePlane)
-    {
-      return(true);
-    }
-      else
-      {
-        return(false);
-      }
+    currentStatus = this->findPlaneStatus();
+    if((currentStatus == PLANEMOVING) || (currentStatus == PLANEERROR))
+    {     
+      wifiDelay(100);
     }
     else
     {
-      return(false);
+      break;
     }
   }
+/////////////////////////
+  /*                                           
+  * Check to make sure we aren't ALREADY  in the right plane, check                                          
+  * two times... If we are in the right plane, we return true
+  */
+  if(currentStatus == targetCorePlane)
+  {
+      return(true);
+  }
+  // Ok we are not in the correct plane, so we are going to spin up RPM,
+  // then retract SMA, and then Brake the motor
+  String bldcSpeedString = "bldcspeed f " + String(planeChangeRPM);
+  Serial.println(bldcSpeedString);
+  while(!waitForSerialResponse(RESPONSE_START_BLDC_F ,300 ,buf)) // if we haven't seen the response
+  {
+    attempts++;
+    Serial.println("bldcstop b"); delay(40); Serial.println("bldcstop b"); delay(100);
+    Serial.println(bldcSpeedString);
+    if(attempts > 3) {break;}
+  }
+  attempts = 0;
+  waitForSerialResponse(RESPONSE_BLDC_STABLE, 4000, buf); // waits until bldc stabalizes or 4000 ms.
+  Serial.println("sma retract 8000");
+  waitForSerialResponse(RESPONSE_SMA_RETRACTED, 3000, buf);
+  long startTime = millis(); // Start recording timer after we retract the SMA
+  /// Say it twice just to be sure...
+  Serial.println("bldcstop b");
+  wifiDelay(50);
+  Serial.println("bldcstop b");
+  wifiDelay(50);   
+  /* 
+   *  This section now loops until SMA extends again
+   */
+  while((this->findPlaneStatus() != targetCorePlane) &&  //**CHECKS PLANESTATUS**
+       ((millis()-startTime) < (attemptTime - 1000)))
+  {
+    while(wifiDelayWithMotionDetection(100) > notMovingThreshold) // Wait until we are not moving anymore
+    {
+      delay(10);
+    }     
+    wifiDelay(200); // wait a little bit more...
+    if(this->findPlaneStatus() == targetCorePlane)      //**CHECKS PLANESTATUS**
+    {
+      break; // This should exit the whole while loop...
+    }      
+    if(currentStatus != targetCorePlane) // This IF statement evaluates if we are in one of the two wrong planes...
+    {
+      ////
+      if( currentStatus == PLANE0123 ||
+          currentStatus == PLANE0425 ||
+          currentStatus == PLANE1453)
+      {
+        attempts = 0;
+        while(!waitForSerialResponse(RESPONSE_START_BLDC_F ,300,buf)) // if we haven't seen the response
+        {
+          attempts++;
+          Serial.println("bldcstop b"); delay(40); Serial.println("bldcstop b"); delay(100);
+          Serial.println(bldcSpeedString);
+          if(attempts > 3) {break;}
+        }
+        waitForSerialResponse(RESPONSE_BLDC_STABLE, 4000, buf);
+        Serial.println("bldcstop b"); delay(40); Serial.println("bldcstop b"); delay(500);
+      }
+      ////
+      else if(this->currentPlane == PLANENONE)
+      {
+        this->blockingBlink(1,1,0, 1, 50);
+        Serial.println("bldcaccel f 3000 300");
+        wifiDelay(300);
+        Serial.println("bldcstop b"); delay(40); Serial.println("bldcstop b"); delay(300);
+      }
+    }
+    wifiDelay(100);
+  }
+  /*
+   * We are done... Time to test and see if we are correct
+   */
+  delay(100);
+  if(this->findPlaneStatus() == targetCorePlane)
+  {
+    return(true);
+  }
+  /*
+   * Nothing checked out... So the default is to return false
+   */
+  return(false);
 }
 
 #define ROOT2OVER2Q15_16 46341
@@ -385,8 +387,8 @@ PlaneEnum Cube::findPlaneStatus()
   PlaneEnum likelyStatus = PLANEERROR; 
   if(this->updateBothIMUs()) // This is true if we get valid readings from both IMUs
   {
-    const int validPlaneThreshold = 130;
-    const int gyroMovingThreshold  = 900;
+    const int validPlaneThreshold = 160;
+    const int gyroMovingThreshold  = 1100;
     
     int32_t coreAccel[3] =   {this->axCoreBuffer.access(0),     
                               this->ayCoreBuffer.access(0),
@@ -445,6 +447,7 @@ PlaneEnum Cube::findPlaneStatus()
     likelyStatus = PLANENONE;
   }
   ///////////////////////////////////
+  
   String message = "";
   if(likelyStatus == PLANE0123)       {message = "PLANE0123";}
   else if(likelyStatus == PLANE0425)  {message = "PLANE0425";}
@@ -461,6 +464,7 @@ PlaneEnum Cube::findPlaneStatus()
   String newStr;
   root.printTo(newStr); 
   mesh.sendBroadcast(newStr);
+  
 ///////////////////////
   return(likelyStatus);
 }
@@ -908,20 +912,20 @@ bool Cube::updateBothIMUs()
   return(a && b);
 }
 
-bool Cube::updateCoreMagnetSensor()
-/*
- * coreMagnetSensorAddress  -- Returns magnet sensor address
- * magnetSensorFieldStrength(int i2cAddress) -- returns Magnet Sensor Address
- */
-{
-  int tempAngle    = readMagnetSensorAngle(this->coreMagnetSensorAddress)/45.5;
-  int tempStrength = readMagnetSensorFieldStrength(this->coreMagnetSensorAddress);
-  if(tempStrength == 0) 
-    {return(false);}
-  this->coreMagnetAngleBuffer.push(tempAngle);
-  this->coreMagnetStrengthBuffer.push(tempStrength);
-  return(true);
-} 
+//bool Cube::updateCoreMagnetSensor()
+///*
+// * coreMagnetSensorAddress  -- Returns magnet sensor address
+// * magnetSensorFieldStrength(int i2cAddress) -- returns Magnet Sensor Address
+// */
+//{
+//  int tempAngle    = readMagnetSensorAngle(this->coreMagnetSensorAddress)/45.5;
+//  int tempStrength = readMagnetSensorFieldStrength(this->coreMagnetSensorAddress);
+//  if(tempStrength == 0) 
+//    {return(false);}
+//  this->coreMagnetAngleBuffer.push(tempAngle);
+//  this->coreMagnetStrengthBuffer.push(tempStrength);
+//  return(true);
+//} 
 
 bool Cube::clearRGB()
 /*

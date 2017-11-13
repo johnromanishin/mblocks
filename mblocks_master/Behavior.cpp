@@ -50,10 +50,58 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
   Serial.println("Changing Loops");
   return(nextBehavior);
 }
-
+//c->goToPlaneParallel(i, buf);
+//================================================================
+//==========================TESTING THANGS========================
+//================================================================
 Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf)
 {
-
+  int connectedFace = -1;
+  long loopCounter = 0;
+  Behavior nextBehavior = TEST_TESTING_THANGS;
+  while(nextBehavior == TEST_TESTING_THANGS) // loop until something changes the next behavior
+  {
+    c->updateSensors();
+    nextBehavior = checkForMagneticTagsStandard(c, nextBehavior, buf);
+    wifiDelay(100);
+    nextBehavior = checkForBasicWifiCommands(c, nextBehavior, buf);
+    
+    if(c->numberOfNeighbors(0,0) == 1)
+    {
+      Tag t;
+      for(int i = 0; i < 6; i++)
+      {      
+        analyzeTag(c->faces[i].returnMagnetAngle_A(0),          // This calls fubnction which reads tags, populate data fields
+                  c->faces[i].returnMagnetStrength_A(0),       //
+                  c->faces[i].returnMagnetAngle_B(0),          //
+                  c->faces[i].returnMagnetStrength_B(0), &t);  //  
+        if(t.type ==  TAGTYPE_REGULAR_CUBE || t.type == TAGTYPE_PASSIVE_CUBE)//&& // If a valid tag exists...
+        {
+          connectedFace = i;
+        }
+      }
+      c->lightFace(connectedFace,0,1,1);
+      delay(300);
+      c->lightFace(c->returnTopFace(),1,1,1);
+      delay(300);
+      if((connectedFace != c->returnTopFace()) ||
+          connectedFace != c->returnBottomFace())
+      {
+        if(c->goToPlaneIncludingFaces(connectedFace, c->returnTopFace(), buf))
+        {
+          c->blockingBlink(1,0,1,3);
+          c->clearRGB();
+          delay(50);
+          Serial.println("ia f 15500 3800 8 e 10");
+          delay(8000);
+        }
+      }
+    }
+    c->lightCube(!(loopCounter%4), !(loopCounter%4), false); // blinks yellow every 4 times...
+    delay(10);
+    loopCounter++;
+  }
+  return nextBehavior;
 }
 
 //================================================================
@@ -252,7 +300,7 @@ Behavior relaySleepMessage(Cube* c)
   if(DEBUG1) Serial.println("telling others to go to sleep");
 
   //======Temporarily Generated a Broadcast message =========
-  StaticJsonBuffer<256> jsonBuffer; //Space Allocated to store json instance
+  StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
   JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
   //^class type||^ Root         ^class method                   
   root["type"] = "cmd";
@@ -311,16 +359,37 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
   for(int i = 0; i < 6; i++)
     {
       int reflect = c->faces[i].returnReflectivityValue(0);
-      analyzeTag(c->faces[i].returnMagnetAngle_A(0), 
-                 c->faces[i].returnMagnetStrength_A(0),
-                 c->faces[i].returnMagnetAngle_B(0), 
-                 c->faces[i].returnMagnetStrength_B(0), &t);    
-      if((t.type != TAGTYPE_NOTHING))//&& // If a valid tag exists...
-          //(ESP.getChipId() != 13374829)) // if the ID # is not that of the base station
-          
-      {  
-        if(reflect < 300 && reflect > 50) 
-          {c->lightCube(1,1,0); wifiDelay(300);}
+      
+      analyzeTag(c->faces[i].returnMagnetAngle_A(0),          // This calls fubnction which reads tags, populate data fields
+                 c->faces[i].returnMagnetStrength_A(0),       //
+                 c->faces[i].returnMagnetAngle_B(0),          //
+                 c->faces[i].returnMagnetStrength_B(0), &t);  //  
+                     
+      //if((t.type != TAGTYPE_NOTHING))//&& // If a valid tag exists...
+      //(ESP.getChipId() != 13374829)) // if the ID # is not that of the base station
+            
+      if(reflect < 400 && reflect > 50) 
+        {c->lightCube(1,1,0); wifiDelay(300);}
+        
+      if(t.angle != -1) // This means we are seeing some "arrow"
+      {
+        c->lightFace(faceArrowPointsTo(i, t.angle),0,1,0);
+      }
+      
+      if(t.command == TAGCOMMAND_SLEEP)
+      {
+        resultBehavior = RELAY_SLEEP;
+      }
+      if(t.command == TAGCOMMAND_PURPLE)
+      {
+        c->lightCube(1,0,1);
+        //====================SEND DEBUG =====================      
+        c->goToPlaneParallel(i, buf);
+        //mesh.sendBroadcast(Str);
+        //==================END SEND DEBUG ===================  
+      }
+      if(t.command == TAGCOMMAND_DEBUG_MSG)
+      {
         //====================SEND DEBUG =================== 
         StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
         JsonObject& root2 = jsonBuffer.createObject(); // & is "c++ reference"
@@ -345,50 +414,9 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
         String newStr;
         root2.printTo(newStr); 
         mesh.sendBroadcast(newStr);
-          //====================END SEND DEBUG ===================        
-        }
-        
-      if(t.angle != -1) // This means we are seeing some "arrow"
-      {
-        c->lightFace(faceArrowPointsTo(i, t.angle),0,1,0);
-      }
-      
-      if(t.command == TAGCOMMAND_SLEEP)
-      {
-        resultBehavior = RELAY_SLEEP;
-      }
-      if(t.command == TAGCOMMAND_PURPLE)
-      {
-        c->lightCube(1,0,1);
-        //====================SEND DEBUG =====================      
-        c->goToPlaneParallel(i, buf);
-        //mesh.sendBroadcast(Str);
-        //==================END SEND DEBUG ===================  
+        //====================END SEND DEBUG ===================       
       }
    }
    return(resultBehavior);
 }
 
-
-////////// How Long did this take?
-////long begin_time = millis();
-////Serial.print("Function took: ");Serial.println(millis()-begin_time);
-//////////
-
-//
-//    long m = millis();
-//    millisAccum += (m - millisPrev);
-//    millisPrev = m;
-//    if((millisAccum >= 0) && (millisAccum < 800))
-//      c->lightCube(false, false, true);
-//    else if(millisAccum < 1500)
-//      c->lightCube(false, false, false);
-//    else
-//      millisAccum -= 1500;
-//
-//      String testt = " A0: " +  String(c->faces[i].returnMagnetAngle_A(0)) + 
-//                     " S0: " +  String(c->faces[i].returnMagnetStrength_A(0)) + 
-//                     " A1: " +  String(c->faces[i].returnMagnetAngle_B(0)) + 
-//                     " S1: " +  String(c->faces[i].returnMagnetStrength_B(0));   
-//                   delay(500);
-//      Serial.println(testt);

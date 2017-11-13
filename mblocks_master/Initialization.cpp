@@ -88,15 +88,15 @@ void whatToDoIfIamNotConnectedAtBeginning()
     digitalWrite(LED, LOW);
     /////
     wifiDelay(1000);
-    if(millis() > 4*1000*60){for(int i = 0; i < 10; i++) {Serial.println("sleep"); delay(500);}}
+    if(millis() > 1*1000*60){for(int i = 0; i < 10; i++) {Serial.println("sleep"); delay(500);}}
   }
 }
 void initializeHardware()
 {
   Serial.begin(115200);       // open serial connection to the Slave Board
   Serial.println("stillalive");
-  delay(1000);
-  Serial.print("ESP Chip ID");
+  delay(800);
+  Serial.print("ESP Chip ID: ");
   Serial.println(ESP.getChipId());
   pinMode(Switch, OUTPUT);    // Initialize the pin to controll the power switching circuitry
   digitalWrite(Switch, LOW);  // Set the power switch to be OFF - 

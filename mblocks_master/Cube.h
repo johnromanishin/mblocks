@@ -5,7 +5,7 @@
 #include "CBuff.h"
 #include "Face.h"
 #include "MagTag.h"
-#include "ArrowMap.h"
+#include "Z_ArrowMap.h"
 #include "SerialDecoder.h"
 #include <Arduino.h>
 
@@ -21,7 +21,7 @@ class Cube
     int cubeID = 1;
     int batteryVoltage = 0;
     PlaneEnum currentPlane; // The plane (out of three) that the central actuator is in - 0
-    int coreAngle;    // current angle of the core
+    //int coreAngle;    // current angle of the core
     int topFace;      // face this is point upwards, as determined by the accelerometer
     int forwardFace;  // face that is pointing forwards
     int reverseFace;  // face that is pointing backwards
@@ -29,7 +29,7 @@ class Cube
       // i2c Addresses
     const int frameIMUaddress = 0x69;
     const int coreIMUaddress  = 0x68;
-    const int coreMagnetSensorAddress = 0x40;//
+    //const int coreMagnetSensorAddress = 0x40;//
     const int faceExpanderAddresses[6] = {0x20, 0x21, 0x22, 0x23, 0x24, 0x25};
 
       // Data storage spaces
@@ -50,8 +50,8 @@ class Cube
     int gyFrameData[32];
     int gzFrameData[32];
 
-    int coreMagnetAngleData[32];
-    int coreMagnetStrengthData[32];
+    //int coreMagnetAngleData[32];
+    //int coreMagnetStrengthData[32];
 
       // Internal functions
     bool CornerRGB(int face, bool top, bool r, bool g, bool b); // Only for Version 0;
@@ -75,7 +75,7 @@ class Cube
     bool updateBothIMUs(); // updates BOTH IMU's
     bool updateFrameIMU();
     bool updateCoreIMU();
-    bool updateCoreMagnetSensor();
+    //bool updateCoreMagnetSensor();
     bool wakeIMU(int i2cAddress);
     int returnXthBrightestFace(int index);
     int returnSumOfAmbient(); // returns the sum of all of the light sensors
@@ -92,6 +92,7 @@ class Cube
     int currentCorePlane();
     PlaneEnum findPlaneStatus();
     bool goToPlaneParallel(int faceExclude, SerialDecoderBuffer* buf);
+    bool goToPlaneIncludingFaces(int face1, int face2, SerialDecoderBuffer* buf);
     
 
       // Functions involving LED's
@@ -125,8 +126,8 @@ class Cube
     CircularBuffer<int> gyFrameBuffer;
     CircularBuffer<int> gzFrameBuffer;
 
-    CircularBuffer<int> coreMagnetAngleBuffer;
-    CircularBuffer<int> coreMagnetStrengthBuffer;
+    //CircularBuffer<int> coreMagnetAngleBuffer;
+    //CircularBuffer<int> coreMagnetStrengthBuffer;
 
     ArrowMap arrowMap;
     //

@@ -27,7 +27,7 @@ char storage[256]; // This creates storage space for decoding serial messages
 SerialDecoderBuffer buf = {storage, 256, 0}; //Struct used to detect serial messages from Kyles Board
 
 // Beginning Behavior
-Behavior behavior = CHILLING; // initial Behavior Cube impliments
+Behavior behavior = TEST_TESTING_THANGS; // initial Behavior Cube impliments
 
 void setup() // Actually the main loop...
 {
@@ -37,6 +37,10 @@ void setup() // Actually the main loop...
   initializeCube(); // Runs this code once to setup input/outputs, communication networks...
                     // (Wifi, i2c, serial) and instantiates classes and calibration values
   c.updateSensors(); // populates initial readings for variables such as which face is up, and # of neighbors
+  if(c.numberOfNeighbors(0,0) > 1) // turns off if the cube has at least 2 neighbors... for ease of dealing with things
+  {
+    bool shutDown = true;
+  }
   ///////////////////////ACTUAL LOOP////////////////////
   while((millis() < c.shutDownTime) && (!shutDown))
   {
@@ -59,7 +63,7 @@ void setup() // Actually the main loop...
       shutDown = true;
     else
     {
-      Serial.println("ERROR: unknown behavior.  Reverting to \"CHILLING\"");
+      //Serial.println("ERROR: unknown behavior.  Reverting to \"CHILLING\"");
       behavior = CHILLING;
     }
   }

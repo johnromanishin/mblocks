@@ -31,23 +31,15 @@ void analyzeTag(int angle1, int agc1, int angle2, int agc2, Tag* t)
    else                                     {magDigit2 = int(angle2 + 18)/12;}
   //
   t->strength = agc1+agc2; // this is a measurement of how accurate the tag strength is
-  
+  t->type = TAGTYPE_INVALID;    // Resets all of these values
+  t->angle = -1; //             // Resets all of these values
+  t->id = -1; //                // Resets all of these values
+  t->face = -1; //              // Resets all of these values
+  t->command = TAGCOMMAND_NONE; // Resets all of these values
+      
   if(((agc1+agc2) > strengthThreshold) || (t->strength == 0)) // this means there isn't a valid tag
     {
-      t->type = TAGTYPE_NOTHING;   
-      t->angle = -1;  
-      t->id = -1;  
-      t->face = -1; 
-      t->command = TAGCOMMAND_NONE; 
       return; // DOES NOT EVAUATE ANYTHING ELSE EXITS PROGRAM here
-    }
-  else // this makes sure that all of the datafields are not set randomly.
-    {
-      t->type = TAGTYPE_INVALID;   //
-      t->angle = -1; // 
-      t->id = -1; // 
-      t->face = -1; //
-      t->command = TAGCOMMAND_NONE;// 
     }
 /*============================================================================================================
  * CHECK IF TAG REPRESENTS A MODULE
@@ -93,7 +85,7 @@ void analyzeTag(int angle1, int agc1, int angle2, int agc2, Tag* t)
 
        if((magDigit1 == 15 || magDigit1 == 16 || magDigit1 == 17 || // Means magdigit1 is a faceID
            magDigit1 == 30 || magDigit1 == 1  || magDigit1 == 2 ) &&
-          (magDigit2 == 8  || magDigit2 == 9  || magDigit2 == 10))     // Means magdifit2 stores an ID # 
+          (magDigit2 == 8  || magDigit2 == 9  || magDigit2 == 10))     // Means magdigit2 stores an ID # 
           {
             t->type = TAGTYPE_PASSIVE_CUBE;
               if(magDigit1 == 30 || magDigit1 == 1  || magDigit1 == 2)

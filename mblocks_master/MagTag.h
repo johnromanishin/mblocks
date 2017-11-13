@@ -21,7 +21,8 @@ typedef enum TagCommand
 {
   TAGCOMMAND_NONE,
   TAGCOMMAND_SLEEP,
-  TAGCOMMAND_PURPLE
+  TAGCOMMAND_PURPLE,
+  TAGCOMMAND_DEBUG_MSG
 } TagCommand;
 
 typedef struct Tag
