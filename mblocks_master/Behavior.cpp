@@ -9,14 +9,6 @@
 #include "SerialDecoder.h"
 #include "MagTag.h"
 
-Behavior followArrows()
-{
-
-// Set rmp(6000);
-// wait  (4000ms);
-// ebrake //////
-}
-
 Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
 {
   Behavior nextBehavior = SOLO_LIGHT_TRACK;
@@ -50,7 +42,6 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
   Serial.println("Changing Loops");
   return(nextBehavior);
 }
-//c->goToPlaneParallel(i, buf);
 //================================================================
 //==========================TESTING THANGS========================
 //================================================================
