@@ -14,6 +14,7 @@ void lookUpCalibrationValues();
 void initializeHardware();
 void disableAutoReset();
 void whatToDoIfIamNotConnectedAtBeginning();
+void resetI2cBus();
 int inputVoltage();
 int get_battery_voltage();
 

@@ -17,11 +17,10 @@ class Cube
  */
 {
   private:
-      // General information
+    // General information
     int cubeID = 1;
     int batteryVoltage = 0;
     PlaneEnum currentPlane; // The plane (out of three) that the central actuator is in - 0
-    //int coreAngle;    // current angle of the core
     int topFace;      // face this is point upwards, as determined by the accelerometer
     int forwardFace;  // face that is pointing forwards
     int reverseFace;  // face that is pointing backwards
@@ -29,7 +28,6 @@ class Cube
       // i2c Addresses
     const int frameIMUaddress = 0x69;
     const int coreIMUaddress  = 0x68;
-    //const int coreMagnetSensorAddress = 0x40;//
     const int faceExpanderAddresses[6] = {0x20, 0x21, 0x22, 0x23, 0x24, 0x25};
 
       // Data storage spaces
@@ -50,12 +48,8 @@ class Cube
     int gyFrameData[32];
     int gzFrameData[32];
 
-    //int coreMagnetAngleData[32];
-    //int coreMagnetStrengthData[32];
-
       // Internal functions
-    bool CornerRGB(int face, bool top, bool r, bool g, bool b); // Only for Version 0;
-    bool determineCurrentPlane();       // updates variable this->CurrentPlane
+    //bool CornerRGB(int face, bool top, bool r, bool g, bool b); // Only for Version 0;
     bool determineForwardFace();        // updates variable this->ForwardFace
     bool determineTopFace(int threshold = 12500);             // updates variable this->UpFace
     bool processState();
@@ -64,6 +58,7 @@ class Cube
       // Public Variables
     void disconnectI2C();
     void reconnectI2C();
+    void resetI2C();
     void blinkParasiteLED(int blinkTime = 100);
     int wifiDelayWithMotionDetection(int delayTime);
     long shutDownTime = (60000*5); // time until board goes to sleep
@@ -75,7 +70,6 @@ class Cube
     bool updateBothIMUs(); // updates BOTH IMU's
     bool updateFrameIMU();
     bool updateCoreIMU();
-    //bool updateCoreMagnetSensor();
     bool wakeIMU(int i2cAddress);
     int returnXthBrightestFace(int index);
     int returnSumOfAmbient(); // returns the sum of all of the light sensors
@@ -88,19 +82,19 @@ class Cube
     int returnBottomFace();
 
     // Functions involving PLane Changing
-    bool setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int attemptTime = 6000); 
-    int currentCorePlane();
     PlaneEnum findPlaneStatus();
+    bool setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int attemptTime = 6000); 
     bool goToPlaneParallel(int faceExclude, SerialDecoderBuffer* buf);
     bool goToPlaneIncludingFaces(int face1, int face2, SerialDecoderBuffer* buf);
     
 
       // Functions involving LED's
     bool clearRGB(); // Turns off all LED's on the cube DUAL VERSIONS
+    void lightsOff();
     bool lightFace(int face, bool r = true, bool g = false, bool  b = true); //DUAL VERSIONS
     bool lightCube(bool r = true, bool g = true, bool b = false); // lights entire cube, defaults to yellow
     bool blockingBlink(bool r, bool g, bool b, int howManyTimes = 6, int waitTime = 100);
-    void setFaceLEDsAtEdge(int, int);
+    void setFaceLEDsAtEdge(int, int); // **WIP
 
     // Misc. Useful Functions
     bool determineIfLatticeConnected();
@@ -108,7 +102,6 @@ class Cube
     void shutDown();                   // Turns off the entire cub
     //
     long cubeMAC = ESP.getChipId();
-
     //
     CircularBuffer<long> faceSensorUpdateTimeBuffer;
 
@@ -125,9 +118,6 @@ class Cube
     CircularBuffer<int> gxFrameBuffer;
     CircularBuffer<int> gyFrameBuffer;
     CircularBuffer<int> gzFrameBuffer;
-
-    //CircularBuffer<int> coreMagnetAngleBuffer;
-    //CircularBuffer<int> coreMagnetStrengthBuffer;
 
     ArrowMap arrowMap;
     //

@@ -27,7 +27,7 @@ typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING,
 #define LED 13    //  Digital Output | Directly Controlls a small white LED on the "Master" circuit board
 #define SDA 2     //  Managed by the wire.begin in initializeCube()
 #define SCL 14    //  Managed by the wire.begin in initializeCube() 
-
+/////////////////////////////////////////////////////////////////////
 extern int faceVersion;
 extern int cubeID;
 extern int GlobalplaneChangeTime;

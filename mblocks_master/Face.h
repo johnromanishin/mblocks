@@ -30,7 +30,7 @@ class Face
     }
     
       // Data storage spaces
-    int ambientData[64];
+    int ambientData[128];
     int reflectivityData[8];
     CircularBuffer<int> ambientBuffer;
     CircularBuffer<int> reflectivityBuffer;
@@ -81,15 +81,20 @@ class Face
 
       //LED Related Commands
     bool turnOnFaceLEDs(bool LED_A = true, bool LED_B = true, bool LED_C = true, bool LED_D = true);  //DUAL VERSIONS
-    bool turnOffFaceLEDs(); // DUAL Versions
+    bool turnOffFaceLEDs();
 
       // Sensor Related Commands
-    bool enableSensors();   //DUAL VERSIONS
-    bool disableSensors();  //DUAL VERSIONS
-    bool updateAmbient();   //DUAL VERSIONS
+    bool enableSensors();   
+    bool disableSensors();  
+    bool updateAmbient();   
+    bool readAmbient();
     bool updateReflectivity();
     bool updateMagneticBarcode(); // Reads both magnet sensors,
+    bool isThereNeighbor(); // true == yes! // false == NO
     bool updateFace(); // Enables sensors, Updates ambient values, updates magnetic sensors, neighbors...
+      // Sending simple messages - length of blink = digit... 100ms == "1" 200ms == "2" ... etc.
+    int checkForMessage(int waitTime);
+    void blinkOutMessage(int digit); 
     
       // Return from Circular Buffer Commands
     int returnMagnetAngle_A(int index);

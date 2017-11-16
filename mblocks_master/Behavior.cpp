@@ -72,9 +72,9 @@ Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf)
       for(int i = 0; i < 6; i++)
       {      
         analyzeTag(c->faces[i].returnMagnetAngle_A(0),          // This calls fubnction which reads tags, populate data fields
-                  c->faces[i].returnMagnetStrength_A(0),       //
-                  c->faces[i].returnMagnetAngle_B(0),          //
-                  c->faces[i].returnMagnetStrength_B(0), &t);  //  
+                   c->faces[i].returnMagnetStrength_A(0),       //
+                   c->faces[i].returnMagnetAngle_B(0),          //
+                   c->faces[i].returnMagnetStrength_B(0), &t);  //  
         if(t.type ==  TAGTYPE_REGULAR_CUBE || t.type == TAGTYPE_PASSIVE_CUBE)//&& // If a valid tag exists...
         {
           connectedFace = i;
@@ -84,7 +84,7 @@ Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf)
       delay(300);
       c->lightFace(c->returnTopFace(),1,1,1);
       delay(300);
-      if((connectedFace != c->returnTopFace()) ||
+      if((connectedFace > 0) && (connectedFace != c->returnTopFace()) &&
           connectedFace != c->returnBottomFace())
       {
         if(c->goToPlaneIncludingFaces(connectedFace, c->returnTopFace(), buf))
@@ -92,7 +92,12 @@ Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf)
           c->blockingBlink(1,0,1,3);
           c->clearRGB();
           delay(50);
-          Serial.println("ia f 15500 3800 8 e 10");
+          for(int i = 0; i < 6; i++)
+          {
+            c->faces[c->returnTopFace()].blinkOutMessage(i);
+            delay(100);
+          }
+          //Serial.println("ia f 15500 3800 8 e 10");
           delay(8000);
         }
       }

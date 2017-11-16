@@ -15,14 +15,19 @@ typedef struct Motion
   int current;     // Current we apply to the brake in mA ... Maximum is 6000 ma
   int brakeTime;        // Time (milli Seconds) we apply the brake for Maximum time*current < some value
   int difficulty;     // Estimated difficulty of the move on a scale 1-255; with 1 == easy, 255 == very hard;
+  String for_rev;
 } Motion;
 
 // List of Possible Motions, defined in Motion.cpp
-extern Motion traverse;
-extern Motion roll;
-extern Motion cornerClimb;
+extern Motion traverse_F;
+extern Motion traverse_R;
+extern Motion roll_F;
+extern Motion roll_R
+extern Motion cornerClimb_F;
+extern Motion cornerClimb_R;
 
 // Functions involving Motion
-bool Move(Motion*, String Direction, int numberOfAttempts, SerialDecoderBuffer*);
+bool MoveIA(Motion*, SerialDecoderBuffer*);
+bool Move(Motion*, SerialDecoderBuffer*);
 
 #endif

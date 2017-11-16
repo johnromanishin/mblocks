@@ -60,114 +60,97 @@ bool Face::updateIOExpander()
   else                           {return(false);}
 }
 
-bool Face::updateAmbient()
+bool Face::readAmbient()
 {
-  /*
-   * This function reads the ambient sensor on this instance of "Face" 
-   * There is the standard version (When faceVersion == 1), and a
-   * legacy version (when faceVerstion ==0);
-   */
-  if(faceVersion == 0) // Alternate method for Old Face Version
-    {
-      int final_reading = 0;
-      int lightSensorGain = 10;      
-      for(int i = 0; i < 3; i++) // We read the actual sensor 3 times, and return average
-        { 
-          int reading = 0;
-          delay(6);
-          Wire.beginTransmission(this->IOExpanderAddress - this->versionOffset); 
-          Wire.write(byte(0x10)); // this is the register where the ambient values are stored
-          Wire.endTransmission();
-          Wire.requestFrom((this->IOExpanderAddress - this->versionOffset), 2);
-          if (2 <= Wire.available()) //ambientLight  = twiBuf[0] << 2;
-            {
-              reading =  Wire.read()<<1;     //  ambientLight |= twiBuf[1] >> 6;
-              reading |=  Wire.read()>>7;   // Bit shifting for ambient values
-            }
-          else 
-            {
-              return(false);
-            }
-          final_reading += reading*lightSensorGain;
-        }
-      this->ambientBuffer.push(final_reading);
-      return(true);
-    }
+delay(15); // 15ms delay to ensure integration period for light sensor works
+int reading = 0;
+Wire.beginTransmission(this->ambientSensorAddress); 
+Wire.write(byte(0x8C)); // this is the register where the Ambient values are stored
+Wire.endTransmission();
+Wire.requestFrom(this->ambientSensorAddress, 2);
+if (2 <= Wire.available())  // request data from the sensor
+  {
+    reading = Wire.read();
+    reading |= Wire.read()<<8;
+  }
+this->ambientBuffer.push(reading); // adds the sensor value to the buffer 
+}
 
-  else   //// Code runs for Regular faceVersion
-    {
-      activateLightSensor(this->ambientSensorAddress);
-      delay(15); // 15ms delay to ensure integration period for light sensor works
-      int reading = 0;
-      Wire.beginTransmission(this->ambientSensorAddress); 
-      Wire.write(byte(0x8C)); // this is the register where the Ambient values are stored
-      Wire.endTransmission();
-      Wire.requestFrom(this->ambientSensorAddress, 2);
-      if (2 <= Wire.available())  // request data from the sensor
-        {
-          reading = Wire.read();
-          reading |= Wire.read()<<8;
-        }
-      this->ambientBuffer.push(reading); // adds the sensor value to the buffer 
-      return(true);
+bool Face::updateAmbient()
+/*
+ * This function reads the ambient sensor on this instance of "Face" 
+ */
+{
+activateLightSensor(this->ambientSensorAddress);
+this->readAmbient();
+return(true);
+}
 
-    }
+int Face::checkForMessage(int waitTime)
+/*  This code is blocking, and is intended to ONLY run
+ *  on a face that is magnetically connected to a different 
+ *  Cube.
+ *  
+ *  The goal of the code is to "listen" to the ambient light sensor
+ *  and try to determine if it sees any valid "digits"
+ *  A digit is as follows:
+ *  blink for 100ms == "1"
+ *  blink for 200ms == "2"
+ *  blink for 300ms == "3"
+ *  blink for 400ms == "4"
+ *  blink for 500ms == "5"
+ *  blink for 600+ms == "6"
+ */
+{
+  int result = 0;
+  int lengthOn = 0;
+  if(!this->isThereNeighbor()) // if we are not connected... EXIT
+  {
+    return(result);
+  }
+ // for(int i = 0; // 
+}
+
+void Face::blinkOutMessage(int digit)
+{
+  int startTime = millis();
+  if(digit > 0)
+  {
+    this->turnOnFaceLEDs(1, 1, 1, 1);
+  }
+  else
+  
+  {
+    return;
+  }
+  while((millis()-startTime) < digit*100) // while the timer is still going
+  {
+    delay(5);
+  }
+  this->turnOffFaceLEDs();
 }
 
 bool Face::updateReflectivity()
+/*
+ * 
+ */
 {
-  /*
-   * This function reads the ambient sensor on this instance of "Face" 
-   * There is the standard version (When faceVersion == 1), and a
-   * legacy version (when faceVerstion ==0);
-   */
-  if(faceVersion == 0) // Alternate method for Old Face Version
+  activateLightSensor(this->ambientSensorAddress);
+  bool error = false; // not yet implemented
+  delay(20); // 15ms delay to ensure integration period for light sensor works
+  int reading = 0;
+  Wire.beginTransmission(this->ambientSensorAddress); 
+  Wire.write(byte(0x8C)); // this is the register where the Ambient values are stored
+  Wire.endTransmission();
+  Wire.requestFrom(this->ambientSensorAddress, 2);
+  if (2 <= Wire.available())  // request data from the sensor
     {
-      int final_reading = 0;
-      int lightSensorGain = 10;      
-      for(int i = 0; i < 3; i++) // We read the actual sensor 3 times, and return average
-        { 
-          int reading = 0;
-          delay(6);
-          Wire.beginTransmission(this->IOExpanderAddress - this->versionOffset); 
-          Wire.write(byte(0x10)); // this is the register where the ambient values are stored
-          Wire.endTransmission();
-          Wire.requestFrom((this->IOExpanderAddress - this->versionOffset), 2);
-          if (2 <= Wire.available()) //ambientLight  = twiBuf[0] << 2;
-            {
-              reading =  Wire.read()<<1;     //  ambientLight |= twiBuf[1] >> 6;
-              reading |=  Wire.read()>>7;   // Bit shifting for ambient values
-            }
-          else 
-            {
-              return(false);
-            }
-          final_reading += reading*lightSensorGain;
-        }
-      this->reflectivityBuffer.push(final_reading);
-      return(true);
-
+      reading = Wire.read();
+      reading |= Wire.read()<<8;
     }
-
-  else   //// Code runs for Regular faceVersion
-    {
-      activateLightSensor(this->ambientSensorAddress);
-      bool error = false; // not yet implemented
-      delay(20); // 15ms delay to ensure integration period for light sensor works
-      int reading = 0;
-      Wire.beginTransmission(this->ambientSensorAddress); 
-      Wire.write(byte(0x8C)); // this is the register where the Ambient values are stored
-      Wire.endTransmission();
-      Wire.requestFrom(this->ambientSensorAddress, 2);
-      if (2 <= Wire.available())  // request data from the sensor
-        {
-          reading = Wire.read();
-          reading |= Wire.read()<<8;
-        }
-      this->reflectivityBuffer.push(reading); // adds the sensor value to the buffer
-      //Serial.print("Reflectivity: ");Serial.println(reading);
-      return(true);
-    }
+  this->reflectivityBuffer.push(reading); // adds the sensor value to the buffer
+  //Serial.print("Reflectivity: ");Serial.println(reading);
+  return(true);
 }
 
 int Face::returnAmbientValue(int index)
@@ -235,71 +218,69 @@ bool Face::setPinHigh(int pin)
   }
 }
 
+
+
+bool Face::isThereNeighbor()
+{
+  int mag_A = readMagnetSensorFieldStrength(this->faceMagnetAddresses[0]);
+  int mag_B = readMagnetSensorFieldStrength(this->faceMagnetAddresses[1]);
+  if(((mag_A < 250) && (mag_A > 0)) &&
+   ((mag_B < 250) && (mag_B > 0)))
+  {
+    return(true);
+  }
+  else
+  {
+    return(false);
+  }
+}
+
+bool Face::updateMagneticBarcode()
 /*
  * This code actually reads and pushes the values from the magnetic sensors
  * into the buffers. Returns true if it successfully communicates with both 
  * sensors. False if either sensor is not able to be accessed.
  */
-bool Face::updateMagneticBarcode()
 {
-    this->getMagnetEncoderAddresses(this->faceMagnetAddresses);
-    float AMS5048_scaling_factor = 45.5111;
+  this->getMagnetEncoderAddresses(this->faceMagnetAddresses);
+  float AMS5048_scaling_factor = 45.5111;
 
-    int angle_A  = round(readMagnetSensorAngle(this->faceMagnetAddresses[0])/AMS5048_scaling_factor);
-    int mag_A    = readMagnetSensorFieldStrength(this->faceMagnetAddresses[0]);
-    int angle_B  = round(readMagnetSensorAngle(this->faceMagnetAddresses[1])/AMS5048_scaling_factor);
-    int mag_B    = readMagnetSensorFieldStrength(this->faceMagnetAddresses[1]);
+  int angle_A  = round(readMagnetSensorAngle(this->faceMagnetAddresses[0])/AMS5048_scaling_factor);
+  int mag_A    = readMagnetSensorFieldStrength(this->faceMagnetAddresses[0]);
+  int angle_B  = round(readMagnetSensorAngle(this->faceMagnetAddresses[1])/AMS5048_scaling_factor);
+  int mag_B    = readMagnetSensorFieldStrength(this->faceMagnetAddresses[1]);
 
-    this->magnetAngleBuffer_A.push(angle_A);  // push these values to a circular buffer 
-    this->magnetStrengthBuffer_A.push(mag_A); // push these values to a circular buffer 
-   
-    this->magnetAngleBuffer_B.push(angle_B);  // push these values to a circular buffer 
-    this->magnetStrengthBuffer_B.push(mag_B); // push these values to a circular buffer 
-    
-    if((mag_A == 0) || (mag_B == 0))  // if either sensor shows a field strength of 0 then it is disconnected
-      {
-        return(false);
-      }
-    else
-      {
-        return(true);
-      }
+  this->magnetAngleBuffer_A.push(angle_A);  // push these values to a circular buffer 
+  this->magnetStrengthBuffer_A.push(mag_A); // push these values to a circular buffer 
+ 
+  this->magnetAngleBuffer_B.push(angle_B);  // push these values to a circular buffer 
+  this->magnetStrengthBuffer_B.push(mag_B); // push these values to a circular buffer 
+  
+  if((mag_A == 0) || (mag_B == 0))  // if either sensor shows a field strength of 0 then it is disconnected
+    {
+      return(false);
+    }
+  else
+    {
+      return(true);
+    }
 }
 
 
 bool Face::enableSensors()
+/*
+* 
+*/
 {
-    /*
-   * 
-   */
-  if(faceVersion == 0) // Alternate method for Old Face Version
-  {
-    Wire.beginTransmission(this->IOExpanderAddress - this->versionOffset); // this goes from 0x20 to 0x01 addresses
-    Wire.write(byte(0x43)); // access FBRXEN register
-    Wire.write(byte(0x01)); // sets FBRXEN register to ACTIVE
-    Wire.endTransmission(); 
-    this->turnOnFaceLEDs(1,0,1,0);
-  return(true);
-  }
-  
-  //// Code runs for Regular faceVersion
   this->IOExpanderState[0] &= ~(1 << FB_EN1);
   return this->updateIOExpander();
 }
 
 bool Face::turnOffFaceLEDs()
 {
- /* Turns on the four white LED's on each face
-   * (bool LED_A = true, bool LED_B = true, bool LED_C = true, bool LED_D = true);
-   */
-   if(faceVersion == 0) // Alternate method for Old Face Version
-  {   
-      Wire.beginTransmission(this->IOExpanderAddress - this->versionOffset);
-      Wire.write(byte(0x20)); // register address for IRled's
-      Wire.write(byte(0x00));
-      Wire.endTransmission();
-      return(true);
-  }
+/* Turns on the four white LED's on each face
+* (bool LED_A = true, bool LED_B = true, bool LED_C = true, bool LED_D = true);
+*/
   this->setPinHigh(this->led_A);
   this->setPinHigh(this->led_B);
   this->setPinHigh(this->led_C);
@@ -312,19 +293,6 @@ bool Face::turnOnFaceLEDs(bool LED_A, bool LED_B, bool LED_C, bool LED_D)
   /* Turns on the four white LED's on each face
    * (bool LED_A = true, bool LED_B = true, bool LED_C = true, bool LED_D = true);
    */
-   if(faceVersion == 0) // Alternate method for Old Face Version
-   {   
-      int dataByte;
-      dataByte  = LED_A ? 0x01 : 0x00;
-      dataByte |= LED_B ? 0x02 : 0x00;
-      dataByte |= LED_C ? 0x04 : 0x00;
-      dataByte |= LED_D ? 0x08 : 0x00;
-      Wire.beginTransmission(this->IOExpanderAddress - this->versionOffset);
-      Wire.write(byte(0x20)); // register address for IRled's
-      Wire.write(byte(dataByte));
-      Wire.endTransmission();
-      return(true);
-  }
   if(LED_A) {this->setPinLow(this->led_A);}
   if(LED_B) {this->setPinLow(this->led_B);}
   if(LED_C) {this->setPinLow(this->led_C);}
@@ -333,22 +301,10 @@ bool Face::turnOnFaceLEDs(bool LED_A, bool LED_B, bool LED_C, bool LED_D)
 }
 
 bool Face::disableSensors()
+/*
+* 
+*/
 {
-   /*
-   * 
-   */
-  if(faceVersion == 0) // Alternate method for Old Face Version
-  {
-    Wire.beginTransmission(this->IOExpanderAddress - this->versionOffset);// this goes from 0x20 to 0x01 addresses
-    Wire.write(byte(0x43)); // access FBRXEN register
-    Wire.write(byte(0x00)); // sets FBRXEN register to ACTIVE
-    Wire.endTransmission(); 
-    this->turnOffFaceLEDs(); // On version 0 sensors are turned off using the same pins as the LEDs
-    return(true);
-  }
-  
-  //// Code runs for Regular faceVersion
-  
   this->IOExpanderState[0] |= (1 << FB_EN1); // Toggles FB_EN1 to deactivate sensors
   return(this->updateIOExpander());
 }

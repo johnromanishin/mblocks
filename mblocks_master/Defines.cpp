@@ -7,16 +7,22 @@ int cubeID = 0;
 int GlobalplaneChangeTime = 60;
 int GlobalplaneChangeRPM = 5000;
 
-int traverseBrakeCurrent_F = 2800;
-int traverseBrakeCurrent_R = 2800;
-int cornerClimbBrakeCurrent_F = 3000;
-int cornerClimbBrakeCurrent_R = 3000;
+int TRAVERSE_RPM_F = 2800;
+int TRAVERSE_RPM_R = 2800;
+int TRAVERSE_CURRENT_F = 2800;
+int TRAVERSE_CURRENT_R = 2800;
+
+int CC_RPM_F = 2800;
+int CC_RPM_R = 2800;
+int CC_CURRENT_F = 2800;
+int CC_CURRENT_R = 2800;
+int CC_BRAKETIME_F = 10;
+int CC_BRAKETIME_R = 10;
 
 EspToCubeMapping espCubeMap[] =
 {
   {960348,    15},  // PEI ||  GREEN   || EC:47:A9:35:1F:02 01  || WORKS great!
   {959694,    14},  // PEI ||  PURPLE  || FA:AA:25:19:C7:DF 01  || SPINS VERY FREELY
-  ////==============================
   {960242,    07},  // 
   {9      ,   99},  // PEI ||  ORANGE  || E6:F6:05:69:08:F2 01  || 
   {15044426,  16},  // PEI ||  BLACK   ||                       ||  Face5 doesn't work great
@@ -29,6 +35,8 @@ EspToCubeMapping espCubeMap[] =
 };
 //{959839,    10},  // 
 //{959694,    99},  // PEI ||  BLUE    || FA:AA:25:19:C7:DF 01  ||  WIFI doesn't work great..
+
+
 int getEspIDFromCube(int cubeID)
 {
   int idex;
@@ -98,6 +106,25 @@ const PlaneEnum facePlanes[FACES][FACES] =
   { PLANE0425, PLANE1453, PLANE0425, PLANE1453, PLANENONE, PLANENONE}    // 5
 };
 
+//                      Face you want to move towards | other face in plane
+
+/*
+ * This lookup table tells the module to either move Clockwise (+1) 
+ * or Counter-clockwise (-1) or invalid selection (0).
+ * 
+ * Useage: First arguement is the face we want to move TOWARDS
+ *         Second face is the face we are moving FROM
+ */
+const int faceClockiness[FACES][FACES] =
+{
+  //0,   1,   2,   3,   4,  5 // This is the face we want to move towards
+  { 0,   1,   0,  -1,  -1,   1},   // 0
+  {-1,   0,   1,   0,   1,  -1},   // 1
+  { 0,  -1,   0,   1,   1,  -1},   // 2
+  { 1,   0,  -1,   0,  -1,   1},   // 3
+  { 1,  -1,  -1,   1,   0,   0},   // 4
+  {-1,   1,   1,  -1,   0,   0}    // 5
+};
  
 const int faceRotations[FACES][4] =
 {
@@ -109,9 +136,3 @@ const int faceRotations[FACES][4] =
   {2, 3, 0, 1},  // FACE 4
   {1, 0, 3, 2}   // FACE 5
 };
-
-void generateAndSendDebugMSG(String message)
-{
-  
-}
-

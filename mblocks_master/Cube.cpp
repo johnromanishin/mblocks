@@ -51,6 +51,16 @@ void Cube::reconnectI2C()
 {
   digitalWrite(Switch, HIGH); 
 }
+
+void Cube::resetI2C()
+{
+  this->disconnectI2C();
+  wifiDelay(150);
+  this->reconnectI2C();
+  wifiDelay(25);
+  this->blockingBlink(0,1,1,1,100);
+  wifiDelay(10);
+}
 void Cube::blinkParasiteLED(int blinkTime)
 {
   digitalWrite(LED, HIGH);
@@ -101,9 +111,9 @@ bool Cube::updateFaces()
 {
 for(int i = 0; i< FACES; i++)
     {
-      delay(2);
+      delay(3);
       this->faces[i].updateFace();  // updateFace updates light and Magnetic sensors  
-      delay(2);
+      delay(3);
     }
 }
 
@@ -153,6 +163,7 @@ void wifiDelay(int delayTime)
   long millisNow = millis();
   while((millis() - millisNow) < delayTime)
   {
+    delay(1);
     mesh.update();
   }
 }
@@ -161,7 +172,7 @@ void wifiDelay(int delayTime)
  * Delays for specified ammount of time, and returns an integer 
  * representing the average rotational motion of the core over the time
  */
-int Cube::wifiDelayWithMotionDetection(int delayTime)
+int Cube::wifiDelayWithMotionDetection(int delayTime) //**WIP
 {
   int motionSum = 0;
   int updateCount = 0;
@@ -188,7 +199,7 @@ int Cube::wifiDelayWithMotionDetection(int delayTime)
 //RESPONSE_SMA_RETRACTED},
 //{"SMA extending\r\n", RESPONSE_SMA_EXTENDING
 //int GlobalplaneChangeTime = 60;
-//int GlobalplaneChangeRPM = 5000;
+//int GlobalplaneChangeRPM = 4500;
 
 //PlaneEnum Cube::goToPlaneFaces(int face1, int face2, SerialDecoderBuffer* buf)
 //{
@@ -196,34 +207,11 @@ int Cube::wifiDelayWithMotionDetection(int delayTime)
 //}
 bool Cube::goToPlaneIncludingFaces(int face1, int face2, SerialDecoderBuffer* buf)
 /*
- * I know there is a more elegant way to do this without all of the && and ||... but this works. Please forgive me.
+ * 
  */
 {
   bool result = false;
-  if(((face1 == 0) && (face2 == 1)) || ((face2 == 0) && (face1 == 1)) ||
-     ((face1 == 1) && (face2 == 2)) || ((face2 == 1) && (face1 == 2)) ||
-     ((face1 == 2) && (face2 == 3)) || ((face2 == 2) && (face1 == 3)) ||
-     ((face1 == 3) && (face2 == 0)) || ((face2 == 3) && (face1 == 0)))
-  {
-    result = this->setCorePlane(PLANE0123, buf, 8000);
-  }
-
-  else if(((face1 == 0) && (face2 == 4)) || ((face2 == 0) && (face1 == 4)) ||
-          ((face1 == 4) && (face2 == 2)) || ((face2 == 4) && (face1 == 2)) ||
-          ((face1 == 2) && (face2 == 5)) || ((face2 == 2) && (face1 == 5)) ||
-          ((face1 == 5) && (face2 == 0)) || ((face2 == 5) && (face1 == 0)))
-  {
-    result = this->setCorePlane(PLANE0425, buf, 8000);
-  }
-  
-  else if(((face1 == 1) && (face2 == 4)) || ((face2 == 1) && (face1 == 4)) ||
-          ((face1 == 4) && (face2 == 3)) || ((face2 == 4) && (face1 == 3)) ||
-          ((face1 == 3) && (face2 == 5)) || ((face2 == 3) && (face1 == 5)) ||
-          ((face1 == 5) && (face2 == 1)) || ((face2 == 5) && (face1 == 1)))
-  {
-    result = this->setCorePlane(PLANE1453, buf, 8000);
-  }
-  
+  result = this->setCorePlane(returnPlane(face1, face2), buf, 8000);
   return(result);
 }
 
@@ -247,21 +235,32 @@ bool Cube::goToPlaneParallel(int faceExclude, SerialDecoderBuffer* buf)
 
 bool Cube::setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int attemptTime) 
 {
+  if((targetCorePlane == PLANENONE)  ||
+     (targetCorePlane == PLANEERROR) || 
+     (targetCorePlane == PLANEMOVING)) // this protects the inputs
+  {
+    return(false);
+  }
+  //
+  this->blockingBlink(1,0,1, 2, 75);
+  this->lightsOff();
   PlaneEnum currentStatus;
   int beginTime = millis();
   int attempts = 0;
-  int notMovingThreshold = 1000;
-  int planeChangeRPM = GlobalplaneChangeRPM; // this takes into account global
-                                               // calibrated values for each cube
+  int notMovingThreshold = 1300;
   /*                                           
    * The following Block to the next break delays, until plane is not moving...                                           
    */
   while((millis() - beginTime) < attemptTime) 
   {
-    currentStatus = this->findPlaneStatus();
-    if((currentStatus == PLANEMOVING) || (currentStatus == PLANEERROR))
+    currentStatus = this->findPlaneStatus(); /// *****
+    if((currentStatus == PLANEMOVING))
     {     
       wifiDelay(100);
+    }
+    else if(currentStatus == PLANEERROR)
+    {
+      this->resetI2C();
     }
     else
     {
@@ -273,42 +272,47 @@ bool Cube::setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int
   * Check to make sure we aren't ALREADY  in the right plane, check                                          
   * two times... If we are in the right plane, we return true
   */
+  wifiDelay(200);
+  currentStatus = this->findPlaneStatus();
   if(currentStatus == targetCorePlane)
   {
       return(true);
   }
   // Ok we are not in the correct plane, so we are going to spin up RPM,
   // then retract SMA, and then Brake the motor
-  String bldcSpeedString = "bldcspeed f " + String(planeChangeRPM);
+  String bldcSpeedString = "bldcspeed f " + String(5000);
   Serial.println(bldcSpeedString);
-  while(!waitForSerialResponse(RESPONSE_START_BLDC_F ,300 ,buf)) // if we haven't seen the response
+  if(!waitForSerialResponse(RESPONSE_START_BLDC_F ,1000 ,buf)) // if we haven't seen the response
   {
-    attempts++;
-    Serial.println("bldcstop b"); delay(40); Serial.println("bldcstop b"); delay(100);
-    Serial.println(bldcSpeedString);
-    if(attempts > 3) {break;}
+     Serial.println("bldcstop b");
+        if(waitForSerialResponse(RESPONSE_STOP_BLDC_EB, 2000, buf))
+        {
+          wifiDelay(100);
+          Serial.println(bldcSpeedString);
+        }
   }
-  attempts = 0;
   waitForSerialResponse(RESPONSE_BLDC_STABLE, 4000, buf); // waits until bldc stabalizes or 4000 ms.
   Serial.println("sma retract 8000");
   waitForSerialResponse(RESPONSE_SMA_RETRACTED, 3000, buf);
-  long startTime = millis(); // Start recording timer after we retract the SMA
-  /// Say it twice just to be sure...
+  long startTime = millis(); // Start recording timer after we retract the SMA  
   Serial.println("bldcstop b");
-  wifiDelay(50);
-  Serial.println("bldcstop b");
-  wifiDelay(50);   
+  if(!waitForSerialResponse(RESPONSE_STOP_BLDC_EB, 2000, buf)) // if we don't see the response... say it again
+  {
+    Serial.println("bldcstop b");
+  }
+  wifiDelay(200);
   /* 
    *  This section now loops until SMA extends again
    */
   while((this->findPlaneStatus() != targetCorePlane) &&  //**CHECKS PLANESTATUS**
-       ((millis()-startTime) < (attemptTime - 1000)))
+       ((millis()-startTime) < 7500))
   {
     while(wifiDelayWithMotionDetection(100) > notMovingThreshold) // Wait until we are not moving anymore
     {
       delay(10);
     }     
-    wifiDelay(200); // wait a little bit more...
+    wifiDelay(300); // wait a little bit more...
+    currentStatus = this->findPlaneStatus();
     if(this->findPlaneStatus() == targetCorePlane)      //**CHECKS PLANESTATUS**
     {
       break; // This should exit the whole while loop...
@@ -320,24 +324,33 @@ bool Cube::setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int
           currentStatus == PLANE0425 ||
           currentStatus == PLANE1453)
       {
-        attempts = 0;
-        while(!waitForSerialResponse(RESPONSE_START_BLDC_F ,300,buf)) // if we haven't seen the response
+        Serial.println(bldcSpeedString);
+        if(!waitForSerialResponse(RESPONSE_START_BLDC_F,800,buf)) // if we haven't seen the response
         {
-          attempts++;
-          Serial.println("bldcstop b"); delay(40); Serial.println("bldcstop b"); delay(100);
-          Serial.println(bldcSpeedString);
-          if(attempts > 3) {break;}
+          Serial.println("bldcstop b");
+          if(waitForSerialResponse(RESPONSE_STOP_BLDC_EB, 2000, buf))
+          {
+            wifiDelay(100);
+            Serial.println(bldcSpeedString);
+          }
         }
         waitForSerialResponse(RESPONSE_BLDC_STABLE, 4000, buf);
-        Serial.println("bldcstop b"); delay(40); Serial.println("bldcstop b"); delay(500);
+        if(this->findPlaneStatus() == targetCorePlane)
+        {
+          Serial.println("bldcstop"); delay(1000);
+        }
+        else
+        {
+          Serial.println("bldcstop b"); delay(800);
+        }       
       }
       ////
       else if(this->currentPlane == PLANENONE)
       {
         this->blockingBlink(1,1,0, 1, 50);
         Serial.println("bldcaccel f 3000 300");
-        wifiDelay(300);
-        Serial.println("bldcstop b"); delay(40); Serial.println("bldcstop b"); delay(300);
+        wifiDelay(500);
+        Serial.println("bldcstop b"); delay(40); 
       }
     }
     wifiDelay(100);
@@ -345,7 +358,10 @@ bool Cube::setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int
   /*
    * We are done... Time to test and see if we are correct
    */
-  delay(100);
+  while((millis()-startTime) < 8000)
+  {
+    wifiDelay(100);
+  }
   if(this->findPlaneStatus() == targetCorePlane)
   {
     return(true);
@@ -385,10 +401,24 @@ static const int32_t rotationMatricies[3][3][3] =
 PlaneEnum Cube::findPlaneStatus()
 {
   PlaneEnum likelyStatus = PLANEERROR; 
-  if(this->updateBothIMUs()) // This is true if we get valid readings from both IMUs
+  if(this->updateBothIMUs()) // try to update IMU...
   {
-    const int validPlaneThreshold = 160;
-    const int gyroMovingThreshold  = 1100;
+    delay(1);
+  }
+  else                       // if it fails, flip power switch
+  {
+    this->resetI2C();
+    if(this->updateBothIMUs())// and try again
+    {
+      delay(1);
+    }
+    else
+    {
+      return(likelyStatus);   // if it fails on second try... exit
+    }
+  }
+    const int validPlaneThreshold = 165; // This number is what determines if it is actually in a proper plane
+    const int gyroMovingThreshold  = 1500; // This represents what "moving" is
     
     int32_t coreAccel[3] =   {this->axCoreBuffer.access(0),     
                               this->ayCoreBuffer.access(0),
@@ -403,7 +433,10 @@ PlaneEnum Cube::findPlaneStatus()
                                this->gyCoreBuffer.access(0),
                                this->gzCoreBuffer.access(0)};
                                
-    int     sumOfGyros = (abs(centralGyro[0]) + abs(centralGyro[0]) + abs(centralGyro[0]));
+    int     sumOfGyros = (abs(centralGyro[0]) + // add up three components of gyro
+                          abs(centralGyro[1]) + // tells us how much "movement"
+                          abs(centralGyro[2]));
+    
     
     //test each of the rotation matricies.  Store all results for debug purposes.
     for(int i = 0; i < 3; i++)
@@ -411,9 +444,10 @@ PlaneEnum Cube::findPlaneStatus()
       apply_3x3_mult(&rotationMatricies[i][0][0], coreAccel, &transformed[i][0]);
       distance[i] = vector_distance_squared(&transformed[i][0], frameAccel);
     }
+    
     int mindist = distance[0];
     int minidx = 0;
-    for(int i = 1; i < 3; i++)
+    for(int i = 1; i < 3; i++) // figure out which one is closest to the value
     {
       if(distance[i] < mindist)
       {
@@ -421,8 +455,9 @@ PlaneEnum Cube::findPlaneStatus()
         mindist = distance[i];
       }
     }
-
-    
+    // At this point we should have a vector with the distance between the actual readings
+    // and the perfect readings for each of the three planes... 
+    // and we know the one with the lowest value: minidx
     if(sumOfGyros > gyroMovingThreshold)
     {
       this->currentPlane = PLANEMOVING;
@@ -434,38 +469,16 @@ PlaneEnum Cube::findPlaneStatus()
       this->currentPlane = planeEnumMap[minidx];
       likelyStatus = planeEnumMap[minidx];
     }
-    else
+    else if((distance[minidx] > validPlaneThreshold))
     { 
       this->currentPlane = PLANENONE;
       likelyStatus = PLANENONE;
     }  
-    //this->currentPlane = -1;
-  }
-  else // this gets called if reading one of the IMUs has failed
-  {
-    this->currentPlane = PLANEERROR;
-    likelyStatus = PLANENONE;
-  }
-  ///////////////////////////////////
-  
-  String message = "";
-  if(likelyStatus == PLANE0123)       {message = "PLANE0123";}
-  else if(likelyStatus == PLANE0425)  {message = "PLANE0425";}
-  else if(likelyStatus == PLANE1453)  {message = "PLANE1453";}
-  else if(likelyStatus == PLANENONE)  {message = "PLANENONE";}
-  else if(likelyStatus == PLANEMOVING){message = "PLANEMOVING";}
-  else if(likelyStatus == PLANEERROR) {message = "PLANEERROR";}
-  //String(sumOfGyros);               
-  StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
-  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
-  root["msg"] = message;       
-  root["cmd"]  = "debugMSG";  
-  root["cubeID"] = -1;
-  String newStr;
-  root.printTo(newStr); 
-  mesh.sendBroadcast(newStr);
-  
-///////////////////////
+    else
+    {
+      this->currentPlane = PLANEERROR;
+      likelyStatus = PLANEERROR;
+    }
   return(likelyStatus);
 }
 
@@ -529,7 +542,10 @@ int Cube::numberOfNeighbors(int index, bool lightFace)
        (this->faces[face].returnMagnetStrength_B(index) > 0))
         {
           neighbors++;
-          if(lightFace) {this->lightFace(face,0,1,0);}
+          if(lightFace) 
+            {
+              this->lightFace(face,0,1,0);
+            }
         }
     }
     return(neighbors);
@@ -599,19 +615,7 @@ int sortList(int* inputList, int listLength, int desiredIndex)
 
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
 //////////////////////LONG BUT NOT EXCITING CODE////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -620,45 +624,6 @@ bool Cube::lightFace(int face, bool r, bool g, bool b)
   /*
    * Lights up a particular face with the color r | g | b
    */
- if(faceVersion == 0) // Alternate method for Old Face Version
-  {
-    switch (face)
-    {
-      case 0: this->CornerRGB(1,1,r,g,b); this->CornerRGB(1,0,r,g,b); 
-              this->CornerRGB(2,0,r,g,b); this->CornerRGB(2,1,r,g,b); 
-              this->CornerRGB(3,1,0,0,0); this->CornerRGB(3,0,0,0,0); 
-              this->CornerRGB(4,0,0,0,0); this->CornerRGB(4,1,0,0,0);
-              break;
-              
-      case 1: this->CornerRGB(2,1,r,g,b); this->CornerRGB(2,0,r,g,b); 
-              this->CornerRGB(3,0,r,g,b); this->CornerRGB(3,1,r,g,b);
-              this->CornerRGB(1,1,0,0,0); this->CornerRGB(1,0,0,0,0); 
-              this->CornerRGB(4,0,0,0,0); this->CornerRGB(4,1,0,0,0);
-              break;
-              
-      case 2: this->CornerRGB(3,1,r,g,b); this->CornerRGB(3,0,r,g,b); 
-              this->CornerRGB(4,0,r,g,b); this->CornerRGB(4,1,r,g,b);
-              this->CornerRGB(1,1,0,0,0); this->CornerRGB(1,0,0,0,0); 
-              this->CornerRGB(2,0,0,0,0); this->CornerRGB(2,1,0,0,0);
-              break;
-              
-      case 3: this->CornerRGB(4,1,r,g,b); this->CornerRGB(4,0,r,g,b); 
-              this->CornerRGB(1,0,r,g,b); this->CornerRGB(1,1,r,g,b);
-              this->CornerRGB(2,1,0,0,0); this->CornerRGB(2,0,0,0,0); 
-              this->CornerRGB(3,0,0,0,0); this->CornerRGB(3,1,0,0,0);
-              break;
-              
-      case 4: for(int i=1;i<=4;i++) 
-              {this->CornerRGB(i,1,r,g,b); this->CornerRGB(i,0,0,0,0);}                         
-              break;
-              
-      case 5: for(int i=1;i<=4;i++) 
-              {this->CornerRGB(i,0,r,g,b); this->CornerRGB(i,1,0,0,0);}                         
-              break;
-    }
-    return(true);
-  }
-  
   this->clearRGB(); // Sets all RGB bits to HIGH / aka off
 
   switch (face){
@@ -739,21 +704,6 @@ bool Cube::lightFace(int face, bool r, bool g, bool b)
   return(true);
 }
 
-bool Cube::CornerRGB(int face, bool top, bool r, bool g, bool b)
-{
-  int i2c1 = 0x00;
-  int i2c2 = 0x00;
-  i2c1 = top ? 0x00 : 0x01;
-  i2c2 |= r  ? 0x01 : 0x00;
-  i2c2 |= g  ? 0x02 : 0x00;
-  i2c2 |= b  ? 0x04 : 0x00;
-    
-  Wire.beginTransmission(face);
-  Wire.write(byte(i2c1)); //Register for TOP LED
-  Wire.write(byte(i2c2)); // 
-  Wire.endTransmission();
-}
-
 //
 bool Cube::updateFrameIMU()
 {
@@ -765,13 +715,13 @@ bool Cube::updateFrameIMU()
   error = Wire.endTransmission(false);
   //succeed = Wire.requestFrom(this->frameIMUaddress, 14, 1); // 7 reads of 2 bytes
   Wire.requestFrom(this->frameIMUaddress, 14, 1); // 7 reads of 2 bytes
-  ax = Wire.read() << 8 | Wire.read(); // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)
-  ay = Wire.read() << 8 | Wire.read(); // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
-  az = Wire.read() << 8 | Wire.read(); // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
+  ax =  Wire.read() << 8 | Wire.read(); // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)
+  ay =  Wire.read() << 8 | Wire.read(); // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
+  az =  Wire.read() << 8 | Wire.read(); // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
   Tmp = Wire.read() << 8 | Wire.read(); // 0x41 (TEMP_OUT_H) & 0x42 (TEMP_OUT_L)
-  gx = Wire.read() << 8 | Wire.read(); // 0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
-  gy = Wire.read() << 8 | Wire.read(); // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
-  gz = Wire.read() << 8 | Wire.read(); // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
+  gx =  Wire.read() << 8 | Wire.read(); // 0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
+  gy =  Wire.read() << 8 | Wire.read(); // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
+  gz =  Wire.read() << 8 | Wire.read(); // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
   
   this->axFrameBuffer.push(ax);
   this->ayFrameBuffer.push(ay);
@@ -799,15 +749,14 @@ bool Cube::updateCoreIMU()
   Wire.beginTransmission(this->coreIMUaddress);
   Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
   error = Wire.endTransmission(false);
-  //succeed = Wire.requestFrom(this->coreIMUaddress, 14, 1); // 7 reads of 2 bytes
   Wire.requestFrom(this->coreIMUaddress, 14, 1); // 7 reads of 2 bytes
-  ax = Wire.read() << 8 | Wire.read(); // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)
-  ay = Wire.read() << 8 | Wire.read(); // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
-  az = Wire.read() << 8 | Wire.read(); // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
+  ax =  Wire.read() << 8 | Wire.read(); // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)
+  ay =  Wire.read() << 8 | Wire.read(); // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
+  az =  Wire.read() << 8 | Wire.read(); // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
   Tmp = Wire.read() << 8 | Wire.read(); // 0x41 (TEMP_OUT_H) & 0x42 (TEMP_OUT_L)
-  gx = Wire.read() << 8 | Wire.read(); // 0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
-  gy = Wire.read() << 8 | Wire.read(); // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
-  gz = Wire.read() << 8 | Wire.read(); // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
+  gx =  Wire.read() << 8 | Wire.read(); // 0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
+  gy =  Wire.read() << 8 | Wire.read(); // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
+  gz =  Wire.read() << 8 | Wire.read(); // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
   
   this->axCoreBuffer.push(ax);
   this->ayCoreBuffer.push(ay);
@@ -878,29 +827,46 @@ bool Cube::determineForwardFace() // FUN3 // plane should be either int 1234, 15
   PlaneEnum plane = this->returnCurrentPlane();
   
        if( (topFace == 1 && plane == PLANE0123)  ||  (topFace == 5 && plane == PLANE0425) )   
-        {this->forwardFace = 0;}
+        {
+          this->forwardFace = 0;
+        }
   else if( (topFace == 2 && plane == PLANE0123)  ||  (topFace == 4 && plane == PLANE1453) )    
-        {this->forwardFace = 1;}
+        {
+          this->forwardFace = 1;
+        }
   else if( (topFace == 3 && plane == PLANE0123)  ||  (topFace == 4 && plane == PLANE0425) )
-        {this->forwardFace = 2;}
+        {
+          this->forwardFace = 2;
+        }
   else if( (topFace == 0 && plane == PLANE0123)  ||  (topFace == 5 && plane == PLANE1453) )    
-        {this->forwardFace = 3;}
+        {
+          this->forwardFace = 3;
+        }
   else if( (topFace == 3 && plane == PLANE1453)  ||  (topFace == 0 && plane == PLANE0425) )    
-        {this->forwardFace = 4;}
+        {
+          this->forwardFace = 4;
+        }
   else if( (topFace == 1 && plane == PLANE1453)  ||  (topFace == 2 && plane == PLANE0425) )    
-        {this->forwardFace = 5;}
+        {
+          this->forwardFace = 5;
+        }
   
   else if(  (topFace == 4 && plane == PLANE0123) || 
             (topFace == 0 && plane == PLANE1453) || 
             (topFace == 1 && plane == PLANE0425) ) 
-        {this->forwardFace = -1;}
+        {
+          this->forwardFace = -1;
+        }
   else if(  (topFace == 5 && plane == PLANE0123) || 
             (topFace == 2 && plane == PLANE1453) || 
             (topFace == 3 && plane == PLANE0425) ) 
-        {this->forwardFace = -1;}
+        {
+          this->forwardFace = -1;
+        }
   else                                                                                                    
-        {return(false);}
-  
+        {
+          return(false);
+        }
   return(true);
 }
 
@@ -912,101 +878,75 @@ bool Cube::updateBothIMUs()
   return(a && b);
 }
 
-//bool Cube::updateCoreMagnetSensor()
-///*
-// * coreMagnetSensorAddress  -- Returns magnet sensor address
-// * magnetSensorFieldStrength(int i2cAddress) -- returns Magnet Sensor Address
-// */
-//{
-//  int tempAngle    = readMagnetSensorAngle(this->coreMagnetSensorAddress)/45.5;
-//  int tempStrength = readMagnetSensorFieldStrength(this->coreMagnetSensorAddress);
-//  if(tempStrength == 0) 
-//    {return(false);}
-//  this->coreMagnetAngleBuffer.push(tempAngle);
-//  this->coreMagnetStrengthBuffer.push(tempStrength);
-//  return(true);
-//} 
-
 bool Cube::clearRGB()
 /*
  * Switches all of the bits to HIGH (or off) for all 8 corner RGBLED's
  * 
  */
 {
-  if(faceVersion == 0)
+for(int i = 0; i< 4; i++)
   {
-    for(int i = 1; i < 5; i++)
-      {
-        this->CornerRGB(i,1,0,0,0);
-        this->CornerRGB(i,0,0,0,0);
-      }
-    return(true);
+    this->faces[i].setPinHigh(this->faces[0].r_0);
+    this->faces[i].setPinHigh(this->faces[0].r_1);
+    this->faces[i].setPinHigh(this->faces[0].g_0);
+    this->faces[i].setPinHigh(this->faces[0].g_1);
+    this->faces[i].setPinHigh(this->faces[0].b_0);
+    this->faces[i].setPinHigh(this->faces[0].b_1);
   }
-  for(int i = 0; i< 4; i++)
-    {
-      this->faces[i].setPinHigh(this->faces[0].r_0);
-      this->faces[i].setPinHigh(this->faces[0].r_1);
-      this->faces[i].setPinHigh(this->faces[0].g_0);
-      this->faces[i].setPinHigh(this->faces[0].g_1);
-      this->faces[i].setPinHigh(this->faces[0].b_0);
-      this->faces[i].setPinHigh(this->faces[0].b_1);
-    }
 }
 
+void Cube::lightsOff()
+{
+   this->clearRGB();
+   for(int i = 0; i < 4; i++)
+  {
+    this->faces[i].updateIOExpander();
+  }
+}
 
 bool Cube::lightCube(bool r, bool g, bool b)
   /*
    * Lights up the cube to be a specific color 
    */
+{  
+this->clearRGB(); // Sets all RGB bits to HIGH / aka off
+for(int i = 0; i < 4; i++)
 {
- if(faceVersion == 0) // Alternate method for Old Face Version
-  {
-    for(int i = 0; i < 4; i++)
+  if(r)
     {
-    this->CornerRGB(i,0,r,g,b);
-    this->CornerRGB(i,1,r,g,b);
+      this->faces[i].setPinLow(this->faces[0].r_0);
+      this->faces[i].setPinLow(this->faces[0].r_1);
     }
-    return(true);
-  }
-  
-  this->clearRGB(); // Sets all RGB bits to HIGH / aka off
-  for(int i = 0; i < 4; i++)
-  {
-    if(r)
-      {
-        this->faces[i].setPinLow(this->faces[0].r_0);
-        this->faces[i].setPinLow(this->faces[0].r_1);
-      }
-    else
-      {
-        this->faces[i].setPinHigh(this->faces[0].r_0);
-        this->faces[i].setPinHigh(this->faces[0].r_1);
-      }
-      
-    if(g)
-      {
-        this->faces[i].setPinLow(this->faces[0].g_0);
-        this->faces[i].setPinLow(this->faces[0].g_1);
-      }
-    else
-      {
-        this->faces[i].setPinHigh(this->faces[0].g_0);
-        this->faces[i].setPinHigh(this->faces[0].g_1);
-      }
-      
-    if(b)
-      {
-        this->faces[i].setPinLow(this->faces[0].b_0);
-        this->faces[i].setPinLow(this->faces[0].b_1);
-      }
-    else
-      {
-        this->faces[i].setPinHigh(this->faces[0].b_0);
-        this->faces[i].setPinHigh(this->faces[0].b_1);
-      }
-    this->faces[i].updateIOExpander();
-  }
-  return(true);
+  else
+    {
+      this->faces[i].setPinHigh(this->faces[0].r_0);
+      this->faces[i].setPinHigh(this->faces[0].r_1);
+    }
+    
+  if(g)
+    {
+      this->faces[i].setPinLow(this->faces[0].g_0);
+      this->faces[i].setPinLow(this->faces[0].g_1);
+    }
+  else
+    {
+      this->faces[i].setPinHigh(this->faces[0].g_0);
+      this->faces[i].setPinHigh(this->faces[0].g_1);
+    }
+    
+  if(b)
+    {
+      this->faces[i].setPinLow(this->faces[0].b_0);
+      this->faces[i].setPinLow(this->faces[0].b_1);
+    }
+  else
+    {
+      this->faces[i].setPinHigh(this->faces[0].b_0);
+      this->faces[i].setPinHigh(this->faces[0].b_1);
+    }
+  this->faces[i].updateIOExpander();
+}
+return(true);
 }
 
 int oppositeFace(int face)

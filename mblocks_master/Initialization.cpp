@@ -11,10 +11,20 @@ void initializeCube()
 {
   initializeHardware();
   lookUpCalibrationValues();
-  bool doIhaveFaces = checkFaceVersion();
   initializeWifiMesh();
   wifiDelay(200);
-  if(!doIhaveFaces){whatToDoIfIamNotConnectedAtBeginning();}
+  int count = 0;
+  while(!checkFaceVersion) // check to see if face boards are connected
+  {
+    whatToDoIfIamNotConnectedAtBeginning(); // assuming we are not connected...
+                                            // we reset things.
+    count++;
+    if(count > 3)
+    {
+        for(int i = 0; i < 10; i++) 
+        {Serial.println("sleep"); delay(500);}
+    }
+  }
 }
 //// Smaller Functions ////
 
@@ -66,31 +76,10 @@ bool checkFaceVersion()
 
 void whatToDoIfIamNotConnectedAtBeginning()
 {
-  while(1)
-  {
-    mesh.update();
-    int voltage = get_battery_voltage();
-    //////
-    StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
-    JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
-    String message =  "  My ID# is: " + String(ESP.getChipId()) +
-                      "  I have no faceboards connected to me =(   ... " +
-                      "  My Battery Voltage is: " + String(voltage);
-    root["msg"] = message;       
-    root["cmd"]  = "debugMSG";  
-    root["cubeID"] = -1;                 
-    String newStr;
-    
-    root.printTo(newStr); 
-    mesh.sendBroadcast(newStr);
-    digitalWrite(LED, HIGH);
-    wifiDelay(150);
-    digitalWrite(LED, LOW);
-    /////
-    wifiDelay(1000);
-    if(millis() > 1*1000*60){for(int i = 0; i < 10; i++) {Serial.println("sleep"); delay(500);}}
-  }
+  mesh.update();
+  resetI2cBus();
 }
+
 void initializeHardware()
 {
   Serial.begin(115200);       // open serial connection to the Slave Board
@@ -214,20 +203,44 @@ void lookUpCalibrationValues()
 {
   switch (ESP.getChipId()) 
   {
+    //********************************
     case 9086927:
       Serial.println("WOOO!");
       cubeID = 0;
-      GlobalplaneChangeTime = 60;
-      GlobalplaneChangeRPM = 5000;
-      traverseBrakeCurrent_F = 2800;
-      traverseBrakeCurrent_R = 2800;
-      cornerClimbBrakeCurrent_F = 3000;
-      cornerClimbBrakeCurrent_R = 3000;     
-      break;
       
+      TRAVERSE_RPM_F = 2800;
+      TRAVERSE_RPM_R = 2800;
+      TRAVERSE_CURRENT_F = 2800;
+      TRAVERSE_CURRENT_R = 2800;
+
+      CC_RPM_F = 2800;
+      CC_RPM_R = 2800;
+      CC_CURRENT_F = 2800;
+      CC_CURRENT_R = 2800;
+      CC_BRAKETIME_F = 10;
+      CC_BRAKETIME_R = 10;
+ 
+      break;
+    //********************************
+    
     case 2:    
       break;
       
     break;
   }
 }
+
+void resetI2cBus()
+{
+
+  digitalWrite(Switch, LOW); 
+  for(int i = 0 ; i<10 ; i++)
+  {
+    digitalWrite(LED, HIGH);
+    delay(50);
+    digitalWrite(LED, LOW);
+    delay(50);
+  }
+  digitalWrite(Switch, HIGH); 
+}
+
