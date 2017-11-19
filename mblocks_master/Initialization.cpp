@@ -11,6 +11,7 @@ void initializeCube()
 {
   initializeHardware();
   lookUpCalibrationValues();
+  actuallyLoadMotionData();
   initializeWifiMesh();
   wifiDelay(200);
   int count = 0;
@@ -223,12 +224,43 @@ void lookUpCalibrationValues()
       break;
     //********************************
     
-    case 2:    
+    case 13374829:   
+      cubeID = 99;
+      
+      TRAVERSE_RPM_F = 999;
+      TRAVERSE_RPM_R = 999;
+      TRAVERSE_CURRENT_F = 999;
+      TRAVERSE_CURRENT_R = 999;
+
+      CC_RPM_F = 999;
+      CC_RPM_R = 999;
+      CC_CURRENT_F = 999;
+      CC_CURRENT_R = 999;
+      CC_BRAKETIME_F = 999;
+      CC_BRAKETIME_R = 999;
       break;
       
     break;
   }
 }
+
+
+void loadMotionData(Motion* motion, int RPM, int Current, int brakeTime)
+{
+  motion->rpm = RPM;
+  motion->current = Current;
+  motion->brakeTime = brakeTime;
+}
+void actuallyLoadMotionData()
+{
+  loadMotionData(&traverse_F, TRAVERSE_RPM_F, TRAVERSE_CURRENT_F, 10);
+  loadMotionData(&traverse_R, TRAVERSE_RPM_R, TRAVERSE_CURRENT_R, 10);
+  loadMotionData(&cornerClimb_F, CC_RPM_F, CC_CURRENT_F, CC_BRAKETIME_F);
+  loadMotionData(&cornerClimb_R, CC_RPM_R, CC_CURRENT_R, CC_BRAKETIME_R);
+  loadMotionData(&roll_F, 7, 7, 7);
+  loadMotionData(&roll_R, 7, 7, 7);
+}
+
 
 void resetI2cBus()
 {

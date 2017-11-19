@@ -4,7 +4,6 @@
 #include "Defines.h"
 #include "CBuff.h"
 #include "Face.h"
-#include "MagTag.h"
 #include "Z_ArrowMap.h"
 #include "SerialDecoder.h"
 #include <Arduino.h>
@@ -73,6 +72,9 @@ class Cube
     bool wakeIMU(int i2cAddress);
     int returnXthBrightestFace(int index);
     int returnSumOfAmbient(); // returns the sum of all of the light sensors
+
+        // Functions involving motion
+    bool MoveIA(Motion* motion, SerialDecoderBuffer* buf);
 
         // Related to the state itself
     PlaneEnum returnCurrentPlane();

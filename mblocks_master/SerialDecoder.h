@@ -27,7 +27,9 @@ typedef enum SerialResponse
     RESPONSE_STOPPING_BLDC_ERROR,
     RESPONSE_START_BLDC_R,
     RESPONSE_START_BLDC_F,
-    RESPONSE_STOP_BLDC_EB
+    RESPONSE_STOP_BLDC_EB,
+    RESPONSE_IA_START,
+    RESPONSE_IA_STOP
 } SerialResponse;
 
 typedef struct SerialResponsePairing

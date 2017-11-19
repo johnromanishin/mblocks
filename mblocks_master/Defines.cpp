@@ -1,23 +1,47 @@
 #include "Defines.h"
 #include "Communication.h"
 
+//                      moveName      , brake   , rpm             , timout        , current             , brakeTime     , difficult , for_rev
+Motion traverse_F     = {"traverse"   , true    , 3000            , 6000          , 3000                , 12            , 9         ,"f"};
+Motion traverse_R     = {"traverse"   , true    , 3000            , 6000          , 3000                , 12            , 9         ,"r"};
+
+Motion roll_F         = {"roll"       , false   , 6500            ,    0          ,    0                , 0             , 1         ,"f"};
+Motion roll_R         = {"roll"       , false   , 6500            ,    0          ,    0                , 0             , 1         ,"r"};
+
+Motion cornerClimb_F  = {"cornerClimb", true    , 3000            , 5000          , 4000                , 20            , 250       ,"f"};
+Motion cornerClimb_R  = {"cornerClimb", true    , 3000            , 5000          , 4000                , 20            , 250       ,"r"};
+
 int faceVersion = 1;
 int cubeID = 0;
 // typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING, PLANEERROR} PlaneEnum;
-int GlobalplaneChangeTime = 60;
-int GlobalplaneChangeRPM = 5000;
+//int GlobalplaneChangeTime = 60;
+//int GlobalplaneChangeRPM = 5000;
+extern int GlobalplaneChangeTime;
+extern int GlobalplaneChangeRPM;
 
-int TRAVERSE_RPM_F = 2800;
-int TRAVERSE_RPM_R = 2800;
-int TRAVERSE_CURRENT_F = 2800;
-int TRAVERSE_CURRENT_R = 2800;
+extern int TRAVERSE_RPM_F = 10;
+extern int TRAVERSE_RPM_R = 10;
+extern int TRAVERSE_CURRENT_F = 10;
+extern int TRAVERSE_CURRENT_R= 10;
 
-int CC_RPM_F = 2800;
-int CC_RPM_R = 2800;
-int CC_CURRENT_F = 2800;
-int CC_CURRENT_R = 2800;
-int CC_BRAKETIME_F = 10;
-int CC_BRAKETIME_R = 10;
+extern int CC_RPM_F = 10;
+extern int CC_RPM_R = 10;
+extern int CC_CURRENT_F = 10;
+extern int CC_CURRENT_R = 10;
+extern int CC_BRAKETIME_F = 10;
+extern int CC_BRAKETIME_R = 10;
+
+//int TRAVERSE_RPM_F = 2800;
+//int TRAVERSE_RPM_R = 2800;
+//int TRAVERSE_CURRENT_F = 2800;
+//int TRAVERSE_CURRENT_R = 2800;
+//
+//int CC_RPM_F = 2800;
+//int CC_RPM_R = 2800;
+//int CC_CURRENT_F = 2800;
+//int CC_CURRENT_R = 2800;
+//int CC_BRAKETIME_F = 10;
+//int CC_BRAKETIME_R = 10;
 
 EspToCubeMapping espCubeMap[] =
 {

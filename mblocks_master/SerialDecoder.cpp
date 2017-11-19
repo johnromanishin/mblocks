@@ -20,6 +20,8 @@ const SerialResponsePairing pairings[] =
     {"Problem stopping BLDC motor\r\n",               RESPONSE_STOPPING_BLDC_ERROR},
     {"Starting BLDC motor spinning forward...\r\n",   RESPONSE_START_BLDC_F},
     {"Starting BLDC motor spinning reverse...\r\n",   RESPONSE_START_BLDC_R},
+    {"Starting inertial actuation...\r\n",            RESPONSE_IA_START},
+    {"Inertial actuation complete\r\n",               RESPONSE_IA_STOP},
     {0, RESPONSE_NONE_YET}
 };
 

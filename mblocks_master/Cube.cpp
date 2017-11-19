@@ -2,7 +2,6 @@
 // Includes
 #include "Defines.h"
 #include "Cube.h"
-#include "Sensation.h"
 #include "SerialDecoder.h"
 #include "Face.h"
 #include "Z_ArrowMap.h"
@@ -42,6 +41,28 @@ Cube::Cube()
 
 // In later sections, super long...
 // bool Cube::lightCube(bool r, bool g, bool b)
+
+bool Cube::MoveIA(Motion* motion, SerialDecoderBuffer* buf)
+{
+  int attempts = 2;
+  long beginTime = millis();
+  while(attempts) // we subtract 1 from "numberOfAttempts" each time around
+  {
+    String iaString = "ia " + String(motion->for_rev)+ " " + String(motion->rpm) + " " + String(motion->current) + " " + String(motion->brakeTime) + " e 10";
+    Serial.println(iaString);
+    
+    while((millis() - beginTime) < motion->timeout)
+      {
+        delay(1);
+        SerialResponse resp = pushNewChar(buf);
+        if(resp == RESPONSE_BLDC_STABLE)
+        { 
+          break;
+        }
+      }
+    attempts--;
+  }
+}
 
 void Cube::disconnectI2C()
 {
@@ -190,6 +211,10 @@ int Cube::wifiDelayWithMotionDetection(int delayTime) //**WIP
     mesh.update();    
     delay(10);
   }
+  if(motionSum == 0 || updateCount == 0)
+  {
+    return(0);
+  }
   return(motionSum/(updateCount));
 }
 ////////////////////////////////////////////////////////////////////////////////////
@@ -234,7 +259,7 @@ bool Cube::goToPlaneParallel(int faceExclude, SerialDecoderBuffer* buf)
 }
 
 bool Cube::setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int attemptTime) 
-{
+{   
   if((targetCorePlane == PLANENONE)  ||
      (targetCorePlane == PLANEERROR) || 
      (targetCorePlane == PLANEMOVING)) // this protects the inputs
@@ -251,7 +276,7 @@ bool Cube::setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int
   /*                                           
    * The following Block to the next break delays, until plane is not moving...                                           
    */
-  while((millis() - beginTime) < attemptTime) 
+  while((millis() - beginTime) < 4000) // we wait for up to 4 seconds for everything to stabilize
   {
     currentStatus = this->findPlaneStatus(); /// *****
     if((currentStatus == PLANEMOVING))
@@ -261,18 +286,23 @@ bool Cube::setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int
     else if(currentStatus == PLANEERROR)
     {
       this->resetI2C();
+      wifiDelay(100);
     }
     else
     {
+      delay(50);
       break;
     }
   }
+//  if(currentStatus == PLANEERROR || currentStatus == PLANEMOVING)
+//  {
+//    return(false);
+//  }
 /////////////////////////
   /*                                           
   * Check to make sure we aren't ALREADY  in the right plane, check                                          
   * two times... If we are in the right plane, we return true
   */
-  wifiDelay(200);
   currentStatus = this->findPlaneStatus();
   if(currentStatus == targetCorePlane)
   {
@@ -293,17 +323,15 @@ bool Cube::setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int
   }
   waitForSerialResponse(RESPONSE_BLDC_STABLE, 4000, buf); // waits until bldc stabalizes or 4000 ms.
   Serial.println("sma retract 8000");
-  waitForSerialResponse(RESPONSE_SMA_RETRACTED, 3000, buf);
+  waitForSerialResponse(RESPONSE_SMA_RETRACTED, 2500, buf);
   long startTime = millis(); // Start recording timer after we retract the SMA  
   Serial.println("bldcstop b");
   if(!waitForSerialResponse(RESPONSE_STOP_BLDC_EB, 2000, buf)) // if we don't see the response... say it again
   {
     Serial.println("bldcstop b");
   }
-  wifiDelay(200);
-  /* 
-   *  This section now loops until SMA extends again
-   */
+  wifiDelay(400); // central part is probably spinning like crazy now, so we wait a bit
+  ///////////////////////BEGIN LOOP//////////////////////////////
   while((this->findPlaneStatus() != targetCorePlane) &&  //**CHECKS PLANESTATUS**
        ((millis()-startTime) < 7500))
   {
@@ -312,36 +340,37 @@ bool Cube::setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int
       delay(10);
     }     
     wifiDelay(300); // wait a little bit more...
-    currentStatus = this->findPlaneStatus();
-    if(this->findPlaneStatus() == targetCorePlane)      //**CHECKS PLANESTATUS**
+    currentStatus = this->findPlaneStatus();            //**CHECKS PLANESTATUS**
+    if(currentStatus == targetCorePlane)      
     {
       break; // This should exit the whole while loop...
     }      
     if(currentStatus != targetCorePlane) // This IF statement evaluates if we are in one of the two wrong planes...
     {
       ////
-      if( currentStatus == PLANE0123 ||
+      if( currentStatus == PLANE0123 ||   // This is what we do if we are in the wrong plane...
           currentStatus == PLANE0425 ||
           currentStatus == PLANE1453)
       {
         Serial.println(bldcSpeedString);
-        if(!waitForSerialResponse(RESPONSE_START_BLDC_F,800,buf)) // if we haven't seen the response
+        if(!waitForSerialResponse(RESPONSE_START_BLDC_F,1000,buf)) // If the motor doesn't start
         {
-          Serial.println("bldcstop b");
-          if(waitForSerialResponse(RESPONSE_STOP_BLDC_EB, 2000, buf))
+          Serial.println("bldcstop b");                             // we stop it just to be sure
+          if(waitForSerialResponse(RESPONSE_STOP_BLDC_EB, 2000, buf)) // if we hear that it stopped
           {
-            wifiDelay(100);
-            Serial.println(bldcSpeedString);
+            wifiDelay(100);     
+            Serial.println(bldcSpeedString);                          // We try to start it again
           }
         }
-        waitForSerialResponse(RESPONSE_BLDC_STABLE, 4000, buf);
-        if(this->findPlaneStatus() == targetCorePlane)
+        
+        waitForSerialResponse(RESPONSE_BLDC_STABLE, 4000, buf); // wait for motor to stabalize
+        if(this->findPlaneStatus() == targetCorePlane) // if we are in the correct plane, we slowly slow down motor
         {
           Serial.println("bldcstop"); delay(1000);
         }
         else
         {
-          Serial.println("bldcstop b"); delay(800);
+          Serial.println("bldcstop b"); delay(800); // if we are in the wrong plane, we stop quickly...
         }       
       }
       ////
@@ -350,11 +379,17 @@ bool Cube::setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int
         this->blockingBlink(1,1,0, 1, 50);
         Serial.println("bldcaccel f 3000 300");
         wifiDelay(500);
-        Serial.println("bldcstop b"); delay(40); 
+        Serial.println("bldcstop b"); 
+        delay(100); 
+        if(!waitForSerialResponse(RESPONSE_STOP_BLDC_EB, 1000, buf)) // if we don't hear that it stopped
+        {
+          Serial.println("bldcstop b");                               // try to stop motor again
+        }
       }
     }
     wifiDelay(100);
   }
+  //////////////////////////END LOOP//////////////////////////////
   /*
    * We are done... Time to test and see if we are correct
    */
@@ -968,7 +1003,7 @@ bool waitForSerialResponse(SerialResponse response, int timeOutTime, SerialDecod
    long startTime = millis();
    while(millis()-startTime < timeOutTime)
    {
-    delay(1);
+    delay(2);
     SerialResponse resp = pushNewChar(buf);
     mesh.update();
     if(resp == response)

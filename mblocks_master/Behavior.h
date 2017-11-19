@@ -7,7 +7,6 @@
 #include "CBuff.h"
 #include "Defines.h"
 #include "Communication.h"        // Includes wifi
-#include "MagTag.h"
 
 typedef enum Behavior
 {
@@ -19,7 +18,16 @@ typedef enum Behavior
     ATTRACTIVE,
     TESTING, 
     SHUT_DOWN,
-    RELAY_SLEEP
+    SLEEP,
+    RELAY_SLEEP,
+    YELLOW,
+    PURPLE,
+    TEAL,
+    WHITE,
+    BLUE,
+    RED,
+    GREEN,
+    LIGHTSOFF
 } Behavior;
 
 // Behaviors are enumerated
@@ -27,6 +35,16 @@ typedef enum Behavior
 ////////////////////////////////////////////////////////////////////////////////////
 // I. Behaviors involving non lattice connected Cubes or small mobile assemblies////
 ////////////////////////////////////////////////////////////////////////////////////
+Behavior Yellow(Cube* c, SerialDecoderBuffer* buf);
+Behavior Purple(Cube* c, SerialDecoderBuffer* buf);
+Behavior Teal(Cube* c, SerialDecoderBuffer* buf);
+Behavior Red(Cube* c, SerialDecoderBuffer* buf);
+Behavior Blue(Cube* c, SerialDecoderBuffer* buf);
+Behavior Green(Cube* c, SerialDecoderBuffer* buf);
+Behavior White(Cube* c, SerialDecoderBuffer* buf);
+Behavior Lightsoff(Cube* c, SerialDecoderBuffer* buf);
+Behavior sleep();
+
 Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf);
 /*        --- What it does ---
  * 0. Updated sensors and checks if exit conditions are met
@@ -101,7 +119,7 @@ Behavior followArrows();
 /**
  * Tells all other cubes to go to sleep and then goes to sleep.
  */
-Behavior relaySleepMessage(Cube* c);
+//Behavior relayBehavior(Cube* c, Behavior);
 
 Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf);
 /*        --- What it does ---
@@ -116,4 +134,8 @@ Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf);
 void wifiDelay(int delayTime);
 Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf);
 Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf);
+Behavior relayBehavior(Cube* c, Behavior behaviorToRelay, int cubeToRelayTo = -1, int timesToRelay = 4);
+Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior);
+Behavior checkForBehaviors(Cube* c, SerialDecoderBuffer* buf, Behavior behavior);
+String behaviorsToCmd(Behavior inputBehavior);
 #endif

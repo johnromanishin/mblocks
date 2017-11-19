@@ -4,6 +4,27 @@
 #include <Arduino.h>
 #include "Communication.h"
 
+// This is a struct for organizing information about motions
+typedef struct Motion
+{
+  String moveName;      // name of move, used when we instantiate the type of movement
+  bool brake; // true = use mechanical brake  || false = use the electronic brake only
+  int rpm;              // RPM that we 
+  int timeout;       // time that we will wait untill for confirmation of the speed
+  int current;     // Current we apply to the brake in mA ... Maximum is 6000 ma
+  int brakeTime;        // Time (milli Seconds) we apply the brake for Maximum time*current < some value
+  int difficulty;     // Estimated difficulty of the move on a scale 1-255; with 1 == easy, 255 == very hard;
+  String for_rev;
+} Motion;
+
+// List of Possible Motions, defined in Motion.cpp
+extern Motion traverse_F;
+extern Motion traverse_R;
+extern Motion roll_F;
+extern Motion roll_R;
+extern Motion cornerClimb_F;
+extern Motion cornerClimb_R;
+
 /// ESP ID to CUBE MAP ////
 typedef struct EspToCubeMapping
 {
@@ -17,8 +38,9 @@ int getCubeIDFromEsp(int);
 typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING, PLANEERROR} PlaneEnum;
 
 /// Global Variables ///
-#define DEBUG1 0 // DEBUG was already used somewhere
-#define DEBUG_VERBOSE
+#define DEBUG1 1 // DEBUG was already used somewhere
+#define DEBUG_VERBOSE 1
+#define DEBUG_BEHAVIOR 1
 
 #define FACES 6  // Number of faces on a cube...
 // Hardware Pin Definitions
@@ -30,13 +52,21 @@ typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING,
 /////////////////////////////////////////////////////////////////////
 extern int faceVersion;
 extern int cubeID;
+
 extern int GlobalplaneChangeTime;
 extern int GlobalplaneChangeRPM;
-extern int traverseBrakeCurrent_F;
-extern int traverseBrakeCurrent_R;
-extern int cornerClimbBrakeCurrent_F;
-extern int cornerClimbBrakeCurrent_R;
 
+extern int TRAVERSE_RPM_F;
+extern int TRAVERSE_RPM_R;
+extern int TRAVERSE_CURRENT_F;
+extern int TRAVERSE_CURRENT_R;
+
+extern int CC_RPM_F;
+extern int CC_RPM_R;
+extern int CC_CURRENT_F;
+extern int CC_CURRENT_R;
+extern int CC_BRAKETIME_F;
+extern int CC_BRAKETIME_R;
 
 //These tables define connectivity between faces for the cube
 const extern PlaneEnum facePlanes[FACES][FACES];

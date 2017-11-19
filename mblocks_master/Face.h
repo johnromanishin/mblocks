@@ -6,6 +6,37 @@
 #include "Cube.h"
 #include <Arduino.h>
 
+typedef enum TagCommand
+{
+  TAGCOMMAND_NONE,
+  TAGCOMMAND_SLEEP,
+  TAGCOMMAND_PURPLE,
+  TAGCOMMAND_27,
+  TAGCOMMAND_25,
+  TAGCOMMAND_23,
+  TAGCOMMAND_21,
+  TAGCOMMAND_19,
+} TagCommand;
+
+typedef enum TagType
+{
+  TAGTYPE_NOTHING,
+  TAGTYPE_INVALID,
+  TAGTYPE_REGULAR_CUBE,
+  TAGTYPE_PASSIVE_CUBE,
+  TAGTYPE_COMMAND
+} TagType;
+
+//typedef struct Tag
+//{
+//  TagType type;   //
+//  int angle ; // Either -1, 0, 1, 2 or 3 - corresponding to 90 deg angle
+//  int id; // ID or message code attached to tag
+//  int face; // face number (0,1,2,3,4,5) associated with a cube
+//  int strength; // Validitity of the tag, basically just agc1+agc2
+//  TagCommand command; // Text of command or behavior to go to... if it exists
+//} Tag;
+
 class Face
 { 
   private:
@@ -31,26 +62,37 @@ class Face
     
       // Data storage spaces
     int ambientData[128];
+    int neighborData[8];
     int reflectivityData[8];
     CircularBuffer<int> ambientBuffer;
     CircularBuffer<int> reflectivityBuffer;
-    
 
       // Magnetic data Buffers
     int magnetAngleData_A[10];
     int magnetStrengthData_A[10];
-    CircularBuffer<int> magnetAngleBuffer_A;
-    CircularBuffer<int> magnetStrengthBuffer_A;
     int magnetAngleData_B[10];
     int magnetStrengthData_B[10];
+    
     CircularBuffer<int> magnetAngleBuffer_B;
     CircularBuffer<int> magnetStrengthBuffer_B;
-
+    CircularBuffer<int> magnetAngleBuffer_A;
+    CircularBuffer<int> magnetStrengthBuffer_A;
+    
       // Neighbor Information Buffers
+    TagType     neighborTypeData[10];
+    TagCommand  neighborCommandData[10];
     int neighborIDData[10];
-    int neighborInfoData[10];
-    CircularBuffer<int> neighborIDBuffer;
-    CircularBuffer<int> neighborInfoBuffer;
+    int neighborFaceData[10];
+    int neighborAngleData[10];
+    bool neighborPresenceData[10];
+    
+      // Circular Buffers for Magnetic Tag Variables
+    CircularBuffer<TagType>     neighborTypeBuffer;
+    CircularBuffer<TagCommand>  neighborCommandBuffer;
+    CircularBuffer<int>         neighborIDBuffer;
+    CircularBuffer<int>         neighborFaceBuffer;
+    CircularBuffer<int>         neighborAngleBuffer;
+    CircularBuffer<bool>        neighborPresenceBuffer;
     
   public:
       // Constructors
@@ -95,6 +137,9 @@ class Face
       // Sending simple messages - length of blink = digit... 100ms == "1" 200ms == "2" ... etc.
     int checkForMessage(int waitTime);
     void blinkOutMessage(int digit); 
+
+      // Magnetic Tag Related Commands
+    bool processTag();
     
       // Return from Circular Buffer Commands
     int returnMagnetAngle_A(int index);
@@ -103,8 +148,37 @@ class Face
     int returnMagnetStrength_B(int index); 
     int returnAmbientValue(int index);
     int returnReflectivityValue(int index);
+    //
+    bool returnNeighborPresence(int index);
     int returnNeighborID(int index);
-    int returnNeighborInfo(int index);
+    int returnNeighborAngle(int index);
+    int returnNeighborFace(int index);
+    TagType returnNeighborType(int index);
+    TagCommand returnNeighborCommand(int index);
 };
+
+int readAmbient(int address);
+void activateLightSensor(int address);
+int readMagnetSensorAngle(int i2cAddress);
+int readMagnetSensorFieldStrength(int i2cAddress);
+int magnetSensorRead(int i2cAddress, byte dataRegisterAddress);
+
+typedef struct Tag
+{
+  TagType type;   
+  /* 0 = not a valid tag
+   * 1 = Regular Cube Attached
+   * 2 = Passive Cube Attached
+   * 3 = COMMAND tag
+   */ 
+  int angle ; // Either -1, 0, 1, 2 or 3 - corresponding to 90 deg angle
+  int id; // ID or message code attached to tag
+  int face; // face number (0,1,2,3,4,5) associated with a cube
+  int strength; // Validitity of the tag, basically just agc1+agc2
+  TagCommand command; // Text of command or behavior to go to... if it exists
+} Tag;
+
+void analyzeTag(int angle1, int agc1, int angle2, int agc2, Tag*);
+int returnFaceNumber(int magDigit);
 
 #endif

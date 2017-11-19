@@ -2,7 +2,6 @@
 // The classes we define here are the cube, the face.
 #include "Defines.h"
 #include "Cube.h"
-#include "Sensation.h"
 #include "Face.h"
 #include <Wire.h> 
 
@@ -16,8 +15,11 @@ Face::Face()
     magnetStrengthBuffer_B(ARRAY_SIZEOF(this->magnetStrengthData_B), this->magnetStrengthData_B),
     
     neighborIDBuffer(ARRAY_SIZEOF(this->neighborIDData), this->neighborIDData),
-    neighborInfoBuffer(ARRAY_SIZEOF(this->neighborInfoData), this->neighborInfoData)
-    
+    neighborAngleBuffer(ARRAY_SIZEOF(this->neighborAngleData), this->neighborAngleData),
+    neighborCommandBuffer(ARRAY_SIZEOF(this->neighborCommandData), this->neighborCommandData),
+    neighborFaceBuffer(ARRAY_SIZEOF(this->neighborFaceData), this->neighborFaceData),
+    neighborTypeBuffer(ARRAY_SIZEOF(this->neighborTypeData), this->neighborTypeData),
+    neighborPresenceBuffer(ARRAY_SIZEOF(this->neighborPresenceData), this->neighborPresenceData)
 {
   this->IOExpanderState[0] = (this->IOExpanderState[1] = byte(0xff)); // sets bytes of IO expander to be all 1's
 }
@@ -45,8 +47,113 @@ bool Face::updateFace()
     && this->updateReflectivity()            // temp
     && this->updateMagneticBarcode()
     && this->turnOffFaceLEDs()
-    && this->disableSensors()); 
+    && this->disableSensors());
+    this->neighborPresenceBuffer.push(this->processTag());
   return(success);
+}
+
+
+bool Face::processTag()
+{
+  bool endResult = false;
+  int angle1 = this->returnMagnetAngle_A(0);
+  int angle2 = this->returnMagnetAngle_B(0);
+  int agc1 = this->returnMagnetStrength_A(0);
+  int agc2 = this->returnMagnetStrength_B(0);
+  int strengthThreshold = 450;
+  int magDigit1 = 0;
+  int magDigit2 = 0;
+        if (agc1 == 0 || agc1 >= 255)       {magDigit1 = 0;}
+   else if (angle1 < 6 || angle1 > 354)     {magDigit1 = 1;}
+   else                                     {magDigit1 = int(angle1 + 18)/12;}
+
+        if (agc2 == 0 || agc2 >= 255)       {magDigit2 = 0;}
+   else if(angle2 < 6 || angle2 > 354)      {magDigit2 = 1;}  
+   else                                     {magDigit2 = int(angle2 + 18)/12;}
+  //
+  
+  int tagStrength = agc1+agc2; // this is a measurement of how accurate the tag strength is
+  
+  TagType tagType = TAGTYPE_INVALID;    // Resets all of these values
+  TagCommand tagCommand = TAGCOMMAND_NONE; // Resets all of these values
+  int tagAngle = -1; //             // Resets all of these values
+  int tagID = -1; //                // Resets all of these values
+  int tagFace = -1; //              // Resets all of these values
+        
+  if(((agc1+agc2) < strengthThreshold) && (tagStrength > 0)) // this means there is a valid tag!! woo!
+  {
+    endResult = true;
+    /*============================================================================================================
+    * CHECK IF TAG REPRESENTS A MODULE
+    */
+    if((magDigit1 >= 17 && magDigit1 <= 29) &&  // Means magdigit1 is a faceID
+       (magDigit2 >= 1 && magDigit2 <= 17))     // Means magdifit2 stores an ID # 
+    {
+      tagType = TAGTYPE_REGULAR_CUBE;
+      tagID   = magDigit2;
+      tagFace = returnFaceNumber(magDigit1);
+      if(magDigit1 % 2 ==0)
+        tagAngle = 0;
+      else
+        tagAngle = 1;
+    }    
+    if((magDigit2 >= 17 && magDigit2 <= 29) &&  // Means magdigit1 is a faceID
+     (magDigit1 >= 1 && magDigit1 <= 17))     // Means magdifit2 stores an ID # 
+    {
+      tagType = TAGTYPE_REGULAR_CUBE;
+      tagID   = magDigit1;
+      tagFace = returnFaceNumber(magDigit2);
+      if(magDigit2 % 2 ==0)
+          tagAngle = 2;
+      else                 
+          tagAngle = 3;
+    }
+    /*============================================================================================================
+    * CHECK IF TAG REPRESENTS A PASSIVE MODULE
+    */
+    if((magDigit1 == 15 || magDigit1 == 16 || magDigit1 == 17 || // Means magdigit1 is a faceID
+       magDigit1 == 30 || magDigit1 == 1  || magDigit1 == 2 ) &&
+      (magDigit2 == 8  || magDigit2 == 9  || magDigit2 == 10))     // Means magdigit2 stores an ID # 
+    {
+      tagType = TAGTYPE_PASSIVE_CUBE;
+      if(magDigit1 == 30 || magDigit1 == 1  || magDigit1 == 2)
+        tagAngle = 2;
+      else 
+        tagAngle = 3;
+    }
+    if((magDigit2 == 15 || magDigit2 == 16 || magDigit2 == 17 ||  // Means magdigit1 is a faceID
+        magDigit2 == 30 || magDigit2 == 1  || magDigit2 == 2 ) &&
+       (magDigit1 == 8  || magDigit1 == 9  || magDigit1 == 10))     // Means magdifit2 stores an ID # 
+    {
+      tagType = TAGTYPE_PASSIVE_CUBE;
+      if(magDigit2 == 30 || magDigit2 == 1  || magDigit2 == 2)
+            tagAngle = 0;
+      else 
+            tagAngle = 1;
+    }
+    /* ================================================================================================
+    * CHECK IF TAG REPRESENTS A COMMAND TAG
+    */
+    if((((magDigit1 - magDigit2) > -2) && ((magDigit1 - magDigit2) < 2)) &&  // if the difference between the two is small
+       (magDigit1 != 17 && magDigit2 != 17) && (magDigit1 != 30 && magDigit2 != 30))
+    {
+      tagType = TAGTYPE_COMMAND;
+      if(magDigit1 == 25) // Sleep Command
+        tagCommand = TAGCOMMAND_SLEEP;
+      if(magDigit1 == 27) // 
+        tagCommand = TAGCOMMAND_27;
+      if(magDigit1 == 23 || magDigit1 == 24) 
+        tagCommand = TAGCOMMAND_23;
+      if(magDigit1 == 5) // change plane
+        tagCommand = TAGCOMMAND_PURPLE;
+    }
+  }
+this->neighborTypeBuffer.push(tagType); 
+this->neighborCommandBuffer.push(tagCommand); 
+this->neighborFaceBuffer.push(tagFace); 
+this->neighborAngleBuffer.push(tagAngle); 
+this->neighborIDBuffer.push(tagID); 
+return(endResult); 
 }
 
 
@@ -183,6 +290,36 @@ int Face::returnMagnetAngle_B(int index)
   return(this->magnetAngleBuffer_B.access(index));
 }
 
+TagType Face::returnNeighborType(int index)
+{
+  return(this->neighborTypeBuffer.access(index));
+}
+
+TagCommand Face::returnNeighborCommand(int index)
+{
+  return(this->neighborCommandBuffer.access(index));
+}
+
+int Face::returnNeighborID(int index)
+{
+  return(this->magnetAngleBuffer_B.access(index));
+}
+
+bool Face::returnNeighborPresence(int index)
+{
+  return(this->neighborPresenceBuffer.access(index));
+}
+
+int Face::returnNeighborAngle(int index)
+{
+  return(this->neighborAngleBuffer.access(index));
+}
+
+int Face::returnNeighborFace(int index)
+{
+  return(this->neighborFaceBuffer.access(index));
+}
+    
 /**       V 
  *   0111 1010
  * & 1111 0111  <--- how do we generate this one?
@@ -308,3 +445,81 @@ bool Face::disableSensors()
   this->IOExpanderState[0] |= (1 << FB_EN1); // Toggles FB_EN1 to deactivate sensors
   return(this->updateIOExpander());
 }
+
+int readAmbient(int address)
+{
+  activateLightSensor(address);
+  delay(15);
+  int reading = 0;
+  Wire.beginTransmission(address); 
+  Wire.write(byte(0x8C)); // this is the register where the Ambient values are stored
+  Wire.endTransmission();
+  Wire.requestFrom(address, 2);
+  if (2 <= Wire.available()) 
+  {
+    reading = Wire.read();
+    reading |= Wire.read()<<8;
+  }
+  return reading;
+}
+
+void activateLightSensor(int address)
+{
+  Wire.beginTransmission(address); 
+  Wire.write(byte(0x80)); // 1000 0000 - Selects command register
+  Wire.write(byte(0x03)); // 0000 0010 - Activates device
+  Wire.endTransmission();
+  Wire.beginTransmission(address); 
+  Wire.write(byte(0x81));
+  Wire.write(byte(0x10)); // Sets integration time to 15 ms ... // 00010XX sets gain to 16x
+  // 0x10 = 100 ms
+  // 0x10 = 14ms w/ 16x High Gain
+  Wire.endTransmission();
+}
+
+int readMagnetSensorAngle(int i2cAddress) {
+  // Returns the angle of the measured magnet as a 14 bit number
+  int value = magnetSensorRead(i2cAddress, byte(0xFF));
+  return(value);
+}
+
+int readMagnetSensorFieldStrength(int i2cAddress) {
+  // AGC is the "strength" of the magnet returned as an 8-bit number, 255 = magnet field is too weak, 0 = very strong magnetic field.
+  return(magnetSensorRead(i2cAddress, byte(0xFA)));
+}
+
+int magnetSensorRead(int i2cAddress, byte dataRegisterAddress) {
+  // read either the angle or the field strength of the AMS5048
+  Wire.beginTransmission(i2cAddress);
+  Wire.write(dataRegisterAddress);
+  Wire.endTransmission();
+  Wire.requestFrom(i2cAddress, 2); // request 2 bytes
+
+  if (2 <= Wire.available())
+  {
+    int sensorValue;
+    sensorValue = Wire.read();
+    sensorValue = sensorValue << 6;
+    sensorValue |= Wire.read();
+    return sensorValue;
+  }
+  return -1;
+}
+
+int returnFaceNumber(int magDigit)
+{
+         if((magDigit == 29) || (magDigit == 28))
+            {return 0;}
+    else if((magDigit == 27) || (magDigit == 26))
+            {return 1;}
+    else if((magDigit == 25) || (magDigit == 24))
+            {return 2;}
+    else if((magDigit == 23) || (magDigit == 22))
+            {return 3;}
+    else if((magDigit == 21) || (magDigit == 20))
+            {return 4;}
+    else if((magDigit == 19) || (magDigit == 18))
+            {return 5;}
+    else
+            {return -1;}
+}     
