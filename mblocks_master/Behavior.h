@@ -8,27 +8,27 @@
 #include "Defines.h"
 #include "Communication.h"        // Includes wifi
 
-typedef enum Behavior
-{
-    SOLO_LIGHT_TRACK,
-    DUO_LIGHT_TRACK,
-    FOLLOW_ARROWS,
-    CHILLING,
-    TEST_TESTING_THANGS,
-    ATTRACTIVE,
-    TESTING, 
-    SHUT_DOWN,
-    SLEEP,
-    RELAY_SLEEP,
-    YELLOW,
-    PURPLE,
-    TEAL,
-    WHITE,
-    BLUE,
-    RED,
-    GREEN,
-    LIGHTSOFF
-} Behavior;
+//typedef enum Behavior // ACTUAL CODE IS in DEFINES.h
+//{
+//    SOLO_LIGHT_TRACK,
+//    DUO_LIGHT_TRACK,
+//    FOLLOW_ARROWS,
+//    CHILLING,
+//    TEST_TESTING_THANGS,
+//    ATTRACTIVE,
+//    TESTING, 
+//    SHUT_DOWN,
+//    SLEEP,
+//    RELAY_SLEEP,
+//    YELLOW,
+//    PURPLE,
+//    TEAL,
+//    WHITE,
+//    BLUE,
+//    RED,
+//    GREEN,
+//    LIGHTSOFF
+//} Behavior;
 
 // Behaviors are enumerated
 
@@ -105,7 +105,7 @@ Behavior attractive(Cube* c);
  * b.   All 4 faces are blocked with something --> Chilling
  */
 
-Behavior followArrows();
+Behavior followArrows(Cube* c, SerialDecoderBuffer* buf);
 /*        --- What it does ---
  * 0.
  * 1.

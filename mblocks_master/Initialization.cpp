@@ -239,7 +239,37 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_F = 999;
       CC_BRAKETIME_R = 999;
       break;
+    //********************************
+    case 959694:
+      cubeID = 0;
       
+      TRAVERSE_RPM_F = 7000;
+      TRAVERSE_RPM_R = 7000;
+      TRAVERSE_CURRENT_F = 3300;
+      TRAVERSE_CURRENT_R = 3300;
+
+      CC_RPM_F = 2800;
+      CC_RPM_R = 2800;
+      CC_CURRENT_F = 2800;
+      CC_CURRENT_R = 2800;
+      CC_BRAKETIME_F = 10;
+      CC_BRAKETIME_R = 10;
+    //********************************
+    case 960348: // GREEN PEI
+      cubeID = 0;
+      
+      TRAVERSE_RPM_F = 6500;
+      TRAVERSE_RPM_R = 6500;
+      TRAVERSE_CURRENT_F = 2700;
+      TRAVERSE_CURRENT_R = 2800;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15000;
+      CC_CURRENT_F = 3400;
+      CC_CURRENT_R = 3100;
+      CC_BRAKETIME_F = 10;
+      CC_BRAKETIME_R = 10;
+      break;
     break;
   }
 }

@@ -36,7 +36,8 @@ void setup() // Actually the main loop...
   initializeCube(); // Runs this code once to setup input/outputs, communication networks...
                     // (Wifi, i2c, serial) and instantiates classes and calibration values
   c.updateSensors(); // populates initial readings for variables such as which face is up, and # of neighbors
-  //c.MoveIA(&traverse_F, &buf);
+//  c.MoveIA(&traverse_F, &buf);
+//  delay(500000);
   // MoveIA(&c, &traverse_R, &buf);
   if(c.numberOfNeighbors(0,0) > 1) // turns off if the cube has at least 2 neighbors... for ease of dealing with things
   {

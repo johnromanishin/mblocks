@@ -32,6 +32,7 @@ class Cube
       // Data storage spaces
 
     long faceSensorUpdateTimeData[10];
+    Behavior behaviorBufferData[32];
 
     int axCoreData[32];
     int ayCoreData[32];
@@ -106,6 +107,7 @@ class Cube
     long cubeMAC = ESP.getChipId();
     //
     CircularBuffer<long> faceSensorUpdateTimeBuffer;
+    CircularBuffer<Behavior> behaviorBuffer;
 
     CircularBuffer<int> axCoreBuffer;
     CircularBuffer<int> ayCoreBuffer;
@@ -120,6 +122,8 @@ class Cube
     CircularBuffer<int> gxFrameBuffer;
     CircularBuffer<int> gyFrameBuffer;
     CircularBuffer<int> gzFrameBuffer;
+
+    
 
     ArrowMap arrowMap;
     //

@@ -49,12 +49,41 @@ Behavior sleep()
   }
 }
 
-Behavior followArrows()
+Behavior followArrows(Cube* c, SerialDecoderBuffer* buf)
 {
-  if(DEBUG_BEHAVIOR) {Serial.println("followArrows");}
-// Set rmp(6000);
-// wait  (4000ms);
-// ebrake //////
+  Behavior nextBehavior = FOLLOW_ARROWS; // default is to keep doing what we are doing.
+  if(DEBUG_BEHAVIOR)
+    Serial.println("followArrows");
+  c->updateSensors();
+  nextBehavior = checkForMagneticTagsStandard(c, nextBehavior, buf);
+  wifiDelay(250);
+  nextBehavior = checkForBasicWifiCommands(c, nextBehavior, buf);   
+  for(int i = 0; i < 6; i ++)
+  {
+    if((c->faces[i].returnNeighborAngle(0) > 0) && // If the same face shows valid angles
+       (c->faces[i].returnNeighborAngle(2) > 0))
+    {
+      c->blockingBlink(0,1,0,4);  // blink
+      int otherFace = faceArrowPointsTo(i, c->faces[i].returnNeighborAngle(0));
+      if(c->goToPlaneIncludingFaces(i, otherFace, buf)) // then go to plane parallel
+      {
+        int CW_or_CCW = faceClockiness(otherFace, i);
+        if(CW_or_CCW == 1)
+        {
+          delay(2000);
+          c->MoveIA(&traverse_F, buf);
+          delay(2000);
+        }
+        else if(CW_or_CCW == -1)
+        {
+          delay(2000);
+          c->MoveIA(&traverse_R, buf);
+          delay(2000);
+        }
+      }
+    }
+  }
+  return(nextBehavior);
 }
 
 Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
@@ -106,8 +135,6 @@ Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf)
   {
     c->updateSensors();
     nextBehavior = checkForMagneticTagsStandard(c, nextBehavior, buf);
-    if(nextBehavior != TEST_TESTING_THANGS) {Serial.println("WHAT THE FUCKING FUCK");}
-    wifiDelay(100);
     nextBehavior = checkForBasicWifiCommands(c, nextBehavior, buf);
     
     if(c->numberOfNeighbors(0,0) == 1)
@@ -214,134 +241,7 @@ Behavior duoSeekLight()
  */
 Behavior crystalize(Cube* c, painlessMesh* m)
 {
-  if(DEBUG_BEHAVIOR) {Serial.println("crystalize");}
-  bool amICrystalized = false;
-  int ledCounter = 0;
-
-  while(true)
-  {
-    //update the sensors
-    c->updateSensors();
-
-    // ======= service commands that come from the json buffer =======
-    if(!jsonCircularBuffer.empty())
-    {
-      StaticJsonBuffer<256> jb;
-      JsonObject& root = jb.parseObject(jsonCircularBuffer.pop());
-
-      if((root["cubeID"] == getCubeIDFromEsp(ESP.getChipId())) ||
-         (root["cubeID"] == -1))
-      {
-        if(root["cmd"] == "blinkOnce")
-          c->blockingBlink(1, 1, 1, 1, 100);
-        else if(root["cmd"] == "clearArrows")
-          clearAllMappings(&c->arrowMap);
-        else if(root["cmd"] == "arrowUpdateAllFaces")
-        {
-          ArrowMapEntry mapEntry;
-          mapEntry.ID = root["arrowID"];
-          for(int i = 0; i < 6; i++)
-          {
-            mapEntry.arrows[i] = root["arrowDirections"][i];
-          }
-          addArrowMapping(&c->arrowMap, &mapEntry);
-        }
-        else if(root["cmd"] == "arrowUpdateOneFace")
-        {
-          addArrowMappingOneFace(&c->arrowMap, root["arrowID"], root["faceToUpdate"], root["newValue"]);
-        }
-        else if(root["cmd"] == "seedCrystal")
-        {
-          //if the cube is nominated to be the seed crystal, then it points its arrows in a pre-set direction
-          //the arrows on the 0, 1, 2, and 3 faces all point towards face 5.  Face 5 points out of the center
-          //of the cube and face 4 points into the center of the cube.
-          amICrystalized = true;
-          ledCounter = 0;
-          ArrowMapEntry mapEntry;
-          mapEntry.ID = getCubeIDFromEsp(ESP.getChipId());
-          mapEntry.arrows[0] = 0; //XXX TODO?
-          mapEntry.arrows[1] = 0; //XXX TODO ?
-          mapEntry.arrows[2] = 0; //XXX TODO ?
-          mapEntry.arrows[3] = 0; //XXX TODO ?
-          mapEntry.arrows[4] = 4; //face 4's arrow points into the center of the cube.
-          mapEntry.arrows[5] = 5; //face 5's arrow points out of the center of the cube.
-          addArrowMapping(&c->arrowMap, &mapEntry);
-        }
-      }
-    }
-
-    // ======= if we are crystalized, then just stupidly blink =======
-    if(amICrystalized)
-    {
-      //turn all of the corner lights blue
-      c->lightCube(0, 0, 1);
-
-      //blink faces to point in directions of arrows
-      //in the first step of the blink animation, we light faces pointing "into" the center of the cube.
-      ledCounter++;
-      if((ledCounter >= 0) && (ledCounter < 4))
-      {
-        for(int i = 0; i < 6; i++)
-        {
-          if(lookupMapping(&c->arrowMap, getCubeIDFromEsp(ESP.getChipId()), i) == 4)
-            c->faces[i].turnOnFaceLEDs(true, true, true, true);
-          else
-            c->faces[i].turnOnFaceLEDs(false, false, false, false);
-        }
-      }
-      else if((ledCounter >= 4) && (ledCounter < 8))
-      {
-        for(int i = 0; i < 6; i++)
-        {
-          int subsequentRot = lookupMapping(&c->arrowMap, getCubeIDFromEsp(ESP.getChipId()), i);
-          if((subsequentRot >= 0) && (subsequentRot <= 3))
-          {
-            subsequentRot += 2;
-            if(subsequentRot > 3)
-              subsequentRot -= 4;
-            int subsequentFace = faceRotations[i][subsequentRot];
-            c->setFaceLEDsAtEdge(i, subsequentFace);
-          }
-          else
-            c->faces[i].turnOnFaceLEDs(false, false, false, false);
-        }
-      }
-      else if((ledCounter >= 8) && (ledCounter < 12))
-      {
-        for(int i = 0; i < 6; i++)
-        {
-          int subsequentRot = lookupMapping(&c->arrowMap, getCubeIDFromEsp(ESP.getChipId()), i);
-          if((subsequentRot >= 0) && (subsequentRot <= 3))
-          {
-            if(subsequentRot > 3)
-              subsequentRot -= 4;
-            int subsequentFace = faceRotations[i][subsequentRot];
-            c->setFaceLEDsAtEdge(i, subsequentFace);
-          }
-          else
-            c->faces[i].turnOnFaceLEDs(false, false, false, false);
-        }
-      }
-      else if((ledCounter >= 12) && (ledCounter < 16))
-      {
-        for(int i = 0; i < 6; i++)
-        {
-          if(lookupMapping(&c->arrowMap, getCubeIDFromEsp(ESP.getChipId()), i) == 5)
-            c->faces[i].turnOnFaceLEDs(true, true, true, true);
-          else
-            c->faces[i].turnOnFaceLEDs(false, false, false, false);
-        }
-      }
-      else if(ledCounter == 16)
-        ledCounter = 0;
-    }
-
-    // ======= If we haven't crystalized yet,
-    else
-    {
-      //check for neighbors
-    }
-  }
+  
 }
 
 //=============================================================================================
@@ -392,23 +292,24 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
         c->lightFace(faceArrowPointsTo(i, c->faces[i].returnNeighborAngle(0)),0,1,0);
       }
       
-      if(c->faces[i].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE)
+      if((c->faces[i].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE) &&
+         (c->faces[i].returnNeighborType(1) == TAGTYPE_PASSIVE_CUBE))
       {
         resultBehavior = FOLLOW_ARROWS;
-        if((c->faces[i].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE) &&
-           (c->faces[i].returnNeighborType(1) == TAGTYPE_PASSIVE_CUBE) &&
-           (c->faces[i].returnNeighborType(2) == TAGTYPE_PASSIVE_CUBE) &&
-           (c->faces[i].returnNeighborType(3) == TAGTYPE_PASSIVE_CUBE) &&
-           (c->faces[i].returnNeighborType(4) == TAGTYPE_PASSIVE_CUBE))
-           {
-              c->blockingBlink(1,0,0,3);
-              c->blockingBlink(0,1,0,3);
-              c->blockingBlink(0,0,1,3);
-              c->blockingBlink(1,1,0,3);
-              c->blockingBlink(0,1,1,3);
-              c->blockingBlink(1,0,1,3);
-              c->blockingBlink(1,1,1,3);
-           }
+//        if((c->faces[i].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE) &&
+//           (c->faces[i].returnNeighborType(1) == TAGTYPE_PASSIVE_CUBE) &&
+//           (c->faces[i].returnNeighborType(2) == TAGTYPE_PASSIVE_CUBE) &&
+//           (c->faces[i].returnNeighborType(3) == TAGTYPE_PASSIVE_CUBE) &&
+//           (c->faces[i].returnNeighborType(4) == TAGTYPE_PASSIVE_CUBE))
+//           {
+//              c->blockingBlink(1,0,0,3);
+//              c->blockingBlink(0,1,0,3);
+//              c->blockingBlink(0,0,1,3);
+//              c->blockingBlink(1,1,0,3);
+//              c->blockingBlink(0,1,1,3);
+//              c->blockingBlink(1,0,1,3);
+//              c->blockingBlink(1,1,1,3);
+//           }
       }
       
       if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_SLEEP)
@@ -569,7 +470,7 @@ Behavior checkForBehaviors(Cube* c, SerialDecoderBuffer* buf, Behavior behavior)
   else if (behavior == DUO_LIGHT_TRACK)
     behavior = duoSeekLight();
   else if (behavior == FOLLOW_ARROWS)
-    behavior = followArrows();
+    behavior = followArrows(c, buf);
   else if (behavior == TEST_TESTING_THANGS)
     behavior = testTestingThangs(c, buf);
   else if (behavior == CHILLING)

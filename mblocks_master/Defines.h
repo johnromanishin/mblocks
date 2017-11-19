@@ -4,6 +4,28 @@
 #include <Arduino.h>
 #include "Communication.h"
 
+typedef enum Behavior
+{
+    SOLO_LIGHT_TRACK,
+    DUO_LIGHT_TRACK,
+    FOLLOW_ARROWS,
+    CHILLING,
+    TEST_TESTING_THANGS,
+    ATTRACTIVE,
+    TESTING, 
+    SHUT_DOWN,
+    SLEEP,
+    RELAY_SLEEP,
+    YELLOW,
+    PURPLE,
+    TEAL,
+    WHITE,
+    BLUE,
+    RED,
+    GREEN,
+    LIGHTSOFF
+} Behavior;
+
 // This is a struct for organizing information about motions
 typedef struct Motion
 {
@@ -38,9 +60,9 @@ int getCubeIDFromEsp(int);
 typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING, PLANEERROR} PlaneEnum;
 
 /// Global Variables ///
-#define DEBUG1 1 // DEBUG was already used somewhere
-#define DEBUG_VERBOSE 1
-#define DEBUG_BEHAVIOR 1
+#define DEBUG1 0 // DEBUG was already used somewhere
+#define DEBUG_VERBOSE 0
+#define DEBUG_BEHAVIOR 0
 
 #define FACES 6  // Number of faces on a cube...
 // Hardware Pin Definitions
@@ -75,6 +97,7 @@ const extern int faceRotations[FACES][4];
 PlaneEnum returnPlane(int face1, int face2);
 
 int faceArrowPointsTo(int readingFace, int connectionAngle);
+int faceClockiness(int faceTowards, int faceReference);
 
 #define ARRAY_SIZEOF(x) ((sizeof(x) / sizeof(x[0])))
 

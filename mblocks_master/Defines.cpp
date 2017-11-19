@@ -2,8 +2,8 @@
 #include "Communication.h"
 
 //                      moveName      , brake   , rpm             , timout        , current             , brakeTime     , difficult , for_rev
-Motion traverse_F     = {"traverse"   , true    , 3000            , 6000          , 3000                , 12            , 9         ,"f"};
-Motion traverse_R     = {"traverse"   , true    , 3000            , 6000          , 3000                , 12            , 9         ,"r"};
+Motion traverse_F     = {"traverse"   , true    , 6000            , 6000          , 3000                , 12            , 9         ,"f"};
+Motion traverse_R     = {"traverse"   , true    , 6000            , 6000          , 3000                , 12            , 9         ,"r"};
 
 Motion roll_F         = {"roll"       , false   , 6500            ,    0          ,    0                , 0             , 1         ,"f"};
 Motion roll_R         = {"roll"       , false   , 6500            ,    0          ,    0                , 0             , 1         ,"r"};
@@ -19,15 +19,15 @@ int cubeID = 0;
 extern int GlobalplaneChangeTime;
 extern int GlobalplaneChangeRPM;
 
-extern int TRAVERSE_RPM_F = 10;
-extern int TRAVERSE_RPM_R = 10;
-extern int TRAVERSE_CURRENT_F = 10;
-extern int TRAVERSE_CURRENT_R= 10;
+extern int TRAVERSE_RPM_F = 6500;
+extern int TRAVERSE_RPM_R = 6500;
+extern int TRAVERSE_CURRENT_F = 2500;
+extern int TRAVERSE_CURRENT_R = 2500;
 
-extern int CC_RPM_F = 10;
-extern int CC_RPM_R = 10;
-extern int CC_CURRENT_F = 10;
-extern int CC_CURRENT_R = 10;
+extern int CC_RPM_F = 15000;
+extern int CC_RPM_R = 15000;
+extern int CC_CURRENT_F = 3000;
+extern int CC_CURRENT_R = 3000;
 extern int CC_BRAKETIME_F = 10;
 extern int CC_BRAKETIME_R = 10;
 
@@ -117,6 +117,30 @@ int faceArrowPointsTo(int readingFace, int connectionAngle)
   return(faceRotations[readingFace][connectionAngle]);
 }
 
+//                      Face you want to move towards | other face in plane
+
+/*
+ * This lookup table tells the module to either move Clockwise (+1) 
+ * or Counter-clockwise (-1) or invalid selection (0).
+ * 
+ * Useage: First arguement is the face we want to move TOWARDS
+ *         Second face is the face we are moving FROM
+ */
+const int faceClockinessMatrix[FACES][FACES] =
+{
+  //0,   1,   2,   3,   4,  5 // This is the face we want to move towards
+  { 0,   1,   0,  -1,  -1,   1},   // 0
+  {-1,   0,   1,   0,   1,  -1},   // 1
+  { 0,  -1,   0,   1,   1,  -1},   // 2
+  { 1,   0,  -1,   0,  -1,   1},   // 3
+  { 1,  -1,  -1,   1,   0,   0},   // 4
+  {-1,   1,   1,  -1,   0,   0}    // 5
+};
+
+int faceClockiness(int faceTowards, int faceReference)
+{
+  return(faceClockinessMatrix[faceReference][faceTowards]);
+}
 // PLANE0123, PLANE0425, PLANE1453, PLANENONE
 //PLANE0123, PLANE0425, PLANE1453, PLANENONE
 // 0--------,1---------,2---------,3---------,4---------,5---------
@@ -128,26 +152,6 @@ const PlaneEnum facePlanes[FACES][FACES] =
   { PLANE0123, PLANENONE, PLANE0123, PLANENONE, PLANE1453, PLANE1453},   // 3
   { PLANE0425, PLANE1453, PLANE0425, PLANE1453, PLANENONE, PLANENONE},   // 4
   { PLANE0425, PLANE1453, PLANE0425, PLANE1453, PLANENONE, PLANENONE}    // 5
-};
-
-//                      Face you want to move towards | other face in plane
-
-/*
- * This lookup table tells the module to either move Clockwise (+1) 
- * or Counter-clockwise (-1) or invalid selection (0).
- * 
- * Useage: First arguement is the face we want to move TOWARDS
- *         Second face is the face we are moving FROM
- */
-const int faceClockiness[FACES][FACES] =
-{
-  //0,   1,   2,   3,   4,  5 // This is the face we want to move towards
-  { 0,   1,   0,  -1,  -1,   1},   // 0
-  {-1,   0,   1,   0,   1,  -1},   // 1
-  { 0,  -1,   0,   1,   1,  -1},   // 2
-  { 1,   0,  -1,   0,  -1,   1},   // 3
-  { 1,  -1,  -1,   1,   0,   0},   // 4
-  {-1,   1,   1,  -1,   0,   0}    // 5
 };
  
 const int faceRotations[FACES][4] =

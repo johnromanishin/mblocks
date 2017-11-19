@@ -1,6 +1,7 @@
 // We want to implement classes for ease of reference as we construct and modify code.
 // Includes
 #include "Defines.h"
+#include "Behavior.h"
 #include "Cube.h"
 #include "SerialDecoder.h"
 #include "Face.h"
@@ -11,6 +12,8 @@
 Cube::Cube()
   :    
     faceSensorUpdateTimeBuffer(ARRAY_SIZEOF(this->faceSensorUpdateTimeData), this->faceSensorUpdateTimeData),
+    behaviorBuffer(ARRAY_SIZEOF(this->behaviorBufferData), this->behaviorBufferData),
+    
     axFrameBuffer(ARRAY_SIZEOF(this->axFrameData), this->axFrameData),
     ayFrameBuffer(ARRAY_SIZEOF(this->ayFrameData), this->ayFrameData),
     azFrameBuffer(ARRAY_SIZEOF(this->azFrameData), this->azFrameData),
@@ -44,8 +47,11 @@ Cube::Cube()
 
 bool Cube::MoveIA(Motion* motion, SerialDecoderBuffer* buf)
 {
-  int attempts = 2;
+  int attempts = 1;
   long beginTime = millis();
+  this->blockingBlink(1,0,1,2);
+  this->lightsOff();
+  delay(50);
   while(attempts) // we subtract 1 from "numberOfAttempts" each time around
   {
     String iaString = "ia " + String(motion->for_rev)+ " " + String(motion->rpm) + " " + String(motion->current) + " " + String(motion->brakeTime) + " e 10";
@@ -53,12 +59,13 @@ bool Cube::MoveIA(Motion* motion, SerialDecoderBuffer* buf)
     
     while((millis() - beginTime) < motion->timeout)
       {
-        delay(1);
-        SerialResponse resp = pushNewChar(buf);
-        if(resp == RESPONSE_BLDC_STABLE)
-        { 
-          break;
-        }
+        delay(10);
+        //delay(1);
+        //SerialResponse resp = pushNewChar(buf);
+//        if(resp == RESPONSE_BLDC_STABLE)
+//        { 
+//          break;
+//        }
       }
     attempts--;
   }
@@ -285,6 +292,7 @@ bool Cube::setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int
     }
     else if(currentStatus == PLANEERROR)
     {
+      delay(100);
       this->resetI2C();
       wifiDelay(100);
     }
@@ -312,7 +320,7 @@ bool Cube::setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int
   // then retract SMA, and then Brake the motor
   String bldcSpeedString = "bldcspeed f " + String(5000);
   Serial.println(bldcSpeedString);
-  if(!waitForSerialResponse(RESPONSE_START_BLDC_F ,1000 ,buf)) // if we haven't seen the response
+  if(!waitForSerialResponse(RESPONSE_START_BLDC_F ,2000 ,buf)) // if we haven't seen the response
   {
      Serial.println("bldcstop b");
         if(waitForSerialResponse(RESPONSE_STOP_BLDC_EB, 2000, buf))
@@ -377,7 +385,7 @@ bool Cube::setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int
       else if(this->currentPlane == PLANENONE)
       {
         this->blockingBlink(1,1,0, 1, 50);
-        Serial.println("bldcaccel f 3000 300");
+        Serial.println("bldcaccel f 3000 250");
         wifiDelay(500);
         Serial.println("bldcstop b"); 
         delay(100); 
