@@ -11,6 +11,18 @@ Motion roll_R         = {"roll"       , false   , 6500            ,    0        
 Motion cornerClimb_F  = {"cornerClimb", true    , 3000            , 5000          , 4000                , 20            , 250       ,"f"};
 Motion cornerClimb_R  = {"cornerClimb", true    , 3000            , 5000          , 4000                , 20            , 250       ,"r"};
 
+//
+
+//  List of possible colors;
+Color red =     {1,0,0};
+Color green =   {0,1,0};
+Color blue =    {0,0,1};
+Color yellow =  {1,1,0};
+Color purple =  {1,0,1};
+Color teal  =   {0,1,1};
+Color white =   {1,1,1};
+Color off   =   {0,0,0};
+
 int faceVersion = 1;
 int cubeID = 0;
 // typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING, PLANEERROR} PlaneEnum;

@@ -76,6 +76,7 @@ class Cube
 
         // Functions involving motion
     bool MoveIA(Motion* motion, SerialDecoderBuffer* buf);
+    bool moveIASimple(Motion* motion);
 
         // Related to the state itself
     PlaneEnum returnCurrentPlane();
@@ -86,6 +87,7 @@ class Cube
 
     // Functions involving PLane Changing
     PlaneEnum findPlaneStatus();
+    bool setCorePlaneSimple(PlaneEnum targetCorePlane);
     bool setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int attemptTime = 6000); 
     bool goToPlaneParallel(int faceExclude, SerialDecoderBuffer* buf);
     bool goToPlaneIncludingFaces(int face1, int face2, SerialDecoderBuffer* buf);
@@ -94,10 +96,11 @@ class Cube
       // Functions involving LED's
     bool clearRGB(); // Turns off all LED's on the cube DUAL VERSIONS
     void lightsOff();
-    bool lightFace(int face, bool r = true, bool g = false, bool  b = true); //DUAL VERSIONS
-    bool lightCube(bool r = true, bool g = true, bool b = false); // lights entire cube, defaults to yellow
-    bool blockingBlink(bool r, bool g, bool b, int howManyTimes = 6, int waitTime = 100);
-    void setFaceLEDsAtEdge(int, int); // **WIP
+    bool lightFace(int face, Color* inputColor); //DUAL VERSIONS
+    bool lightCube(Color* inputColor); // lights entire cube, defaults to yellow
+    bool blockingBlink(Color* inputColor, int howManyTimes = 6, int waitTime = 100);
+    void setFaceLEDsAtEdge(int, int); // 
+    void lightRainbow(int delayTime);
 
     // Misc. Useful Functions
     bool determineIfLatticeConnected();

@@ -1,3 +1,7 @@
+// Commonly used commands
+// c->MoveIA(&traverse_F, &buf); // makes the thing move...
+//c->goToPlaneParallel(i, buf);
+
 #include "Behavior.h"
 #include "Initialization.h"     // Includes .h files for each of the "tabs" in arduino
 #include "Cube.h"               // Includes .h files for each of the "tabs" in arduino
@@ -7,13 +11,14 @@
 #include "Defines.h"
 #include "SerialDecoder.h"
 
+
 Behavior Yellow(Cube* c, SerialDecoderBuffer* buf)
 {
   if(DEBUG_BEHAVIOR) {Serial.println("Yellow");}
   
   Behavior nextBehavior = YELLOW;
   c->updateSensors();
-  c->lightCube(1,1,0);
+  c->lightCube(&yellow);
   nextBehavior = checkForMagneticTagsStandard(c, nextBehavior, buf);
   wifiDelay(100);
   nextBehavior = checkForBasicWifiCommands(c, nextBehavior, buf);
@@ -21,7 +26,7 @@ Behavior Yellow(Cube* c, SerialDecoderBuffer* buf)
 Behavior Purple(Cube* c, SerialDecoderBuffer* buf)
 {
   if(DEBUG_BEHAVIOR) {Serial.println("Purple");}
-  c->lightCube(1,0,1);
+  c->lightCube(&purple);
   Behavior nextBehavior = PURPLE;
   c->updateSensors();
   nextBehavior = checkForMagneticTagsStandard(c, nextBehavior, buf);
@@ -32,7 +37,7 @@ Behavior Purple(Cube* c, SerialDecoderBuffer* buf)
 Behavior Teal(Cube* c, SerialDecoderBuffer* buf)
 {
   if(DEBUG_BEHAVIOR) {Serial.println("Teal");}
-  c->lightCube(0,1,1);
+  c->lightCube(&teal);
   Behavior nextBehavior = TEAL;
   c->updateSensors();
   nextBehavior = checkForMagneticTagsStandard(c, nextBehavior, buf);
@@ -40,8 +45,9 @@ Behavior Teal(Cube* c, SerialDecoderBuffer* buf)
   nextBehavior = checkForBasicWifiCommands(c, nextBehavior, buf);
 }
 
-Behavior sleep()
+Behavior sleep(Cube* c)
 {
+  c->blockingBlink(&red);
   for(int i = 0; i < 10; i++)
   {
     Serial.println("sleep");
@@ -63,7 +69,7 @@ Behavior followArrows(Cube* c, SerialDecoderBuffer* buf)
     if((c->faces[i].returnNeighborAngle(0) > 0) && // If the same face shows valid angles
        (c->faces[i].returnNeighborAngle(2) > 0))
     {
-      c->blockingBlink(0,1,0,4);  // blink
+      //c->blockingBlink(&red,4);  // blink
       int otherFace = faceArrowPointsTo(i, c->faces[i].returnNeighborAngle(0));
       if(c->goToPlaneIncludingFaces(i, otherFace, buf)) // then go to plane parallel
       {
@@ -71,13 +77,13 @@ Behavior followArrows(Cube* c, SerialDecoderBuffer* buf)
         if(CW_or_CCW == 1)
         {
           delay(2000);
-          c->MoveIA(&traverse_F, buf);
+          c->moveIASimple(&traverse_F);
           delay(2000);
         }
         else if(CW_or_CCW == -1)
         {
           delay(2000);
-          c->MoveIA(&traverse_R, buf);
+          c->moveIASimple(&traverse_R);
           delay(2000);
         }
       }
@@ -104,23 +110,23 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
       {
         brightestFace = c->returnXthBrightestFace(1);
       }
-      c->lightFace(brightestFace,0,1,1);
+      c->lightFace(brightestFace,&teal);
       delay(500);
       if(brightestFace == c->returnForwardFace())
-          {Serial.println("bldcspeed f 6000");c->blockingBlink(0,1,0);delay(3000);Serial.println("bldcstop b");}
+          {Serial.println("bldcspeed f 6000");c->blockingBlink(&green);delay(3000);Serial.println("bldcstop b");}
       else if(brightestFace == c->returnReverseFace())
-          {Serial.println("bldcspeed r 6000");c->blockingBlink(1,0,0);delay(3000);Serial.println("bldcstop b");}
+          {Serial.println("bldcspeed r 6000");c->blockingBlink(&red);delay(3000);Serial.println("bldcstop b");}
       else if(c->returnForwardFace() == c->returnXthBrightestFace(2))
-          {Serial.println("bldcspeed f 6000");c->blockingBlink(0,1,0);delay(3000);Serial.println("bldcstop b");}
+          {Serial.println("bldcspeed f 6000");c->blockingBlink(&green);delay(3000);Serial.println("bldcstop b");}
       else if(c->returnReverseFace() == c->returnXthBrightestFace(2))
-          {Serial.println("bldcspeed r 6000");c->blockingBlink(1,0,0);delay(3000);Serial.println("bldcstop b");}
+          {Serial.println("bldcspeed r 6000");c->blockingBlink(&red);delay(3000);Serial.println("bldcstop b");}
       else
           delay(100);
     }
   Serial.println("Changing Loops");
   return(nextBehavior);
 }
-//c->goToPlaneParallel(i, buf);
+
 //================================================================
 //==========================TESTING THANGS========================
 //================================================================
@@ -151,16 +157,16 @@ Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf)
           connectedFace = i;
         }
       }
-      c->lightFace(connectedFace,0,1,1);
+      c->lightFace(connectedFace,&teal);
       delay(300);
-      c->lightFace(c->returnTopFace(),1,1,1);
+      c->lightFace(c->returnTopFace(),&white);
       delay(300);
       if((connectedFace > 0) && (connectedFace != c->returnTopFace()) &&
           connectedFace != c->returnBottomFace())
       {
         if(c->goToPlaneIncludingFaces(connectedFace, c->returnTopFace(), buf))
         {
-          c->blockingBlink(1,0,1,3);
+          c->blockingBlink(&purple,3);
           c->clearRGB();
           delay(50);
           for(int i = 0; i < 6; i++)
@@ -173,8 +179,12 @@ Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf)
         }
       }
     }
-    c->lightCube(!(loopCounter%4), !(loopCounter%4), false); // blinks yellow every 4 times...
-    delay(10);
+    if(loopCounter%4)
+      c->lightCube(&yellow);
+    else if((loopCounter+1)%4)
+      c->lightCube(&off);
+    //c->lightCube(!(loopCounter%4), !(loopCounter%4), false); // blinks yellow every 4 times...
+    delay(300);
     loopCounter++;
   }
   return nextBehavior;
@@ -194,7 +204,7 @@ Behavior chilling(Cube* c, SerialDecoderBuffer* buf)
     nextBehavior = checkForMagneticTagsStandard(c, nextBehavior, buf);
     wifiDelay(400);
     nextBehavior = checkForBasicWifiCommands(c, nextBehavior, buf);
-    c->lightCube(false, false, !(loopCounter%4));
+    //c->lightCube(false, false, !(loopCounter%4));
     delay(10);
     loopCounter++;
   }
@@ -289,7 +299,7 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
     {
       if(c->faces[i].returnNeighborAngle(0) != -1) // This means we are seeing some "arrow"
       {
-        c->lightFace(faceArrowPointsTo(i, c->faces[i].returnNeighborAngle(0)),0,1,0);
+        c->lightFace(faceArrowPointsTo(i, c->faces[i].returnNeighborAngle(0)),&green);
       }
       
       if((c->faces[i].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE) &&
@@ -318,7 +328,7 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
       }
       if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_PURPLE)
       {
-        c->lightCube(1,0,1);
+        c->lightCube(&purple);
         //====================SEND DEBUG =====================      
         c->goToPlaneParallel(i, buf);
         //mesh.sendBroadcast(Str);
@@ -478,7 +488,7 @@ Behavior checkForBehaviors(Cube* c, SerialDecoderBuffer* buf, Behavior behavior)
   else if (behavior == ATTRACTIVE)
     behavior = attractive(c);
   else if (behavior == SLEEP)
-    behavior = sleep();
+    behavior = sleep(c);
   else if (behavior == YELLOW)
     behavior = Yellow(c, buf);
   else if (behavior == PURPLE)

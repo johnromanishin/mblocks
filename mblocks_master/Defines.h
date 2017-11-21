@@ -39,7 +39,25 @@ typedef struct Motion
   String for_rev;
 } Motion;
 
+typedef struct Color
+{
+  bool r;
+  bool g;
+  bool b;
+} Color;
+
+//  List of possible colors;
+extern Color red;
+extern Color green;
+extern Color blue;
+extern Color yellow;
+extern Color purple;
+extern Color teal;
+extern Color white;
+extern Color off;
+
 // List of Possible Motions, defined in Motion.cpp
+
 extern Motion traverse_F;
 extern Motion traverse_R;
 extern Motion roll_F;

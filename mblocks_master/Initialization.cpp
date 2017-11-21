@@ -270,6 +270,36 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
       break;
+    case 960043: // YELLOW PEI
+      cubeID = 0;
+      
+      TRAVERSE_RPM_F = 7000;
+      TRAVERSE_RPM_R = 7000;
+      TRAVERSE_CURRENT_F = 3500;
+      TRAVERSE_CURRENT_R = 4000;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 4000;
+      CC_CURRENT_R = 4000;
+      CC_BRAKETIME_F = 11;
+      CC_BRAKETIME_R = 11;
+      break;
+    case 8577715: // Brown PC
+      cubeID = 0;
+      
+      TRAVERSE_RPM_F = 7000;
+      TRAVERSE_RPM_R = 7000;
+      TRAVERSE_CURRENT_F = 3500;
+      TRAVERSE_CURRENT_R = 4000;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 4000;
+      CC_CURRENT_R = 4000;
+      CC_BRAKETIME_F = 11;
+      CC_BRAKETIME_R = 11;
+      break;
     break;
   }
 }

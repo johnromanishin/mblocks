@@ -43,7 +43,7 @@ Behavior Blue(Cube* c, SerialDecoderBuffer* buf);
 Behavior Green(Cube* c, SerialDecoderBuffer* buf);
 Behavior White(Cube* c, SerialDecoderBuffer* buf);
 Behavior Lightsoff(Cube* c, SerialDecoderBuffer* buf);
-Behavior sleep();
+Behavior sleep(Cube* c);
 
 Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf);
 /*        --- What it does ---

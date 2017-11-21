@@ -6,8 +6,8 @@
 
 // External Libraries
 #include <Wire.h>                 // Arduino's implementation of the i2c wireless protocal
-#include <painlessMesh.h>
-#include <Arduino.h>
+#include <painlessMesh.h>         // Wifi Mesh Library found on the internet  
+#include <Arduino.h>              // library with basic arduino commands
 
 // Header Files
 #include "Defines.h"
@@ -36,9 +36,7 @@ void setup() // Actually the main loop...
   initializeCube(); // Runs this code once to setup input/outputs, communication networks...
                     // (Wifi, i2c, serial) and instantiates classes and calibration values
   c.updateSensors(); // populates initial readings for variables such as which face is up, and # of neighbors
-//  c.MoveIA(&traverse_F, &buf);
-//  delay(500000);
-  // MoveIA(&c, &traverse_R, &buf);
+//  lightRainbow();
   if(c.numberOfNeighbors(0,0) > 1) // turns off if the cube has at least 2 neighbors... for ease of dealing with things
   {
     bool shutDown = true;
@@ -49,10 +47,28 @@ void setup() // Actually the main loop...
     loopCounter++;
     behavior = checkForBehaviors(&c, &buf, behavior);
   }
-  c.blockingBlink(1,0,0);
+  c.blockingBlink(&red);
   c.shutDown();
 }
-
+//void lightRainbow(int delayTime)
+//{
+//  c.lightCube2(&purple);
+//  delay(delayTime);
+//  c.lightCube2(&red);
+//  delay(delayTime);
+//  c.lightCube2(&yellow);
+//  delay(delayTime);
+//  c.lightCube2(&green);
+//  delay(delayTime);
+//  c.lightCube2(&teal);
+//  delay(delayTime);
+//  c.lightCube2(&blue);
+//  delay(delayTime);
+//  c.lightCube2(&white);
+//  delay(delayTime);
+//  c.lightCube2(&off);
+//  delay(delayTime);
+//}
 // This is here only becuase arduino won't compile without it, but it is never used, 
 //the real loop is "while(1)" in the void setup() Function
 void loop()
