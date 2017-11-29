@@ -33,6 +33,8 @@ class Cube
 
     long faceSensorUpdateTimeData[10];
     Behavior behaviorBufferData[32];
+    PlaneEnum currentPlaneBufferData[20];
+    
 
     int axCoreData[32];
     int ayCoreData[32];
@@ -86,9 +88,9 @@ class Cube
     int returnBottomFace();
 
     // Functions involving PLane Changing
-    PlaneEnum findPlaneStatus();
+    PlaneEnum findPlaneStatus(bool reset = true);
     bool setCorePlaneSimple(PlaneEnum targetCorePlane);
-    bool setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int attemptTime = 6000); 
+    //bool setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int attemptTime = 6000); 
     bool goToPlaneParallel(int faceExclude, SerialDecoderBuffer* buf);
     bool goToPlaneIncludingFaces(int face1, int face2, SerialDecoderBuffer* buf);
     
@@ -111,6 +113,7 @@ class Cube
     //
     CircularBuffer<long> faceSensorUpdateTimeBuffer;
     CircularBuffer<Behavior> behaviorBuffer;
+    CircularBuffer<PlaneEnum> currentPlaneBuffer;
 
     CircularBuffer<int> axCoreBuffer;
     CircularBuffer<int> ayCoreBuffer;
@@ -125,8 +128,6 @@ class Cube
     CircularBuffer<int> gxFrameBuffer;
     CircularBuffer<int> gyFrameBuffer;
     CircularBuffer<int> gzFrameBuffer;
-
-    
 
     ArrowMap arrowMap;
     //

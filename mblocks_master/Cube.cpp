@@ -11,8 +11,9 @@
 
 Cube::Cube()
   :    
-    faceSensorUpdateTimeBuffer(ARRAY_SIZEOF(this->faceSensorUpdateTimeData), this->faceSensorUpdateTimeData),
-    behaviorBuffer(ARRAY_SIZEOF(this->behaviorBufferData), this->behaviorBufferData),
+    faceSensorUpdateTimeBuffer(ARRAY_SIZEOF(this->faceSensorUpdateTimeData),  this->faceSensorUpdateTimeData),
+    behaviorBuffer(ARRAY_SIZEOF(this->behaviorBufferData),                    this->behaviorBufferData),
+    currentPlaneBuffer(ARRAY_SIZEOF(this->currentPlaneBufferData),            this->currentPlaneBufferData),
     
     axFrameBuffer(ARRAY_SIZEOF(this->axFrameData), this->axFrameData),
     ayFrameBuffer(ARRAY_SIZEOF(this->ayFrameData), this->ayFrameData),
@@ -47,13 +48,14 @@ Cube::Cube()
 
 bool Cube::moveIASimple(Motion* motion)
 {
+  delay(1500);
   this->blockingBlink(&green,2);
   delay(2000);
   this->lightsOff();
   delay(250);
-  String iaString = "ia " + String(motion->for_rev)+ " " + String(motion->rpm) + " " + String(motion->current) + " " + String(motion->brakeTime);
+  String iaString = "ia " + String(motion->for_rev)+ " " + String(motion->rpm) + " " + String(motion->current) + " " + String(motion->brakeTime) + " e 10";
   Serial.println(iaString);
-  delay((motion->timeout+3000));
+  delay((motion->timeout+4500));
   return(true);
 }
 
@@ -260,8 +262,7 @@ bool Cube::goToPlaneIncludingFaces(int face1, int face2, SerialDecoderBuffer* bu
   return(result);
 }
 
-bool Cube::goToPlaneParallel(int faceExc
-lude, SerialDecoderBuffer* buf)
+bool Cube::goToPlaneParallel(int faceExclude, SerialDecoderBuffer* buf)
 {
   bool simple = true;
   bool result = false;
@@ -270,21 +271,24 @@ lude, SerialDecoderBuffer* buf)
     if(simple)
       result = this->setCorePlaneSimple(PLANE0123);
     else
-      result = this->setCorePlane(PLANE0123, buf, 8000);
+      delay(1);
+      //result = this->setCorePlane(PLANE0123, buf, 8000);
   }
   else if(faceExclude == 1 || faceExclude == 3)
   {
     if(simple)
       result = this->setCorePlaneSimple(PLANE0425);
     else
-      result = this->setCorePlane(PLANE0425, buf, 8000);
+      delay(1);
+      //result = this->setCorePlane(PLANE0425, buf, 8000);
   }
   else if(faceExclude == 0 || faceExclude == 2)
   {
     if(simple)
       result = this->setCorePlaneSimple(PLANE1453);
     else
-      result = this->setCorePlane(PLANE1453, buf, 8000);
+      delay(1);
+      //result = this->setCorePlane(PLANE1453, buf, 8000);
   }
   return(result);
 }
@@ -297,25 +301,43 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
   {
     return(false);
   }
+  if(this->findPlaneStatus(false) == targetCorePlane)
+  {
+    return(true);
+  }
   //
-  this->blockingBlink(&white, 2);
+  this->blockingBlink(&teal, 3);
   this->lightsOff();
-  delay(2000);
+  delay(1000);
+  Serial.println("sma retractcurrent 1000");
+  delay(250);
   bool succeed = false;
   int beginTime = millis();
-  int attempts = 3;
-  while((this->findPlaneStatus() != targetCorePlane) && (attempts > 0))
+  Serial.println("sma retract 8000");
+  delay(1000);
+  while((this->findPlaneStatus(false) != targetCorePlane) && ((millis()-beginTime) < 7000))
   {
+    String bldcaccelString = "bldcaccel f " + String(GlobalPlaneAccel) + " 700";
+    Serial.println(bldcaccelString);
+    delay(800);
+    if(this->findPlaneStatus(false) == targetCorePlane)
+    {
+      Serial.println("bldcstop");
       delay(1000);
-      if(attempts > 2)
-        Serial.println("cp b f 5500 60");
-      else
-        Serial.println("cp b f 6000 60");
-      delay(15000);
-      attempts--;
+    }
+    else
+    {
+      Serial.println("bldcstop b");
+    }
+    delay(1600);
   }
-  this->blockingBlink(&white, 1);
-  if(this->findPlaneStatus() == targetCorePlane)
+  
+  while((millis()-beginTime) < 8000)
+  {
+    wifiDelay(100);
+  }
+  
+  if(this->findPlaneStatus(false) == targetCorePlane)
   {
     this->blockingBlink(&green, 2);
     return(true);
@@ -327,161 +349,6 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
   return(false);
 }
 
-bool Cube::setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int attemptTime) 
-{   
-  if((targetCorePlane == PLANENONE)  ||
-     (targetCorePlane == PLANEERROR) || 
-     (targetCorePlane == PLANEMOVING)) // this protects the inputs
-  {
-    return(false);
-  }
-  //
-  this->blockingBlink(&purple, 2, 75);
-  this->lightsOff();
-  PlaneEnum currentStatus;
-  int beginTime = millis();
-  int attempts = 0;
-  int notMovingThreshold = 1300;
-  /*                                           
-   * The following Block to the next break delays, until plane is not moving...                                           
-   */
-  while((millis() - beginTime) < 4000) // we wait for up to 4 seconds for everything to stabilize
-  {
-    currentStatus = this->findPlaneStatus(); /// *****
-    if((currentStatus == PLANEMOVING))
-    {     
-      wifiDelay(100);
-    }
-    else if(currentStatus == PLANEERROR)
-    {
-      delay(100);
-      this->resetI2C();
-      wifiDelay(100);
-    }
-    else
-    {
-      delay(50);
-      break;
-    }
-  }
-//  if(currentStatus == PLANEERROR || currentStatus == PLANEMOVING)
-//  {
-//    return(false);
-//  }
-/////////////////////////
-  /*                                           
-  * Check to make sure we aren't ALREADY  in the right plane, check                                          
-  * two times... If we are in the right plane, we return true
-  */
-  currentStatus = this->findPlaneStatus();
-  if(currentStatus == targetCorePlane)
-  {
-      return(true);
-  }
-  // Ok we are not in the correct plane, so we are going to spin up RPM,
-  // then retract SMA, and then Brake the motor
-  this->disconnectI2C();
-  delay(100);
-  String bldcSpeedString = "bldcspeed f " + String(5000);
-  Serial.println(bldcSpeedString);
-  if(!waitForSerialResponse(RESPONSE_START_BLDC_F ,2000 ,buf)) // if we haven't seen the response
-  {
-     Serial.println("bldcstop b");
-        if(waitForSerialResponse(RESPONSE_STOP_BLDC_EB, 2000, buf))
-        {
-          wifiDelay(1500);
-          Serial.println(bldcSpeedString);
-        }
-  }
-  waitForSerialResponse(RESPONSE_BLDC_STABLE, 4000, buf); // waits until bldc stabalizes or 4000 ms.
-  Serial.println("sma retract 8000");
-  waitForSerialResponse(RESPONSE_SMA_RETRACTED, 2500, buf);
-  long startTime = millis(); // Start recording timer after we retract the SMA  
-  Serial.println("bldcstop b");
-  if(!waitForSerialResponse(RESPONSE_STOP_BLDC_EB, 2000, buf)) // if we don't see the response... say it again
-  {
-    Serial.println("bldcstop b");
-  }
-  wifiDelay(200); // central part is probably spinning like crazy now, so we wait a bit
-  this->reconnectI2C();
-  wifiDelay(200);
-  //***********************BEGIN LOOP***********************
-  while((this->findPlaneStatus() != targetCorePlane) &&  //**CHECKS PLANESTATUS**
-       ((millis()-startTime) < 7500))
-  {
-    while(wifiDelayWithMotionDetection(100) > notMovingThreshold) // Wait until we are not moving anymore
-    {
-      delay(10);
-    }     
-    wifiDelay(300); // wait a little bit more...
-    currentStatus = this->findPlaneStatus();            //**CHECKS PLANESTATUS**
-    if(currentStatus == targetCorePlane)      
-      break; // This should exit the whole while loop...
-           
-    if(currentStatus != targetCorePlane) // This IF statement evaluates if we are in one of the two wrong planes...
-    {
-      ////
-      if( currentStatus == PLANE0123 ||   // This is what we do if we are in the wrong plane...
-          currentStatus == PLANE0425 ||
-          currentStatus == PLANE1453)
-      {
-        wifiDelay(100);
-        Serial.println(bldcSpeedString);
-        if(!waitForSerialResponse(RESPONSE_START_BLDC_F,1500,buf)) // If the motor doesn't start
-        {
-          Serial.println("bldcstop b");                             // we stop it just to be sure
-          this->lightRainbow(200);
-          if(waitForSerialResponse(RESPONSE_STOP_BLDC_EB, 2000, buf)) // if we hear that it stopped
-          {
-            wifiDelay(1500);     
-            Serial.println(bldcSpeedString);                          // We try to start it again
-          }
-        }
-        
-        waitForSerialResponse(RESPONSE_BLDC_STABLE, 4000, buf); // wait for motor to stabalize
-        if(this->findPlaneStatus() == targetCorePlane) // if we are in the correct plane, we slowly slow down motor
-          Serial.println("bldcstop"); 
-        else
-          Serial.println("bldcstop b");  // if we are in the wrong plane, we stop quickly...   
-        delay(800);  
-      }
-      ////
-      else if(this->currentPlane == PLANENONE)
-      {
-        this->blockingBlink(&yellow, 1, 50);
-        Serial.println("bldcaccel f 3000 250");
-        wifiDelay(200);
-        if(this->findPlaneStatus() == targetCorePlane) // if we are in the correct plane, we slowly slow down motor
-          Serial.println("bldcstop");
-        else
-          Serial.println("bldcstop b");  // if we are in the wrong plane, we stop quickly..
-        wifiDelay(800);
-        
-        if(!waitForSerialResponse(RESPONSE_STOP_BLDC_EB, 1000, buf)) // if we don't hear that it stopped
-        {
-          Serial.println("bldcstop b");                               // try to stop motor again
-        }
-      }
-    }
-    wifiDelay(100);
-  }
-  //////////////////////////END LOOP//////////////////////////////
-  /*
-   * We are done... Time to test and see if we are correct
-   */
-  while((millis()-startTime) < 8000)
-  {
-    wifiDelay(100);
-  }
-  if(this->findPlaneStatus() == targetCorePlane)
-  {
-    return(true);
-  }
-  /*
-   * Nothing checked out... So the default is to return false
-   */
-  return(false);
-}
 
 #define ROOT2OVER2Q15_16 46341
 #define ONE_Q15_16 65536
@@ -509,7 +376,7 @@ static const int32_t rotationMatricies[3][3][3] =
  * This function uses the 
  * We expect raw, signed 14-bit accelerometer readings
  */
-PlaneEnum Cube::findPlaneStatus()
+PlaneEnum Cube::findPlaneStatus(bool reset)
 {
   PlaneEnum likelyStatus = PLANEERROR; 
   if(this->updateBothIMUs()) // try to update IMU...
@@ -518,18 +385,23 @@ PlaneEnum Cube::findPlaneStatus()
   }
   else                       // if it fails, flip power switch
   {
-    this->resetI2C();
+    delay(10);
+    if(reset)
+      {
+        this->resetI2C();
+      }
     if(this->updateBothIMUs())// and try again
     {
       delay(1);
     }
     else
     {
+      this->currentPlaneBuffer.push(likelyStatus);
       return(likelyStatus);   // if it fails on second try... exit
     }
   }
     const int validPlaneThreshold = 165; // This number is what determines if it is actually in a proper plane
-    const int gyroMovingThreshold  = 1500; // This represents what "moving" is
+    const int gyroMovingThreshold  = 1700; // This represents what "moving" is
     
     int32_t coreAccel[3] =   {this->axCoreBuffer.access(0),     
                               this->ayCoreBuffer.access(0),
@@ -590,6 +462,7 @@ PlaneEnum Cube::findPlaneStatus()
       this->currentPlane = PLANEERROR;
       likelyStatus = PLANEERROR;
     }
+  this->currentPlaneBuffer.push(likelyStatus);
   return(likelyStatus);
 }
 

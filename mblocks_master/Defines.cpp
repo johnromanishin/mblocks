@@ -8,8 +8,8 @@ Motion traverse_R     = {"traverse"   , true    , 6000            , 6000        
 Motion roll_F         = {"roll"       , false   , 6500            ,    0          ,    0                , 0             , 1         ,"f"};
 Motion roll_R         = {"roll"       , false   , 6500            ,    0          ,    0                , 0             , 1         ,"r"};
 
-Motion cornerClimb_F  = {"cornerClimb", true    , 3000            , 5000          , 4000                , 20            , 250       ,"f"};
-Motion cornerClimb_R  = {"cornerClimb", true    , 3000            , 5000          , 4000                , 20            , 250       ,"r"};
+Motion cornerClimb_F  = {"cornerClimb", true    , 15500            , 7000          , 33000               , 12            , 250       ,"f"};
+Motion cornerClimb_R  = {"cornerClimb", true    , 15500            , 7000          , 3300                , 12            , 250       ,"r"};
 
 //
 
@@ -30,6 +30,8 @@ int cubeID = 0;
 //int GlobalplaneChangeRPM = 5000;
 extern int GlobalplaneChangeTime;
 extern int GlobalplaneChangeRPM;
+extern int GlobalPlaneAccel = 2400;
+
 
 extern int TRAVERSE_RPM_F = 6500;
 extern int TRAVERSE_RPM_R = 6500;
@@ -42,18 +44,6 @@ extern int CC_CURRENT_F = 3000;
 extern int CC_CURRENT_R = 3000;
 extern int CC_BRAKETIME_F = 10;
 extern int CC_BRAKETIME_R = 10;
-
-//int TRAVERSE_RPM_F = 2800;
-//int TRAVERSE_RPM_R = 2800;
-//int TRAVERSE_CURRENT_F = 2800;
-//int TRAVERSE_CURRENT_R = 2800;
-//
-//int CC_RPM_F = 2800;
-//int CC_RPM_R = 2800;
-//int CC_CURRENT_F = 2800;
-//int CC_CURRENT_R = 2800;
-//int CC_BRAKETIME_F = 10;
-//int CC_BRAKETIME_R = 10;
 
 EspToCubeMapping espCubeMap[] =
 {

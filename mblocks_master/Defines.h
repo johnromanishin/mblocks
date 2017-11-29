@@ -58,6 +58,7 @@ extern Color off;
 
 // List of Possible Motions, defined in Motion.cpp
 
+
 extern Motion traverse_F;
 extern Motion traverse_R;
 extern Motion roll_F;
@@ -92,6 +93,7 @@ typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING,
 /////////////////////////////////////////////////////////////////////
 extern int faceVersion;
 extern int cubeID;
+extern int GlobalPlaneAccel;
 
 extern int GlobalplaneChangeTime;
 extern int GlobalplaneChangeRPM;

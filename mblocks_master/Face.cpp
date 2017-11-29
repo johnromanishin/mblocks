@@ -257,6 +257,7 @@ bool Face::updateReflectivity()
     }
   this->reflectivityBuffer.push(reading); // adds the sensor value to the buffer
   //Serial.print("Reflectivity: ");Serial.println(reading);
+  
   return(true);
 }
 

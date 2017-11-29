@@ -122,6 +122,7 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
           {Serial.println("bldcspeed r 6000");c->blockingBlink(&red);delay(3000);Serial.println("bldcstop b");}
       else
           delay(100);
+      delay(3000);
     }
   Serial.println("Changing Loops");
   return(nextBehavior);
@@ -147,35 +148,30 @@ Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf)
     {
       Tag t;
       for(int i = 0; i < 6; i++)
-      {      
-        analyzeTag(c->faces[i].returnMagnetAngle_A(0),          // This calls fubnction which reads tags, populate data fields
-                   c->faces[i].returnMagnetStrength_A(0),       //
-                   c->faces[i].returnMagnetAngle_B(0),          //
-                   c->faces[i].returnMagnetStrength_B(0), &t);  //  
-        if(t.type ==  TAGTYPE_REGULAR_CUBE || t.type == TAGTYPE_PASSIVE_CUBE)//&& // If a valid tag exists...
+      {     
+        if(c->faces[i].returnNeighborType(0) ==  TAGTYPE_REGULAR_CUBE ||
+           c->faces[i].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE)//&& // If a valid tag exists...
         {
           connectedFace = i;
         }
       }
-      c->lightFace(connectedFace,&teal);
+      c->lightFace(connectedFace,&yellow);
       delay(300);
-      c->lightFace(c->returnTopFace(),&white);
+      c->lightFace(c->returnTopFace(),&red);
       delay(300);
       if((connectedFace > 0) && (connectedFace != c->returnTopFace()) &&
-          connectedFace != c->returnBottomFace())
+         (connectedFace != c->returnBottomFace()) )
       {
         if(c->goToPlaneIncludingFaces(connectedFace, c->returnTopFace(), buf))
         {
-          c->blockingBlink(&purple,3);
+          c->blockingBlink(&purple,7);
           c->clearRGB();
           delay(50);
-          for(int i = 0; i < 6; i++)
-          {
-            c->faces[c->returnTopFace()].blinkOutMessage(i);
-            delay(100);
-          }
-          //Serial.println("ia f 15500 3800 8 e 10");
-          delay(8000);
+          int CW_or_CCW = faceClockiness(connectedFace, c->returnBottomFace());
+          if(CW_or_CCW == 1)
+            c->moveIASimple(&cornerClimb_F);
+          if(CW_or_CCW == -1)
+            c->moveIASimple(&cornerClimb_R);
         }
       }
     }
@@ -305,7 +301,10 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
       if((c->faces[i].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE) &&
          (c->faces[i].returnNeighborType(1) == TAGTYPE_PASSIVE_CUBE))
       {
-        resultBehavior = FOLLOW_ARROWS;
+        if(i == c->returnBottomFace())
+          resultBehavior = FOLLOW_ARROWS;
+        else
+          resultBehavior = TEST_TESTING_THANGS;
 //        if((c->faces[i].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE) &&
 //           (c->faces[i].returnNeighborType(1) == TAGTYPE_PASSIVE_CUBE) &&
 //           (c->faces[i].returnNeighborType(2) == TAGTYPE_PASSIVE_CUBE) &&
@@ -336,13 +335,13 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
       }
       if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_27)
       {
-        resultBehavior = TEAL;
+        resultBehavior = SOLO_LIGHT_TRACK;
         if((c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_27) &&
            (c->faces[i].returnNeighborCommand(2) == TAGCOMMAND_27) &&
            (c->faces[i].returnNeighborCommand(6) == TAGCOMMAND_27))
  
            {
-              resultBehavior = relayBehavior(c, TEAL);
+              resultBehavior = relayBehavior(c, SOLO_LIGHT_TRACK);
            }
         
       }
