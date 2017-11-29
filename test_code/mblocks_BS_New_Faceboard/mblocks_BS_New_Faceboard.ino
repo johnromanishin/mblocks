@@ -7,7 +7,7 @@
 #include <Wire.h>
 //#include "Adafruit_VL53L0X.h"
 //#include <ESP8266WiFi.h>
-#include <ArduinoHardware.h>
+#include <Arduino.h>
 
 //************************************************************
 //************************************************************
@@ -195,18 +195,18 @@ while(read_gyro_and_accel(MPU_frame) > 4000)
   turn_color(purple);
   delay(100);
 }
-for(int face = 1; face < 7; face ++)
+for(int face = 1; face < 2; face ++)
 {
 
   Serial.print("Checking face #: ");Serial.println(face);
-  activate_sensors(face);
-  delay(100);
-  process_5048(face);
-  Serial.print("Infrared: ");Serial.println(read_infrared());
+  activate_sensors_no_light(face);
+  delay(10);
+  //process_5048(face);
+  //Serial.print("Infrared: ");Serial.println(read_infrared());
   Serial.print("AMBIENT : ");Serial.println(read_ambient());
-  delay(500);
+  delay(100);
   deactivate_sensors(face);
-  delay(500);
+  delay(100);
 }
 //Serial.print("Infrared: ");Serial.println(read_infrared());
 //Serial.print("AMBIENT : ");Serial.println(read_ambient());
@@ -463,7 +463,7 @@ int read_infrared()
 int read_ambient()
 {
   activate_light_sensor();
-  delay(15);
+  delay(20);
   int reading = 0;
   Wire.beginTransmission(byte(light_address)); 
   Wire.write(byte(0x8C)); // this is the register where the Ambient values are stored
@@ -474,7 +474,7 @@ int read_ambient()
     reading = Wire.read();
     reading |= Wire.read()<<8;
   }
-  //Serial.println(reading);
+  Serial.println(reading);
   return reading;
 }
 
@@ -782,6 +782,7 @@ int read_5048_angle(int address)
     reading = reading << 6;
     reading |= Wire.read();
   }
+  
   return reading;
 }  //FUN55
 

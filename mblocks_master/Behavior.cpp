@@ -96,38 +96,53 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
 {
   if(DEBUG_BEHAVIOR) {Serial.println("soloSeekLight");}
   Behavior nextBehavior = SOLO_LIGHT_TRACK;
-
-  while(millis() < c->shutDownTime)
+  c->updateSensors();
+  nextBehavior = checkForMagneticTagsStandard(c, nextBehavior, buf);
+//  if(c->numberOfNeighbors(0,0))
+//    {
+//        nextBehavior = TEST_TESTING_THANGS;
+//    }
+  int brightestFace = c->returnXthBrightestFace(0);
+  int nextBrightestFace = c->returnXthBrightestFace(1);
+  if(c->returnXthBrightestFace(0) == c->returnTopFace()) // now brightest Face now excludes the top face
   {
-    c->updateSensors();
-    if(c->numberOfNeighbors(0,0))
+    brightestFace = c->returnXthBrightestFace(1);
+    nextBrightestFace = c->returnXthBrightestFace(2);
+  }
+  c->lightFace(brightestFace,&teal);
+  delay(300);
+  if(c->returnForwardFace() == -1)
+  {
+    Serial.println("bldcaccel f 4000 1500");
+    delay(500);
+    Serial.println("bldcstop b");
+  }
+  
+  if(brightestFace == c->returnForwardFace())
+  {
+    c->roll(1, buf, 8000); 
+  }
+  else if(brightestFace == c->returnReverseFace())
+  {
+    c->roll(-1, buf, 8000);
+  }
+  else if(nextBrightestFace == c->returnForwardFace())
+  {
+    c->roll(1, buf);
+  }
+  else if(nextBrightestFace == c->returnReverseFace())
+  {
+     c->roll(-1, buf); 
+  }
+  
+  else
+      delay(100);
+  if((c->moveSuccessBuffer.access(0) == true) && (c->moveSuccessBuffer.access(1) == true))
       {
-          nextBehavior = TEST_TESTING_THANGS;
-          break;
+        Serial.println("ia f 4500 3000 10");
+        delay(8000);
+        c->moveSuccessBuffer.push(false);
       }
-    int brightestFace = c->returnXthBrightestFace(0);
-    if(c->returnXthBrightestFace(0) == c->returnTopFace()) // now brightest Face now excludes the top face
-      {
-        brightestFace = c->returnXthBrightestFace(1);
-      }
-      c->lightFace(brightestFace,&teal);
-      delay(500);
-      if(brightestFace == c->returnForwardFace())
-          
-          {Serial.println("bldcspeed f 6000");c->blockingBlink(&green);delay(3000);Serial.println("bldcstop b");}
-          
-      else if(brightestFace == c->returnReverseFace())
-      
-          {Serial.println("bldcspeed r 6000");c->blockingBlink(&red);delay(3000);Serial.println("bldcstop b");}
-      else if(c->returnForwardFace() == c->returnXthBrightestFace(2))
-          {Serial.println("bldcspeed f 6000");c->blockingBlink(&green);delay(3000);Serial.println("bldcstop b");}
-      else if(c->returnReverseFace() == c->returnXthBrightestFace(2))
-          {Serial.println("bldcspeed r 6000");c->blockingBlink(&red);delay(3000);Serial.println("bldcstop b");}
-      else
-          delay(100);
-      delay(3000);
-    }
-  Serial.println("Changing Loops");
   return(nextBehavior);
 }
 
@@ -149,7 +164,6 @@ Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf)
     
     if(c->numberOfNeighbors(0,0) == 1)
     {
-      Tag t;
       for(int i = 0; i < 6; i++)
       {     
         if(c->faces[i].returnNeighborType(0) ==  TAGTYPE_REGULAR_CUBE ||
@@ -182,7 +196,6 @@ Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf)
       c->lightCube(&yellow);
     else if((loopCounter+1)%4)
       c->lightCube(&off);
-    //c->lightCube(!(loopCounter%4), !(loopCounter%4), false); // blinks yellow every 4 times...
     delay(300);
     loopCounter++;
   }
@@ -203,7 +216,10 @@ Behavior chilling(Cube* c, SerialDecoderBuffer* buf)
     nextBehavior = checkForMagneticTagsStandard(c, nextBehavior, buf);
     wifiDelay(400);
     nextBehavior = checkForBasicWifiCommands(c, nextBehavior, buf);
-    //c->lightCube(false, false, !(loopCounter%4));
+    if(loopCounter%4)
+      c->lightCube(&blue);
+    else if((loopCounter+1)%4)
+      c->lightCube(&off);
     delay(10);
     loopCounter++;
   }
@@ -220,13 +236,18 @@ Behavior attractive(Cube* c)
   for(int i = 0; i < 6; i++)
     {
       if(i == c->returnTopFace() || i == c->returnBottomFace()) // This ensures we only 
-                                                                // turn on 4 faces in horizontal plane
-        break;
+        delay(1);                                                       // turn on 4 faces in horizontal plane
+        //break;
+      else if(c->faces[i].returnNeighborPresence(0) == true)
+        delay(1);
       else
         c->faces[i].turnOnFaceLEDs(1,1,1,1); // turns on LEDs
     }
-  mesh.update();
-  delay(100);
+  wifiDelay(5000);
+  for(int i = 0; i < 6; i++)
+  {
+    c->faces[i].turnOffFaceLEDs();
+  }
   return(CHILLING);
 }
 
@@ -308,24 +329,11 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
           resultBehavior = FOLLOW_ARROWS;
         else
           resultBehavior = TEST_TESTING_THANGS;
-//        if((c->faces[i].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE) &&
-//           (c->faces[i].returnNeighborType(1) == TAGTYPE_PASSIVE_CUBE) &&
-//           (c->faces[i].returnNeighborType(2) == TAGTYPE_PASSIVE_CUBE) &&
-//           (c->faces[i].returnNeighborType(3) == TAGTYPE_PASSIVE_CUBE) &&
-//           (c->faces[i].returnNeighborType(4) == TAGTYPE_PASSIVE_CUBE))
-//           {
-//              c->blockingBlink(1,0,0,3);
-//              c->blockingBlink(0,1,0,3);
-//              c->blockingBlink(0,0,1,3);
-//              c->blockingBlink(1,1,0,3);
-//              c->blockingBlink(0,1,1,3);
-//              c->blockingBlink(1,0,1,3);
-//              c->blockingBlink(1,1,1,3);
-//           }
       }
       
       if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_SLEEP)
       {
+        c->blockingBlink(&red,10);
         resultBehavior = relayBehavior(c, SLEEP);
       }
       if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_PURPLE)
@@ -383,6 +391,8 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
         //====================END SEND DEBUG ===================       
       }
    }
+   if(c->numberOfNeighbors(0,0) > 1)
+    resultBehavior = ATTRACTIVE;
    return(resultBehavior);
 }
 
@@ -477,6 +487,7 @@ return(stringToReturn);
 
 Behavior checkForBehaviors(Cube* c, SerialDecoderBuffer* buf, Behavior behavior)
 {
+  c->behaviorBuffer.push(behavior);
   if (behavior == SOLO_LIGHT_TRACK)
     behavior = soloSeekLight(c, buf);
   else if (behavior == DUO_LIGHT_TRACK)

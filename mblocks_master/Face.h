@@ -6,26 +6,26 @@
 #include "Cube.h"
 #include <Arduino.h>
 
-typedef enum TagCommand
-{
-  TAGCOMMAND_NONE,
-  TAGCOMMAND_SLEEP,
-  TAGCOMMAND_PURPLE,
-  TAGCOMMAND_27,
-  TAGCOMMAND_25,
-  TAGCOMMAND_23,
-  TAGCOMMAND_21,
-  TAGCOMMAND_19,
-} TagCommand;
-
-typedef enum TagType
-{
-  TAGTYPE_NOTHING,
-  TAGTYPE_INVALID,
-  TAGTYPE_REGULAR_CUBE,
-  TAGTYPE_PASSIVE_CUBE,
-  TAGTYPE_COMMAND
-} TagType;
+//typedef enum TagCommand
+//{
+//  TAGCOMMAND_NONE,
+//  TAGCOMMAND_SLEEP,
+//  TAGCOMMAND_PURPLE,
+//  TAGCOMMAND_27,
+//  TAGCOMMAND_25,
+//  TAGCOMMAND_23,
+//  TAGCOMMAND_21,
+//  TAGCOMMAND_19,
+//} TagCommand;
+//
+//typedef enum TagType
+//{
+//  TAGTYPE_NOTHING,
+//  TAGTYPE_INVALID,
+//  TAGTYPE_REGULAR_CUBE,
+//  TAGTYPE_PASSIVE_CUBE,
+//  TAGTYPE_COMMAND
+//} TagType;
 
 //typedef struct Tag
 //{
@@ -61,8 +61,7 @@ class Face
     }
     
       // Data storage spaces
-    int ambientData[128];
-    int neighborData[8];
+    int ambientData[64];
     int reflectivityData[8];
     CircularBuffer<int> ambientBuffer;
     CircularBuffer<int> reflectivityBuffer;
@@ -79,6 +78,7 @@ class Face
     CircularBuffer<int> magnetStrengthBuffer_A;
     
       // Neighbor Information Buffers
+    int neighborData[8];
     TagType     neighborTypeData[10];
     TagCommand  neighborCommandData[10];
     int neighborIDData[10];
@@ -122,7 +122,7 @@ class Face
     void setIOExpanderAddress(int a) {this->IOExpanderAddress = a;}
 
       //LED Related Commands
-    bool turnOnFaceLEDs(bool LED_A = true, bool LED_B = true, bool LED_C = true, bool LED_D = true);  //DUAL VERSIONS
+    bool turnOnFaceLEDs(bool LED_A = true, bool LED_B = true, bool LED_C = true, bool LED_D = true); 
     bool turnOffFaceLEDs();
 
       // Sensor Related Commands
@@ -130,7 +130,7 @@ class Face
     bool disableSensors();  
     bool updateAmbient();   
     bool readAmbient();
-    bool updateReflectivity();
+    //bool updateReflectivity();
     bool updateMagneticBarcode(); // Reads both magnet sensors,
     bool isThereNeighbor(); // true == yes! // false == NO
     bool updateFace(); // Enables sensors, Updates ambient values, updates magnetic sensors, neighbors...
@@ -146,6 +146,7 @@ class Face
     int returnMagnetAngle_B(int index);
     int returnMagnetStrength_A(int index);
     int returnMagnetStrength_B(int index); 
+    
     int returnAmbientValue(int index);
     int returnReflectivityValue(int index);
     //
@@ -157,7 +158,6 @@ class Face
     TagCommand returnNeighborCommand(int index);
 };
 
-int readAmbient(int address);
 void activateLightSensor(int address);
 int readMagnetSensorAngle(int i2cAddress);
 int readMagnetSensorFieldStrength(int i2cAddress);

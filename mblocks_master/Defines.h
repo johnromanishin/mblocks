@@ -4,6 +4,27 @@
 #include <Arduino.h>
 #include "Communication.h"
 
+typedef enum TagCommand
+{
+  TAGCOMMAND_NONE,
+  TAGCOMMAND_SLEEP,
+  TAGCOMMAND_PURPLE,
+  TAGCOMMAND_27,
+  TAGCOMMAND_25,
+  TAGCOMMAND_23,
+  TAGCOMMAND_21,
+  TAGCOMMAND_19,
+} TagCommand;
+
+typedef enum TagType
+{
+  TAGTYPE_NOTHING,
+  TAGTYPE_INVALID,
+  TAGTYPE_REGULAR_CUBE,
+  TAGTYPE_PASSIVE_CUBE,
+  TAGTYPE_COMMAND
+} TagType;
+
 typedef enum Behavior
 {
     SOLO_LIGHT_TRACK,

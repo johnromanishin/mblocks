@@ -15,7 +15,7 @@ Cube::Cube()
     behaviorBuffer(ARRAY_SIZEOF(this->behaviorBufferData),                    this->behaviorBufferData),
     currentPlaneBuffer(ARRAY_SIZEOF(this->currentPlaneBufferData),            this->currentPlaneBufferData),
     moveSuccessBuffer(ARRAY_SIZEOF(this->moveSuccessBufferData),              this->moveSuccessBufferData),
-    moveShakeBuffer(ARRAY_SIZEOF(this->moveShakeBufferData),                  this->moveShakeBufferData),
+    moveShakingBuffer(ARRAY_SIZEOF(this->moveShakingBufferData),              this->moveShakingBufferData),
     
     axFrameBuffer(ARRAY_SIZEOF(this->axFrameData), this->axFrameData),
     ayFrameBuffer(ARRAY_SIZEOF(this->ayFrameData), this->ayFrameData),
@@ -48,7 +48,7 @@ Cube::Cube()
 // In later sections, super long...
 // bool Cube::lightCube(bool r, bool g, bool b)
 
-bool Cube::roll(int forwardReverse, int rpm)
+bool Cube::roll(int forwardReverse, SerialDecoderBuffer* buf, int rpm)
 /*
  * This function is intended to be used when a cube is NOT on a lattice
  * It will roll around the environment, defaults to FORWARD with 6000 RPM
@@ -60,32 +60,36 @@ bool Cube::roll(int forwardReverse, int rpm)
   String CW_CCW;
   if(forwardReverse < 0)
     {
-      c->blockingBlink(&yellow);
+      this->blockingBlink(&yellow);
       CW_CCW = " r "; // set the direction to "reverse" if forwardReverse is negatuve
     }
   else
     {
-      c->blockingBlink(&blue);
+      this->blockingBlink(&blue);
       CW_CCW = " f ";
     }
   delay(20);
   String stringToPrint = "bldcspeed" + CW_CCW + String(rpm); // generate String for motor
   Serial.println(stringToPrint); // this actually tells the thing to move.
-  delay(3000);
+  delay(2500+(rpm-6000));
   Serial.println("bldcstop b"); // this actually tells the start rolling
-  this->moveShakingBuffer.push(wifiDelayWithMotionDetection(3000));
+  if(!waitForSerialResponse(RESPONSE_STOP_BLDC_EB, 1000, buf)) // if we don't hear that it stopped
+  {
+    Serial.println("bldcstop b");                               // try to stop motor again
+  }
+  this->moveShakingBuffer.push(wifiDelayWithMotionDetection(2500));
   this->processState();
   if(this->returnTopFace() == faceUpBeginning)
   {
-    c->blockingBlink(&red);
+    this->blockingBlink(&red);
   }
   else
   {
-    c->blockingBlink(&green);
+    this->blockingBlink(&green);
     succeed = true;
   }
   
-  this->moveSuccessBuffer.push(succeed);
+  this->moveSuccessBuffer.push(!succeed);
   return(succeed);
 }
 
@@ -106,7 +110,7 @@ bool Cube::moveIASimple(Motion* motion)
 bool Cube::MoveIA(Motion* motion, SerialDecoderBuffer* buf)
 {
   int attempts = 1;
-  this->blockingBlink(&purple,2);
+  this->blockingBlink(&purple, 2);
   delay(2000);
   this->lightsOff();
   delay(250);
@@ -300,7 +304,6 @@ bool Cube::goToPlaneIncludingFaces(int face1, int face2, SerialDecoderBuffer* bu
  */
 {
   bool result = false;
-  
   //result = this->setCorePlane(returnPlane(face1, face2), buf, 8000);
   result = this->setCorePlaneSimple(returnPlane(face1, face2));
   return(result);
@@ -343,6 +346,7 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
      (targetCorePlane == PLANEERROR) || 
      (targetCorePlane == PLANEMOVING)) // this protects the inputs
   {
+    this->blockingBlink(&red);
     return(false);
   }
   if(this->findPlaneStatus(false) == targetCorePlane)
@@ -359,7 +363,7 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
   int beginTime = millis();
   Serial.println("sma retract 8000");
   delay(1000);
-  while((this->findPlaneStatus(false) != targetCorePlane) && ((millis()-beginTime) < 7000))
+  while((this->findPlaneStatus(false) != targetCorePlane) && ((millis()-beginTime) < 7500))
   {
     String bldcaccelString = "bldcaccel f " + String(GlobalPlaneAccel) + " 700";
     Serial.println(bldcaccelString);
@@ -870,7 +874,7 @@ bool Cube::determineForwardFace() // FUN3 // plane should be either int 1234, 15
    * plane PLANE_1534 /4
    */
   int topFace = this->returnTopFace(); // 
-  PlaneEnum plane = this->returnCurrentPlane();
+  PlaneEnum plane = this->findPlaneStatus(false);//this->returnCurrentPlane();
   
        if( (topFace == 1 && plane == PLANE0123)  ||  (topFace == 5 && plane == PLANE0425) )   
         {
@@ -1037,7 +1041,7 @@ void Cube::printOutDebugInformation()
       Serial.println("2nd Brightest Face: ");Serial.println(this->returnXthBrightestFace(1));
 }
 
-void Cube::lightRainbow(int delayTime)
+void Cube::blinkRainbow(int delayTime)
 {
   this->lightCube(&purple);
   delay(delayTime);
@@ -1056,3 +1060,5 @@ void Cube::lightRainbow(int delayTime)
   this->lightCube(&off);
   delay(delayTime);
 }
+
+

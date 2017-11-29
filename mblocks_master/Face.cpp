@@ -4,10 +4,11 @@
 #include "Cube.h"
 #include "Face.h"
 #include <Wire.h> 
+#include <Arduino.h>
 
 Face::Face()
   : ambientBuffer(ARRAY_SIZEOF(this->ambientData), this->ambientData),
-    reflectivityBuffer(ARRAY_SIZEOF(this->ambientData), this->ambientData),
+    reflectivityBuffer(ARRAY_SIZEOF(this->reflectivityData), this->reflectivityData),
     magnetAngleBuffer_A(ARRAY_SIZEOF(this->magnetAngleData_A), this->magnetAngleData_A),
     magnetStrengthBuffer_A(ARRAY_SIZEOF(this->magnetStrengthData_A), this->magnetStrengthData_A),
     
@@ -44,7 +45,7 @@ bool Face::updateFace()
       (this->enableSensors() 
     && this->updateAmbient()
     && this->turnOnFaceLEDs(0,0,1,0)    // TEMP
-    && this->updateReflectivity()            // temp
+    //&& this->updateReflectivity()            // temp
     && this->updateMagneticBarcode()
     && this->turnOffFaceLEDs()
     && this->disableSensors());
@@ -169,18 +170,21 @@ bool Face::updateIOExpander()
 
 bool Face::readAmbient()
 {
-delay(15); // 15ms delay to ensure integration period for light sensor works
+activateLightSensor(this->ambientSensorAddress);
+delay(20);
 int reading = 0;
 Wire.beginTransmission(this->ambientSensorAddress); 
 Wire.write(byte(0x8C)); // this is the register where the Ambient values are stored
 Wire.endTransmission();
 Wire.requestFrom(this->ambientSensorAddress, 2);
-if (2 <= Wire.available())  // request data from the sensor
-  {
-    reading = Wire.read();
-    reading |= Wire.read()<<8;
-  }
+if (2 <= Wire.available()) //ambientLight  = twiBuf[0] << 2;
+{
+  reading = Wire.read();
+  reading |= Wire.read()<<8;
+}
 this->ambientBuffer.push(reading); // adds the sensor value to the buffer 
+//Serial.println(reading);
+return(true);
 }
 
 bool Face::updateAmbient()
@@ -188,7 +192,6 @@ bool Face::updateAmbient()
  * This function reads the ambient sensor on this instance of "Face" 
  */
 {
-activateLightSensor(this->ambientSensorAddress);
 this->readAmbient();
 return(true);
 }
@@ -237,29 +240,29 @@ void Face::blinkOutMessage(int digit)
   this->turnOffFaceLEDs();
 }
 
-bool Face::updateReflectivity()
-/*
- * 
- */
-{
-  activateLightSensor(this->ambientSensorAddress);
-  bool error = false; // not yet implemented
-  delay(20); // 15ms delay to ensure integration period for light sensor works
-  int reading = 0;
-  Wire.beginTransmission(this->ambientSensorAddress); 
-  Wire.write(byte(0x8C)); // this is the register where the Ambient values are stored
-  Wire.endTransmission();
-  Wire.requestFrom(this->ambientSensorAddress, 2);
-  if (2 <= Wire.available())  // request data from the sensor
-    {
-      reading = Wire.read();
-      reading |= Wire.read()<<8;
-    }
-  this->reflectivityBuffer.push(reading); // adds the sensor value to the buffer
-  //Serial.print("Reflectivity: ");Serial.println(reading);
-  
-  return(true);
-}
+//bool Face::updateReflectivity()
+///*
+// * 
+// */
+//{
+//  activateLightSensor(this->ambientSensorAddress);
+//  bool error = false; // not yet implemented
+//  delay(17); // 15ms delay to ensure integration period for light sensor works
+//  int reading = 0;
+//  Wire.beginTransmission(this->ambientSensorAddress); 
+//  Wire.write(byte(0x8C)); // this is the register where the Ambient values are stored
+//  Wire.endTransmission();
+//  Wire.requestFrom(this->ambientSensorAddress, 2);
+//  if (2 <= Wire.available())  // request data from the sensor
+//    {
+//      reading = Wire.read();
+//      reading |= Wire.read()<<8;
+//    }
+//  this->reflectivityBuffer.push(reading); // adds the sensor value to the buffer
+//  //Serial.print("Reflectivity: ");Serial.println(reading);
+//  
+//  return(true);
+//}
 
 int Face::returnAmbientValue(int index)
 {
@@ -411,7 +414,8 @@ bool Face::enableSensors()
 */
 {
   this->IOExpanderState[0] &= ~(1 << FB_EN1);
-  return this->updateIOExpander();
+  delay(10);
+  return(this->updateIOExpander());
 }
 
 bool Face::turnOffFaceLEDs()
@@ -447,35 +451,23 @@ bool Face::disableSensors()
   return(this->updateIOExpander());
 }
 
-int readAmbient(int address)
+void activateLightSensor(int i2caddress)
 {
-  activateLightSensor(address);
-  delay(15);
-  int reading = 0;
-  Wire.beginTransmission(address); 
-  Wire.write(byte(0x8C)); // this is the register where the Ambient values are stored
-  Wire.endTransmission();
-  Wire.requestFrom(address, 2);
-  if (2 <= Wire.available()) 
-  {
-    reading = Wire.read();
-    reading |= Wire.read()<<8;
-  }
-  return reading;
-}
-
-void activateLightSensor(int address)
-{
-  Wire.beginTransmission(address); 
+  //Serial.println("BEGINNING ACTIVATE AMBIENT...");
+  delay(10);
+  Wire.beginTransmission(i2caddress); 
   Wire.write(byte(0x80)); // 1000 0000 - Selects command register
   Wire.write(byte(0x03)); // 0000 0010 - Activates device
   Wire.endTransmission();
-  Wire.beginTransmission(address); 
-  Wire.write(byte(0x81));
+  delay(3);
+  Wire.beginTransmission(i2caddress); 
+  Wire.write(byte(0x81)); // 1000 
   Wire.write(byte(0x10)); // Sets integration time to 15 ms ... // 00010XX sets gain to 16x
-  // 0x10 = 100 ms
-  // 0x10 = 14ms w/ 16x High Gain
   Wire.endTransmission();
+  // 0x00 = 15ms
+  // 0x10 = 100 ms
+  // 
+  //Wire.endTransmission();
 }
 
 int readMagnetSensorAngle(int i2cAddress) {

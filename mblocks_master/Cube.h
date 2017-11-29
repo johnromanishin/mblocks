@@ -35,7 +35,7 @@ class Cube
     Behavior behaviorBufferData[32];   // This buffer stores the history of the behaviors
     PlaneEnum currentPlaneBufferData[20]; // this buffer stores the history of which plane we are in
     bool moveSuccessBufferData[20];       // this buffer stores a history of moves and if they worked or not
-    int moveShakeBufferData[20];          // this buffer stores the sum of the IMU for recent moves.
+    int moveShakingBufferData[20];          // this buffer stores the sum of the IMU for recent moves.
     
 
     int axCoreData[32];
@@ -81,7 +81,7 @@ class Cube
         // Functions involving motion
     bool MoveIA(Motion* motion, SerialDecoderBuffer* buf);
     bool moveIASimple(Motion* motion);
-    bool roll(int forwardReverse = 1, int rpm = 6000);
+    bool roll(int forwardReverse, SerialDecoderBuffer* buf, int rpm = 6000);
 
         // Related to the state itself
     PlaneEnum returnCurrentPlane();
@@ -105,7 +105,7 @@ class Cube
     bool lightCube(Color* inputColor); // lights entire cube, defaults to yellow
     bool blockingBlink(Color* inputColor, int howManyTimes = 6, int waitTime = 100);
     void setFaceLEDsAtEdge(int, int); // 
-    void lightRainbow(int delayTime);
+    void blinkRainbow(int delayTime = 250);
 
     // Misc. Useful Functions
     bool determineIfLatticeConnected();

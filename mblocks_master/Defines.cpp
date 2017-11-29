@@ -38,12 +38,12 @@ extern int TRAVERSE_RPM_R = 6500;
 extern int TRAVERSE_CURRENT_F = 2500;
 extern int TRAVERSE_CURRENT_R = 2500;
 
-extern int CC_RPM_F = 15000;
-extern int CC_RPM_R = 15000;
+extern int CC_RPM_F = 15500;
+extern int CC_RPM_R = 15500;
 extern int CC_CURRENT_F = 3000;
 extern int CC_CURRENT_R = 3000;
-extern int CC_BRAKETIME_F = 10;
-extern int CC_BRAKETIME_R = 10;
+extern int CC_BRAKETIME_F = 12;
+extern int CC_BRAKETIME_R = 12;
 
 EspToCubeMapping espCubeMap[] =
 {
