@@ -14,6 +14,8 @@ Cube::Cube()
     faceSensorUpdateTimeBuffer(ARRAY_SIZEOF(this->faceSensorUpdateTimeData),  this->faceSensorUpdateTimeData),
     behaviorBuffer(ARRAY_SIZEOF(this->behaviorBufferData),                    this->behaviorBufferData),
     currentPlaneBuffer(ARRAY_SIZEOF(this->currentPlaneBufferData),            this->currentPlaneBufferData),
+    moveSuccessBuffer(ARRAY_SIZEOF(this->moveSuccessBufferData),              this->moveSuccessBufferData),
+    moveShakeBuffer(ARRAY_SIZEOF(this->moveShakeBufferData),                  this->moveShakeBufferData),
     
     axFrameBuffer(ARRAY_SIZEOF(this->axFrameData), this->axFrameData),
     ayFrameBuffer(ARRAY_SIZEOF(this->ayFrameData), this->ayFrameData),
@@ -45,6 +47,48 @@ Cube::Cube()
 
 // In later sections, super long...
 // bool Cube::lightCube(bool r, bool g, bool b)
+
+bool Cube::roll(int forwardReverse, int rpm)
+/*
+ * This function is intended to be used when a cube is NOT on a lattice
+ * It will roll around the environment, defaults to FORWARD with 6000 RPM
+ */
+{
+  this->processState(); // update IMU's and "topFace" 
+  int faceUpBeginning = this->returnTopFace();
+  bool succeed = false;
+  String CW_CCW;
+  if(forwardReverse < 0)
+    {
+      c->blockingBlink(&yellow);
+      CW_CCW = " r "; // set the direction to "reverse" if forwardReverse is negatuve
+    }
+  else
+    {
+      c->blockingBlink(&blue);
+      CW_CCW = " f ";
+    }
+  delay(20);
+  String stringToPrint = "bldcspeed" + CW_CCW + String(rpm); // generate String for motor
+  Serial.println(stringToPrint); // this actually tells the thing to move.
+  delay(3000);
+  Serial.println("bldcstop b"); // this actually tells the start rolling
+  this->moveShakingBuffer.push(wifiDelayWithMotionDetection(3000));
+  this->processState();
+  if(this->returnTopFace() == faceUpBeginning)
+  {
+    c->blockingBlink(&red);
+  }
+  else
+  {
+    c->blockingBlink(&green);
+    succeed = true;
+  }
+  
+  this->moveSuccessBuffer.push(succeed);
+  return(succeed);
+}
+
 
 bool Cube::moveIASimple(Motion* motion)
 {
@@ -237,8 +281,8 @@ int Cube::wifiDelayWithMotionDetection(int delayTime) //**WIP
                     abs(this->gyCoreBuffer.access(0)) + 
                     abs(this->gzCoreBuffer.access(0)));     
     }
-    mesh.update();    
-    delay(10);
+    mesh.update();
+    delay(50);
   }
   if(motionSum == 0 || updateCount == 0)
   {

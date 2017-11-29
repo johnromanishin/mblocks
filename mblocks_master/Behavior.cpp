@@ -113,8 +113,11 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
       c->lightFace(brightestFace,&teal);
       delay(500);
       if(brightestFace == c->returnForwardFace())
+          
           {Serial.println("bldcspeed f 6000");c->blockingBlink(&green);delay(3000);Serial.println("bldcstop b");}
+          
       else if(brightestFace == c->returnReverseFace())
+      
           {Serial.println("bldcspeed r 6000");c->blockingBlink(&red);delay(3000);Serial.println("bldcstop b");}
       else if(c->returnForwardFace() == c->returnXthBrightestFace(2))
           {Serial.println("bldcspeed f 6000");c->blockingBlink(&green);delay(3000);Serial.println("bldcstop b");}

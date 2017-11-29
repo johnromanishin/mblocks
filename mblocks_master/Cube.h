@@ -31,9 +31,11 @@ class Cube
 
       // Data storage spaces
 
-    long faceSensorUpdateTimeData[10];
-    Behavior behaviorBufferData[32];
-    PlaneEnum currentPlaneBufferData[20];
+    long faceSensorUpdateTimeData[10]; // This buffer stores millis() for when c->updateSensors is called
+    Behavior behaviorBufferData[32];   // This buffer stores the history of the behaviors
+    PlaneEnum currentPlaneBufferData[20]; // this buffer stores the history of which plane we are in
+    bool moveSuccessBufferData[20];       // this buffer stores a history of moves and if they worked or not
+    int moveShakeBufferData[20];          // this buffer stores the sum of the IMU for recent moves.
     
 
     int axCoreData[32];
@@ -79,6 +81,7 @@ class Cube
         // Functions involving motion
     bool MoveIA(Motion* motion, SerialDecoderBuffer* buf);
     bool moveIASimple(Motion* motion);
+    bool roll(int forwardReverse = 1, int rpm = 6000);
 
         // Related to the state itself
     PlaneEnum returnCurrentPlane();
@@ -114,6 +117,8 @@ class Cube
     CircularBuffer<long> faceSensorUpdateTimeBuffer;
     CircularBuffer<Behavior> behaviorBuffer;
     CircularBuffer<PlaneEnum> currentPlaneBuffer;
+    CircularBuffer<bool> moveSuccessBuffer;
+    CircularBuffer<int> moveShakingBuffer;
 
     CircularBuffer<int> axCoreBuffer;
     CircularBuffer<int> ayCoreBuffer;
