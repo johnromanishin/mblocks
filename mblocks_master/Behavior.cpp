@@ -96,53 +96,52 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
 {
   if(DEBUG_BEHAVIOR) {Serial.println("soloSeekLight");}
   Behavior nextBehavior = SOLO_LIGHT_TRACK;
-  c->updateSensors();
-  nextBehavior = checkForMagneticTagsStandard(c, nextBehavior, buf);
-//  if(c->numberOfNeighbors(0,0))
-//    {
-//        nextBehavior = TEST_TESTING_THANGS;
-//    }
-  int brightestFace = c->returnXthBrightestFace(0);
-  int nextBrightestFace = c->returnXthBrightestFace(1);
-  if(c->returnXthBrightestFace(0) == c->returnTopFace()) // now brightest Face now excludes the top face
+  while(nextBehavior == SOLO_LIGHT_TRACK)
   {
-    brightestFace = c->returnXthBrightestFace(1);
-    nextBrightestFace = c->returnXthBrightestFace(2);
+    c->updateSensors();
+    nextBehavior = checkForMagneticTagsStandard(c, nextBehavior, buf);
+    int brightestFace = c->returnXthBrightestFace(0);
+    int nextBrightestFace = c->returnXthBrightestFace(1);
+    if(c->returnXthBrightestFace(0) == c->returnTopFace()) // now brightest Face now excludes the top face
+    {
+      brightestFace = c->returnXthBrightestFace(1);
+      nextBrightestFace = c->returnXthBrightestFace(2);
+    }
+    c->lightFace(brightestFace,&teal);
+    delay(300);
+    if(c->returnForwardFace() == -1)
+    {
+      Serial.println("bldcaccel f 5000 2000");
+      delay(500);
+      Serial.println("bldcstop b");
+      delay(8000);
+    }
+    
+    if(brightestFace == c->returnForwardFace())
+    {
+      c->roll(1, buf, 8000); 
+    }
+    else if(brightestFace == c->returnReverseFace())
+    {
+      c->roll(-1, buf, 8000);
+    }
+    else if(nextBrightestFace == c->returnForwardFace())
+    {
+      c->roll(1, buf, 6000);
+    }
+    else if(nextBrightestFace == c->returnReverseFace())
+    {
+       c->roll(-1, buf, 6000); 
+    }
+    else
+       c->roll(1, buf, 7000); 
+    if((c->moveSuccessBuffer.access(0) == true) && (c->moveSuccessBuffer.access(1) == true))
+        {
+          Serial.println("ia f 4500 3500 10");
+          delay(8000);
+          c->moveSuccessBuffer.push(false);
+        }
   }
-  c->lightFace(brightestFace,&teal);
-  delay(300);
-  if(c->returnForwardFace() == -1)
-  {
-    Serial.println("bldcaccel f 4000 1500");
-    delay(500);
-    Serial.println("bldcstop b");
-  }
-  
-  if(brightestFace == c->returnForwardFace())
-  {
-    c->roll(1, buf, 8000); 
-  }
-  else if(brightestFace == c->returnReverseFace())
-  {
-    c->roll(-1, buf, 8000);
-  }
-  else if(nextBrightestFace == c->returnForwardFace())
-  {
-    c->roll(1, buf);
-  }
-  else if(nextBrightestFace == c->returnReverseFace())
-  {
-     c->roll(-1, buf); 
-  }
-  
-  else
-      delay(100);
-  if((c->moveSuccessBuffer.access(0) == true) && (c->moveSuccessBuffer.access(1) == true))
-      {
-        Serial.println("ia f 4500 3000 10");
-        delay(8000);
-        c->moveSuccessBuffer.push(false);
-      }
   return(nextBehavior);
 }
 
@@ -190,13 +189,15 @@ Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf)
           if(CW_or_CCW == -1)
             c->moveIASimple(&cornerClimb_R);
         }
-      }
+      }      
     }
+    ////////////////
     if(loopCounter%4)
       c->lightCube(&yellow);
     else if((loopCounter+1)%4)
       c->lightCube(&off);
     delay(300);
+    //////////
     loopCounter++;
   }
   return nextBehavior;

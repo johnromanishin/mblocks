@@ -75,6 +75,7 @@ bool Cube::roll(int forwardReverse, SerialDecoderBuffer* buf, int rpm)
   Serial.println("bldcstop b"); // this actually tells the start rolling
   if(!waitForSerialResponse(RESPONSE_STOP_BLDC_EB, 1000, buf)) // if we don't hear that it stopped
   {
+    delay(200);
     Serial.println("bldcstop b");                               // try to stop motor again
   }
   this->moveShakingBuffer.push(wifiDelayWithMotionDetection(2500));
@@ -351,6 +352,7 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
   }
   if(this->findPlaneStatus(false) == targetCorePlane)
   {
+    this->blockingBlink(&green);
     return(true);
   }
   //
