@@ -31,7 +31,7 @@ typedef enum Behavior
     DUO_LIGHT_TRACK,
     FOLLOW_ARROWS,
     CHILLING,
-    TEST_TESTING_THANGS,
+    CLIMB,
     ATTRACTIVE,
     TESTING, 
     SHUT_DOWN,
@@ -87,6 +87,9 @@ extern Motion roll_R;
 extern Motion cornerClimb_F;
 extern Motion cornerClimb_R;
 
+extern Motion shake_F;
+extern Motion softShake_F;
+
 /// ESP ID to CUBE MAP ////
 typedef struct EspToCubeMapping
 {
@@ -113,11 +116,21 @@ typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING,
 #define SCL 14    //  Managed by the wire.begin in initializeCube() 
 /////////////////////////////////////////////////////////////////////
 extern int faceVersion;
-extern int cubeID;
+extern int GlobalCubeID;
 extern int GlobalPlaneAccel;
 
 extern int GlobalplaneChangeTime;
 extern int GlobalplaneChangeRPM;
+extern int magicVariable;
+extern int magicVariable_0;
+extern int magicVariable_1;
+extern int magicVariable_2;
+extern int magicVariable_3;
+extern int magicVariable_4;
+extern int magicVariable_5;
+
+extern int MAGIC_DEBUG;
+extern int magicFace;
 
 extern int TRAVERSE_RPM_F;
 extern int TRAVERSE_RPM_R;

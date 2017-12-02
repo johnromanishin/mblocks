@@ -148,6 +148,7 @@ class Face
     int returnMagnetStrength_B(int index); 
     
     int returnAmbientValue(int index);
+    void forceUpdateAmbientValue(int value); // used to simplify sorting...
     int returnReflectivityValue(int index);
     //
     bool returnNeighborPresence(int index);

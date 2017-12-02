@@ -55,13 +55,23 @@ bool Face::updateFace()
 
 
 bool Face::processTag()
+/*
+ * This function evaluates the magnetic "tags" on 5 different characteristics
+ * and then updates face-specific circular buffers for the following characteristics
+ * The function returns data from the most recent magnetic buffer readings.
+ * 
+ * Tag Presence: True | False
+ * Tag Type:  TAGTYPE_INVALID | TAGTYPE_REGULAR_CUBE | TAGTYPE_PASSIVE_CUBE | TAGTYPE_NOTHING,
+ * Tag Angle: -1 |    0 | 1 | 2 | 3
+ * Tag Command: TAGCOMMAND_NONE | ...
+ */
 {
-  bool endResult = false;
+  bool tagPresent = false;
   int angle1 = this->returnMagnetAngle_A(0);
   int angle2 = this->returnMagnetAngle_B(0);
   int agc1 = this->returnMagnetStrength_A(0);
   int agc2 = this->returnMagnetStrength_B(0);
-  int strengthThreshold = 450;
+  int strengthThreshold = 480;
   int magDigit1 = 0;
   int magDigit2 = 0;
         if (agc1 == 0 || agc1 >= 255)       {magDigit1 = 0;}
@@ -75,15 +85,15 @@ bool Face::processTag()
   
   int tagStrength = agc1+agc2; // this is a measurement of how accurate the tag strength is
   
-  TagType tagType = TAGTYPE_INVALID;    // Resets all of these values
-  TagCommand tagCommand = TAGCOMMAND_NONE; // Resets all of these values
-  int tagAngle = -1; //             // Resets all of these values
-  int tagID = -1; //                // Resets all of these values
-  int tagFace = -1; //              // Resets all of these values
+  TagType tagType = TAGTYPE_INVALID;        // Resets all of these values
+  TagCommand tagCommand = TAGCOMMAND_NONE;  // Resets all of these values
+  int tagAngle = -1; //                     // Resets all of these values
+  int tagID = -1; //                        // Resets all of these values
+  int tagFace = -1; //                      // Resets all of these values
         
   if(((agc1+agc2) < strengthThreshold) && (tagStrength > 0)) // this means there is a valid tag!! woo!
   {
-    endResult = true;
+    tagPresent = true; // THIS MEANS WE HAVE A TAG!!
     /*============================================================================================================
     * CHECK IF TAG REPRESENTS A MODULE
     */
@@ -154,7 +164,7 @@ this->neighborCommandBuffer.push(tagCommand);
 this->neighborFaceBuffer.push(tagFace); 
 this->neighborAngleBuffer.push(tagAngle); 
 this->neighborIDBuffer.push(tagID); 
-return(endResult); 
+return(tagPresent); 
 }
 
 
@@ -185,6 +195,10 @@ if (2 <= Wire.available()) //ambientLight  = twiBuf[0] << 2;
 this->ambientBuffer.push(reading); // adds the sensor value to the buffer 
 //Serial.println(reading);
 return(true);
+}
+void Face::forceUpdateAmbientValue(int value)
+{
+  this->ambientBuffer.push(value); // adds the sensor value to the buffer 
 }
 
 bool Face::updateAmbient()

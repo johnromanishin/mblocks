@@ -14,7 +14,7 @@
 //    DUO_LIGHT_TRACK,
 //    FOLLOW_ARROWS,
 //    CHILLING,
-//    TEST_TESTING_THANGS,
+//    CLIMB,
 //    ATTRACTIVE,
 //    TESTING, 
 //    SHUT_DOWN,
@@ -94,7 +94,7 @@ Behavior chilling(Cube* c, SerialDecoderBuffer* buf);
  * b.
  */
 
-Behavior attractive(Cube* c);
+Behavior attractive(Cube* c, SerialDecoderBuffer* buf);
 /*        --- What it does ---
  * 0.   Attempts to attract other cubes to it by turning on its lights
  * 1.   Determines which faces are not top/bottom/ or connected
@@ -121,7 +121,7 @@ Behavior followArrows(Cube* c, SerialDecoderBuffer* buf);
  */
 //Behavior relayBehavior(Cube* c, Behavior);
 
-Behavior testTestingThangs(Cube* c, SerialDecoderBuffer* buf);
+Behavior climb(Cube* c, SerialDecoderBuffer* buf);
 /*        --- What it does ---
  * 0.
  * 1.
@@ -137,5 +137,6 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior, SerialDeco
 Behavior relayBehavior(Cube* c, Behavior behaviorToRelay, int cubeToRelayTo = -1, int timesToRelay = 4);
 Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior);
 Behavior checkForBehaviors(Cube* c, SerialDecoderBuffer* buf, Behavior behavior);
+Behavior basicUpkeep(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf);
 String behaviorsToCmd(Behavior inputBehavior);
 #endif

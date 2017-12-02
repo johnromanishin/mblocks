@@ -1,15 +1,30 @@
 #include "Defines.h"
 #include "Communication.h"
 
-//                      moveName      , brake   , rpm             , timout        , current             , brakeTime     , difficult , for_rev
-Motion traverse_F     = {"traverse"   , true    , 6000            , 6000          , 3000                , 12            , 9         ,"f"};
-Motion traverse_R     = {"traverse"   , true    , 6000            , 6000          , 3000                , 12            , 9         ,"r"};
+//typedef struct Motion
+//{
+//  String moveName;      // name of move, used when we instantiate the type of movement
+//  bool brake; // true = use mechanical brake  || false = use the electronic brake only
+//  int rpm;              // RPM that we 
+//  int timeout;       // time that we will wait untill for confirmation of the speed
+//  int current;     // Current we apply to the brake in mA ... Maximum is 6000 ma
+//  int brakeTime;        // Time (milli Seconds) we apply the brake for Maximum time*current < some value
+//  int difficulty;     // Estimated difficulty of the move on a scale 1-255; with 1 == easy, 255 == very hard;
+//  String for_rev;
+//} Motion;
 
-Motion roll_F         = {"roll"       , false   , 6500            ,    0          ,    0                , 0             , 1         ,"f"};
-Motion roll_R         = {"roll"       , false   , 6500            ,    0          ,    0                , 0             , 1         ,"r"};
+//                      moveName      , brake   , rpm             , timout        , current           , brakeTime     , difficult , for_rev
+Motion traverse_F     = {"traverse"   , true    , 6000            , 6000          , 3000              , 12            , 9         ,"f"};
+Motion traverse_R     = {"traverse"   , true    , 6000            , 6000          , 3000              , 12            , 9         ,"r"};
 
-Motion cornerClimb_F  = {"cornerClimb", true    , 15500            , 7000          , 33000               , 12            , 250       ,"f"};
-Motion cornerClimb_R  = {"cornerClimb", true    , 15500            , 7000          , 3300                , 12            , 250       ,"r"};
+Motion roll_F         = {"roll"       , false   , 6500            ,    0          ,    0              , 0             , 1         ,"f"};
+Motion roll_R         = {"roll"       , false   , 6500            ,    0          ,    0              , 0             , 1         ,"r"};
+
+Motion cornerClimb_F  = {"cornerClimb", true    , 15500           , 7000          , 3300              , 12            , 250       ,"f"};
+Motion cornerClimb_R  = {"cornerClimb", true    , 15500           , 7000          , 3300              , 12            , 250       ,"r"};
+
+Motion shake_F        = {"shake"      , false   , 4500            , 4000          , 3500              , 20            , 250       ,"f"};
+Motion softShake_F    = {"softShake"  , false   , 3500            , 3000          , 3000              , 20            , 250       ,"f"};
 
 //
 
@@ -24,13 +39,23 @@ Color white =   {1,1,1};
 Color off   =   {0,0,0};
 
 int faceVersion = 1;
-int cubeID = 0;
+int GlobalCubeID = 0;
 // typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING, PLANEERROR} PlaneEnum;
 //int GlobalplaneChangeTime = 60;
 //int GlobalplaneChangeRPM = 5000;
 extern int GlobalplaneChangeTime;
 extern int GlobalplaneChangeRPM;
-extern int GlobalPlaneAccel = 2400;
+extern int GlobalPlaneAccel = 2100;
+extern int magicVariable = 0;
+extern int MAGIC_DEBUG = 0;
+extern int magicFace = 0;
+extern int magicVariable_0 = 0;
+extern int magicVariable_1 = 0;
+extern int magicVariable_2 = 0;
+extern int magicVariable_3 = 0;
+extern int magicVariable_4 = 0;
+extern int magicVariable_5 = 0;
+
 
 
 extern int TRAVERSE_RPM_F = 6500;
@@ -63,13 +88,13 @@ EspToCubeMapping espCubeMap[] =
 //{959694,    99},  // PEI ||  BLUE    || FA:AA:25:19:C7:DF 01  ||  WIFI doesn't work great..
 
 
-int getEspIDFromCube(int cubeID)
+int getEspIDFromCube(int GlobalCubeID)
 {
   int idex;
   int foundit = 0;
   for(idex = 0; idex < (sizeof(espCubeMap) / sizeof(espCubeMap[0])); idex++)
   {
-    if(cubeID == espCubeMap[idex].cube)
+    if(GlobalCubeID == espCubeMap[idex].cube)
     {
       foundit = 1;
       break;

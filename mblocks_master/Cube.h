@@ -17,7 +17,6 @@ class Cube
 {
   private:
     // General information
-    int cubeID = 1;
     int batteryVoltage = 0;
     PlaneEnum currentPlane; // The plane (out of three) that the central actuator is in - 0
     int topFace;      // face this is point upwards, as determined by the accelerometer
@@ -36,7 +35,7 @@ class Cube
     PlaneEnum currentPlaneBufferData[20]; // this buffer stores the history of which plane we are in
     bool moveSuccessBufferData[20];       // this buffer stores a history of moves and if they worked or not
     int moveShakingBufferData[20];          // this buffer stores the sum of the IMU for recent moves.
-    
+    int topFaceBufferData[10];
 
     int axCoreData[32];
     int ayCoreData[32];
@@ -56,16 +55,19 @@ class Cube
     //bool CornerRGB(int face, bool top, bool r, bool g, bool b); // Only for Version 0;
     bool determineForwardFace();        // updates variable this->ForwardFace
     bool determineTopFace(int threshold = 12500);             // updates variable this->UpFace
-    bool processState();
 
   public:
       // Public Variables
+    int cubeID = 1;
+
+    // Functions
+    void updateCubeID(int idNUM);
     void disconnectI2C();
     void reconnectI2C();
     void resetI2C();
     void blinkParasiteLED(int blinkTime = 100);
     int wifiDelayWithMotionDetection(int delayTime);
-    long shutDownTime = (60000*5); // time until board goes to sleep
+    int shutDownTime = (60000*5); // time until board goes to sleep
 
       // Update Functions involving SENSORS
     bool updateSensors(); // Updates almost everything on the cube...
@@ -75,26 +77,28 @@ class Cube
     bool updateFrameIMU();
     bool updateCoreIMU();
     bool wakeIMU(int i2cAddress);
-    int returnXthBrightestFace(int index);
+    int returnXthBrightestFace(int index, bool ExcludeTop);
     int returnSumOfAmbient(); // returns the sum of all of the light sensors
 
         // Functions involving motion
-    bool MoveIA(Motion* motion, SerialDecoderBuffer* buf);
     bool moveIASimple(Motion* motion);
     bool roll(int forwardReverse, SerialDecoderBuffer* buf, int rpm = 6000);
 
         // Related to the state itself
+    bool processState();
     PlaneEnum returnCurrentPlane();
+    String returnCurrentPlane_STRING();
     int returnForwardFace();
     int returnReverseFace();
-    int returnTopFace();
+    int returnTopFace(int index = 0);
     int returnBottomFace();
+    bool isFaceNeitherTopNorBottom(int face);
 
     // Functions involving PLane Changing
     PlaneEnum findPlaneStatus(bool reset = true);
     bool setCorePlaneSimple(PlaneEnum targetCorePlane);
     //bool setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int attemptTime = 6000); 
-    bool goToPlaneParallel(int faceExclude, SerialDecoderBuffer* buf);
+    bool goToPlaneParallel(int faceExclude);
     bool goToPlaneIncludingFaces(int face1, int face2, SerialDecoderBuffer* buf);
     
 
@@ -106,6 +110,8 @@ class Cube
     bool blockingBlink(Color* inputColor, int howManyTimes = 6, int waitTime = 100);
     void setFaceLEDsAtEdge(int, int); // 
     void blinkRainbow(int delayTime = 250);
+    void blinkSpecial(int delayTime = 250);
+    void blinkAmerica(int delayTime = 250);
 
     // Misc. Useful Functions
     bool determineIfLatticeConnected();
@@ -119,6 +125,7 @@ class Cube
     CircularBuffer<PlaneEnum> currentPlaneBuffer;
     CircularBuffer<bool> moveSuccessBuffer;
     CircularBuffer<int> moveShakingBuffer;
+    CircularBuffer<int> topFaceBuffer;
 
     CircularBuffer<int> axCoreBuffer;
     CircularBuffer<int> ayCoreBuffer;

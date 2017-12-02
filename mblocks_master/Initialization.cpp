@@ -84,8 +84,7 @@ void whatToDoIfIamNotConnectedAtBeginning()
 void initializeHardware()
 {
   Serial.begin(115200);       // open serial connection to the Slave Board
-  Serial.println("stillalive");
-  delay(800);
+  delay(2000);
   Serial.print("ESP Chip ID: ");
   Serial.println(ESP.getChipId());
   pinMode(Switch, OUTPUT);    // Initialize the pin to controll the power switching circuitry
@@ -205,27 +204,27 @@ void lookUpCalibrationValues()
   switch (ESP.getChipId()) 
   {
     //********************************
-    case 9086927:
+    case 9086927: // This is the cube on the BIG Breadboard
       Serial.println("WOOO!");
-      cubeID = 0;
+      GlobalCubeID = 99;
       
-      TRAVERSE_RPM_F = 2800;
-      TRAVERSE_RPM_R = 2800;
-      TRAVERSE_CURRENT_F = 2800;
-      TRAVERSE_CURRENT_R = 2800;
+      TRAVERSE_RPM_F = 6969;
+      TRAVERSE_RPM_R = 69696;
+      TRAVERSE_CURRENT_F = 69696;
+      TRAVERSE_CURRENT_R = 6969;
 
-      CC_RPM_F = 2800;
-      CC_RPM_R = 2800;
-      CC_CURRENT_F = 2800;
-      CC_CURRENT_R = 2800;
-      CC_BRAKETIME_F = 10;
-      CC_BRAKETIME_R = 10;
+      CC_RPM_F = 999999;
+      CC_RPM_R = 999999;
+      CC_CURRENT_F = 999999;
+      CC_CURRENT_R = 999999;
+      CC_BRAKETIME_F = 999;
+      CC_BRAKETIME_R = 999;
  
       break;
     //********************************
     
     case 13374829:   
-      cubeID = 99;
+      GlobalCubeID = 99;
       
       TRAVERSE_RPM_F = 999;
       TRAVERSE_RPM_R = 999;
@@ -241,7 +240,7 @@ void lookUpCalibrationValues()
       break;
     //********************************
     case 959694: // Purple PEI
-      cubeID = 0;
+      GlobalCubeID = 0;
       GlobalPlaneAccel = 2000;
       TRAVERSE_RPM_F = 7000;
       TRAVERSE_RPM_R = 7000;
@@ -256,7 +255,7 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 10;
     //********************************
     case 960348: // GREEN PEI
-      cubeID = 0;
+      GlobalCubeID = 0;
       
       TRAVERSE_RPM_F = 6500;
       TRAVERSE_RPM_R = 6500;
@@ -271,7 +270,7 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 10;
       break;
     case 960043: // YELLOW PEI
-      cubeID = 0;
+      GlobalCubeID = 0;
       
       TRAVERSE_RPM_F = 7000;
       TRAVERSE_RPM_R = 7000;
@@ -280,14 +279,14 @@ void lookUpCalibrationValues()
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 4000;
-      CC_CURRENT_R = 4000;
-      CC_BRAKETIME_F = 11;
-      CC_BRAKETIME_R = 11;
+      CC_CURRENT_F = 4500;
+      CC_CURRENT_R = 4500;
+      CC_BRAKETIME_F = 15;
+      CC_BRAKETIME_R = 15;
       break;
       
     case 8577715: // Brown PC
-      cubeID = 0;
+      GlobalCubeID = 1;
       
       TRAVERSE_RPM_F = 7000;
       TRAVERSE_RPM_R = 7000;
@@ -296,14 +295,14 @@ void lookUpCalibrationValues()
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 4000;
+      CC_CURRENT_F = 3600;
       CC_CURRENT_R = 4000;
       CC_BRAKETIME_F = 11;
-      CC_BRAKETIME_R = 11;
+      CC_BRAKETIME_R = 13;
       break;
 
     case 960242: // ORANGE PEI
-      cubeID = 0;
+      GlobalCubeID = 0;
       
       TRAVERSE_RPM_F = 7000;
       TRAVERSE_RPM_R = 7000;
@@ -314,6 +313,38 @@ void lookUpCalibrationValues()
       CC_RPM_R = 15500;
       CC_CURRENT_F = 3300;
       CC_CURRENT_R = 3300;
+      CC_BRAKETIME_F = 10;
+      CC_BRAKETIME_R = 10;
+      break;
+      
+    case 15044426: // RED PEI
+      GlobalCubeID = 23;
+      
+      TRAVERSE_RPM_F = 6500;
+      TRAVERSE_RPM_R = 6500;
+      TRAVERSE_CURRENT_F = 3000;
+      TRAVERSE_CURRENT_R = 3000;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 3100;
+      CC_CURRENT_R = 3300;
+      CC_BRAKETIME_F = 10;
+      CC_BRAKETIME_R = 10;
+      break;
+
+    case 8575308: // GREEN PC
+      GlobalCubeID = 23;
+      
+      TRAVERSE_RPM_F = 6500;
+      TRAVERSE_RPM_R = 6500;
+      TRAVERSE_CURRENT_F = 2800;
+      TRAVERSE_CURRENT_R = 3000;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 3000;
+      CC_CURRENT_R = 3000;
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
       break;

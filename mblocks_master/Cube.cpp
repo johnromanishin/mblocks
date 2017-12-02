@@ -16,7 +16,8 @@ Cube::Cube()
     currentPlaneBuffer(ARRAY_SIZEOF(this->currentPlaneBufferData),            this->currentPlaneBufferData),
     moveSuccessBuffer(ARRAY_SIZEOF(this->moveSuccessBufferData),              this->moveSuccessBufferData),
     moveShakingBuffer(ARRAY_SIZEOF(this->moveShakingBufferData),              this->moveShakingBufferData),
-    
+    topFaceBuffer(ARRAY_SIZEOF(this->topFaceBufferData),                      this->topFaceBufferData),
+      
     axFrameBuffer(ARRAY_SIZEOF(this->axFrameData), this->axFrameData),
     ayFrameBuffer(ARRAY_SIZEOF(this->ayFrameData), this->ayFrameData),
     azFrameBuffer(ARRAY_SIZEOF(this->azFrameData), this->azFrameData),
@@ -55,6 +56,7 @@ bool Cube::roll(int forwardReverse, SerialDecoderBuffer* buf, int rpm)
  */
 {
   this->processState(); // update IMU's and "topFace" 
+  delay(400);
   int faceUpBeginning = this->returnTopFace();
   bool succeed = false;
   String CW_CCW;
@@ -65,7 +67,7 @@ bool Cube::roll(int forwardReverse, SerialDecoderBuffer* buf, int rpm)
     }
   else
     {
-      this->blockingBlink(&blue);
+      this->blockingBlink(&teal);
       CW_CCW = " f ";
     }
   delay(20);
@@ -73,13 +75,14 @@ bool Cube::roll(int forwardReverse, SerialDecoderBuffer* buf, int rpm)
   Serial.println(stringToPrint); // this actually tells the thing to move.
   delay(2500+(rpm-6000));
   Serial.println("bldcstop b"); // this actually tells the start rolling
-  if(!waitForSerialResponse(RESPONSE_STOP_BLDC_EB, 1000, buf)) // if we don't hear that it stopped
-  {
-    delay(200);
-    Serial.println("bldcstop b");                               // try to stop motor again
-  }
-  this->moveShakingBuffer.push(wifiDelayWithMotionDetection(2500));
+  //if(!waitForSerialResponse(RESPONSE_STOP_BLDC_EB, 1000, buf)) // if we don't hear that it stopped
+  //{
+    //delay(500);
+    //Serial.println("bldcstop b");                               // try to stop motor again
+  //}
+  this->moveShakingBuffer.push(wifiDelayWithMotionDetection(2500)); // delays 2500 ms
   this->processState();
+  delay(100);
   if(this->returnTopFace() == faceUpBeginning)
   {
     this->blockingBlink(&red);
@@ -90,50 +93,62 @@ bool Cube::roll(int forwardReverse, SerialDecoderBuffer* buf, int rpm)
     succeed = true;
   }
   
-  this->moveSuccessBuffer.push(!succeed);
+  this->moveSuccessBuffer.push(succeed);
   return(succeed);
 }
 
-
+//PLANE0123, PLANE0425, PLANE1453,
 bool Cube::moveIASimple(Motion* motion)
 {
-  delay(1500);
-  this->blockingBlink(&green,2);
-  delay(2000);
-  this->lightsOff();
-  delay(250);
-  String iaString = "ia " + String(motion->for_rev)+ " " + String(motion->rpm) + " " + String(motion->current) + " " + String(motion->brakeTime) + " e 10";
-  Serial.println(iaString);
-  delay((motion->timeout+4500));
-  return(true);
-}
-
-bool Cube::MoveIA(Motion* motion, SerialDecoderBuffer* buf)
-{
-  int attempts = 1;
-  this->blockingBlink(&purple, 2);
-  delay(2000);
-  this->lightsOff();
-  delay(250);
-  while(attempts) // we subtract 1 from "numberOfAttempts" each time around
+  PlaneEnum currentPlane = findPlaneStatus(true);
+  if((currentPlane == PLANE0123) ||
+     (currentPlane == PLANE0425) || 
+     (currentPlane == PLANE1453)) //  This makes sure we don't move when we shouldn'y
   {
-    String iaString = "ia " + String(motion->for_rev)+ " " + String(motion->rpm) + " " + String(motion->current) + " " + String(motion->brakeTime);
+    // Figure out our current state...
+    this->processState(); // update IMU's and "topFace" 
+    int faceUpBeginning = this->returnTopFace();
+    bool succeed = false;
+    
+    // do some blinky light work...
+    delay(500);
+    this->blockingBlink(&green,2);
+    this->lightsOff();
+    delay(1000);
+  
+    // Actually send the action to Kyles Board...
+    String iaString = "ia " + String(motion->for_rev)+ " " + String(motion->rpm) + " " + String(motion->current) + " " + String(motion->brakeTime) + " e 15";
     Serial.println(iaString);
     delay(motion->timeout);
-    //while((millis() - beginTime) < motion->timeout)
-      //{
-        //delay(100);
-        //delay(1);
-        //SerialResponse resp = pushNewChar(buf);
-//        if(resp == RESPONSE_BLDC_STABLE)
-//        { 
-//          break;
-//        }
-      //}
-    attempts--;
+  
+    // we are now waiting, and collecting data
+    this->moveShakingBuffer.push(wifiDelayWithMotionDetection(3000)); // delays 2500 ms
+  
+    // Check to see our NEW state...
+    this->processState();
+    delay(100);
+  
+    // If UP face is the same... we say we failed =(
+    if(this->returnTopFace() == faceUpBeginning)
+    {
+      this->blockingBlink(&red);
+    }
+    
+    //if up face is different we say we succeeded!!!
+    else
+    {
+      this->blockingBlink(&green);
+      succeed = true;
+    }
+    
+    this->moveSuccessBuffer.push(succeed);
+    return(succeed);
   }
-  this->reconnectI2C();
-  return(true);
+  else
+  {
+    this->blockingBlink(&red,30);
+    return(false);
+  }
 }
 
 void Cube::disconnectI2C()
@@ -147,12 +162,11 @@ void Cube::reconnectI2C()
 
 void Cube::resetI2C()
 {
+  this->blockingBlink(&red, 20);
   this->disconnectI2C();
-  wifiDelay(150);
+  wifiDelay(300);
   this->reconnectI2C();
-  wifiDelay(25);
-  this->blockingBlink(&teal,1,100);
-  wifiDelay(10);
+  wifiDelay(300);
 }
 void Cube::blinkParasiteLED(int blinkTime)
 {
@@ -179,14 +193,23 @@ bool Cube::processState()
     delay(1);
     succeed = true;
   }
-
   else
   {
-    this->disconnectI2C();
-    wifiDelay(100);
-    this->reconnectI2C();
-    wifiDelay(100);
-    succeed = this->updateBothIMUs();
+    delay(200);
+    if(this->updateBothIMUs() || (this->cubeID > 60))
+    {
+      succeed = true;
+    }
+    else
+    {
+       {
+         this->blinkAmerica();
+         wifiDelay(500);
+         this->reconnectI2C();
+         wifiDelay(500);
+         succeed = this->updateBothIMUs();
+       }
+    }
   }
   
   this->determineTopFace();
@@ -225,9 +248,9 @@ void Cube::shutDown()
   }
 }   
 
-int Cube::returnTopFace()
+int Cube::returnTopFace(int index)
 {
-  return (this->topFace);
+  return(this->topFaceBuffer.access(index));
 }
 
 int Cube::returnBottomFace()
@@ -305,38 +328,28 @@ bool Cube::goToPlaneIncludingFaces(int face1, int face2, SerialDecoderBuffer* bu
  */
 {
   bool result = false;
-  //result = this->setCorePlane(returnPlane(face1, face2), buf, 8000);
   result = this->setCorePlaneSimple(returnPlane(face1, face2));
   return(result);
 }
 
-bool Cube::goToPlaneParallel(int faceExclude, SerialDecoderBuffer* buf)
+bool Cube::goToPlaneParallel(int faceExclude)
 {
-  bool simple = true;
   bool result = false;
-  if(faceExclude == 4 || faceExclude == 5)
+  if((faceExclude == 4 )|| (faceExclude == 5))
   {
-    if(simple)
-      result = this->setCorePlaneSimple(PLANE0123);
-    else
-      delay(1);
-      //result = this->setCorePlane(PLANE0123, buf, 8000);
+    result = this->setCorePlaneSimple(PLANE0123);
   }
-  else if(faceExclude == 1 || faceExclude == 3)
+  else if((faceExclude == 1) ||( faceExclude == 3))
   {
-    if(simple)
-      result = this->setCorePlaneSimple(PLANE0425);
-    else
-      delay(1);
-      //result = this->setCorePlane(PLANE0425, buf, 8000);
+    result = this->setCorePlaneSimple(PLANE0425);
   }
-  else if(faceExclude == 0 || faceExclude == 2)
+  else if((faceExclude == 0) || (faceExclude == 2))
   {
-    if(simple)
-      result = this->setCorePlaneSimple(PLANE1453);
-    else
-      delay(1);
-      //result = this->setCorePlane(PLANE1453, buf, 8000);
+    result = this->setCorePlaneSimple(PLANE1453);
+  }
+  else
+  {
+    this->blinkSpecial();
   }
   return(result);
 }
@@ -347,7 +360,7 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
      (targetCorePlane == PLANEERROR) || 
      (targetCorePlane == PLANEMOVING)) // this protects the inputs
   {
-    this->blockingBlink(&red);
+    this->blockingBlink(&yellow,12);
     return(false);
   }
   if(this->findPlaneStatus(false) == targetCorePlane)
@@ -355,21 +368,28 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
     this->blockingBlink(&green);
     return(true);
   }
-  //
-  this->blockingBlink(&teal, 3);
+  
+  this->blockingBlink(&teal, 5);
   this->lightsOff();
-  delay(1000);
-  Serial.println("sma retractcurrent 1000");
-  delay(250);
+  delay(1500);
+  Serial.println("   ");
+  delay(100);
+  Serial.println("sma retractcurrent 999");
+  delay(100);
+  Serial.println("   ");
+  delay(2000);
+  this->blockingBlink(&purple);
+  delay(2000);
   bool succeed = false;
+  Serial.println("sma retract 7500");
+  delay(100);
   int beginTime = millis();
-  Serial.println("sma retract 8000");
-  delay(1000);
-  while((this->findPlaneStatus(false) != targetCorePlane) && ((millis()-beginTime) < 7500))
+  delay(700);
+  while((this->findPlaneStatus(false) != targetCorePlane) && ((millis()-beginTime) < 8000))
   {
-    String bldcaccelString = "bldcaccel f " + String(GlobalPlaneAccel) + " 700";
+    String bldcaccelString = "bldcaccel f " + String(GlobalPlaneAccel) + " 800";
     Serial.println(bldcaccelString);
-    delay(800);
+    delay(900);
     if(this->findPlaneStatus(false) == targetCorePlane)
     {
       Serial.println("bldcstop");
@@ -379,7 +399,7 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
     {
       Serial.println("bldcstop b");
     }
-    delay(1600);
+    delay(1700);
   }
   
   while((millis()-beginTime) < 8000)
@@ -426,8 +446,34 @@ static const int32_t rotationMatricies[3][3][3] =
  * This function uses the 
  * We expect raw, signed 14-bit accelerometer readings
  */
+
+
+bool Cube::isFaceNeitherTopNorBottom(int face)
+/*
+ * Returns "true" if face arguement "face"
+ * happens to currently be one of the four faces in ring
+ * around relative to gravity
+ * 
+ * Returns "false" if it is top or bottom face or if 
+ * the cube isn't sure what orientation its in
+ */
+{
+  bool result = false;
+  if(this->returnTopFace() == -1)
+    delay(1);
+  else if(face == this->returnTopFace())
+    delay(1);
+  else if(face == this->returnBottomFace())
+    delay(1);
+  else
+    result = true;
+  return result;
+}
+
 PlaneEnum Cube::findPlaneStatus(bool reset)
 {
+  if(this->cubeID > 50) // this means it is a benchtop example and doesn't cant run this.
+    return(PLANE0123);
   PlaneEnum likelyStatus = PLANEERROR; 
   if(this->updateBothIMUs()) // try to update IMU...
   {
@@ -435,7 +481,7 @@ PlaneEnum Cube::findPlaneStatus(bool reset)
   }
   else                       // if it fails, flip power switch
   {
-    delay(10);
+    delay(30);
     if(reset)
       {
         this->resetI2C();
@@ -570,19 +616,17 @@ int Cube::numberOfNeighbors(int index, bool doIlightFace)
   int neighbors = 0;
   for(int face = 0; face < 6; face++)
     {
-    if((this->faces[face].returnMagnetStrength_A(index) < 255) &&
-       (this->faces[face].returnMagnetStrength_A(index) > 0)   && 
-       (this->faces[face].returnMagnetStrength_B(index) < 255) &&
-       (this->faces[face].returnMagnetStrength_B(index) > 0))
-        {
-          neighbors++;
-          if(doIlightFace) 
-            {
-              this->lightFace(face,&green);
-            }
-        }
+    if(this->faces[face].returnNeighborPresence(index) == true)
+    {
+      neighbors++;
+      if(doIlightFace) 
+      {
+        this->lightFace(face,&green);
+        delay(200);
+      }
     }
-    return(neighbors);
+  }
+return(neighbors);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -597,11 +641,21 @@ int Cube::numberOfNeighbors(int index, bool doIlightFace)
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
-int Cube::returnXthBrightestFace(int X)
+int Cube::returnXthBrightestFace(int X, bool ExcludeTop)
 {
  /*
-  * Returns the face number corresponding to 
+  * Returns the face number corresponding to the brightest face
   */
+  if(ExcludeTop)
+  {
+    int topFace = this->returnTopFace();
+    // make sure to protect inputs... it will be -1 if cube is funny orientation
+    if((topFace > 0) && (topFace < FACES))
+    {
+      this->faces[topFace].forceUpdateAmbientValue(0);
+    }
+  }
+  
   if( (X < 0) || (X > FACES) ) {return(-1);}
   int tempArray[FACES];
   for(int i = 0; i < FACES; i++)
@@ -856,7 +910,16 @@ bool Cube::determineTopFace(int threshold)
           { this->topFace = 3; }
   else                                                                     
           {this->topFace = -1;}
-  return (this->topFace);
+  this->topFaceBuffer.push(this->topFace);
+
+  if(sum > 0)
+  {
+    return(true); 
+  }
+  else
+  {
+    return(false);
+  }
 }
 
 bool Cube::wakeIMU(int i2cAddress)
@@ -1039,10 +1102,39 @@ void Cube::printOutDebugInformation()
 {
       Serial.print("Top Face: ");Serial.println(this->returnTopFace());
       Serial.print("Forward Face: ");Serial.println(this->returnForwardFace());
-      Serial.print("Brightest Face: ");Serial.println(this->returnXthBrightestFace(0));
-      Serial.println("2nd Brightest Face: ");Serial.println(this->returnXthBrightestFace(1));
+      Serial.print("Brightest Face: ");Serial.println(this->returnXthBrightestFace(0, true));
+      Serial.println("2nd Brightest Face: ");Serial.println(this->returnXthBrightestFace(1, true));
 }
 
+void Cube::blinkAmerica(int delayTime)
+{
+  this->lightCube(&red);
+  delay(delayTime);
+  this->lightCube(&white);
+  delay(delayTime);
+  this->lightCube(&blue);
+  delay(delayTime);
+}
+
+void Cube::blinkSpecial(int delayTime)
+{
+  this->lightCube(&purple);
+  delay(delayTime);
+  this->lightCube(&red);
+  delay(delayTime);
+  this->lightCube(&purple);
+  delay(delayTime);
+  this->lightCube(&red);
+  delay(delayTime);
+  this->lightCube(&purple);
+  delay(delayTime);
+  this->lightCube(&red);
+  delay(delayTime);
+  this->lightCube(&purple);
+  delay(delayTime);
+  this->lightCube(&red);
+  delay(delayTime);
+}
 void Cube::blinkRainbow(int delayTime)
 {
   this->lightCube(&purple);
@@ -1063,4 +1155,27 @@ void Cube::blinkRainbow(int delayTime)
   delay(delayTime);
 }
 
+void Cube::updateCubeID(int idNUM)
+{
+  this->cubeID = idNUM;
+  if(GlobalCubeID > 50) // stationay cube
+  {
+    MAGIC_DEBUG = 1;
+  }
+}
+
+String Cube::returnCurrentPlane_STRING()
+{
+ // typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING, PLANEERROR} PlaneEnum;
+ 
+  String ResultString;
+  PlaneEnum thePlaneNow = this->returnCurrentPlane();
+  if(       thePlaneNow == PLANE0123)   {ResultString = "PLANE0123";}
+  else if ( thePlaneNow == PLANE0425)   {ResultString = "PLANE0425";}
+  else if ( thePlaneNow == PLANE1453)   {ResultString = "PLANE1453";}
+  else if ( thePlaneNow == PLANENONE)   {ResultString = "PLANENONE";}
+  else if ( thePlaneNow == PLANEMOVING) {ResultString = "PLANEMOVING";}
+  else if ( thePlaneNow == PLANEERROR)  {ResultString = "PLANEERROR";}
+  return(ResultString);
+}
 
