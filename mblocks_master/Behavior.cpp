@@ -58,9 +58,15 @@ Behavior sleep(Cube* c)
   }
 }
 
+
 Behavior followArrows(Cube* c, SerialDecoderBuffer* buf)
+/*
+ * This behavior is intended to only move ontop of a structure...
+ * It will exit if it isn't connected one the bottom face.
+ */
 {
-  if(MAGIC_DEBUG){Serial.println("***followArrows***");}
+  if(MAGIC_DEBUG){Serial.println("***Beginning FOLLOWARROWS***");}
+  
   Behavior nextBehavior = FOLLOW_ARROWS; // default is to keep doing what we are doing.
   int loopCounter = 0;
   nextBehavior = basicUpkeep(c, nextBehavior, buf);  
@@ -77,13 +83,11 @@ Behavior followArrows(Cube* c, SerialDecoderBuffer* buf)
           int CW_or_CCW = faceClockiness(otherFace, i);
           if(CW_or_CCW == 1)
           {
-            delay(1000);
             c->moveIASimple(&traverse_F);
             delay(1000);
           }
           else if(CW_or_CCW == -1)
           {
-            delay(1000);
             c->moveIASimple(&traverse_R);
             delay(1000);
           }
@@ -111,6 +115,7 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
   int loopCounter = 0;
   bool iAmPrettyStuck = false;
   bool iMightBeStuck  = false;
+  bool iAmStuck  = false;
   
   // perform basic upkeep... this involves updating sensors...
   nextBehavior = basicUpkeep(c, nextBehavior, buf);
@@ -118,7 +123,9 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
   // if basic upkeep decides to change behavior, we exit now...
   // otherwise we keep running in this loop until something 
   // changes the state
-  while(nextBehavior == SOLO_LIGHT_TRACK && (c->numberOfNeighbors(0,0) == 0))
+  while((nextBehavior == SOLO_LIGHT_TRACK) && // if we haven't changes state
+        (c->numberOfNeighbors(0,0) == 0)  && // and if we have ZERO neighbors
+        (millis() < c->shutDownTime))        // and if we aren't feeling sleepy
   {
     // apply sorting function to generate list of brightest faces...
     // the "true" arguement excludes the top face...
@@ -126,21 +133,21 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
     int nextBrightestFace = c->returnXthBrightestFace(1, true);
     int thirdBrightestFace = c->returnXthBrightestFace(2, true);
 
-    c->lightFace(brightestFace, &green);
-    delay(500);
+    c->lightFace(brightestFace, &white);
+    delay(300);
     c->lightFace(nextBrightestFace, &teal);
-    delay(400);
+    delay(300);
     c->lightFace(thirdBrightestFace, &blue);
-    delay(400);
+    delay(300);
     c->lightCube(&off);
-    delay(200);
+    delay(300);
     /************* Begin if else if chain **************************
      *  The following if/else if chain represents the choices we can take
      *  give that we have recently updated our information, including light sensors,
      *  measurement if we are stuck or not (am I stuck FLAG), etc...
      */
 
-    /*
+    /* if(iAmPrettyStuck)
      * This means we have previosuly tried to move and we think we are stuck
      * but we have already run basic upkeep, so we will try to move the plane 
      * parallel with the ground to align with the lattice
@@ -152,54 +159,43 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
       {
         iAmPrettyStuck = false; 
         iMightBeStuck = false;
-        c->blockingBlink(&white);
+        //c->blockingBlink(&white);
       }
       else
       {
         // If we fail to move, we try to move plane parallel to ground
         //int attempts = 3;
-        delay(1000);
+        delay(500);
         int topFace = c->returnTopFace();
-        bool changed = false;
-        if(topFace > 0 && topFace < FACES)
+        if(topFace > 0 && topFace < FACES) // if this is true we are 
         {
-          //changed = c->goToPlaneParallel(topFace);
-          magicFace = topFace; // this kinda does this...
+          magicFace = topFace; 
           magicVariable = 1;
         }
-        if(c->returnForwardFace() == -1)
+        
+        if(c->returnForwardFace() == -1) // this is a proxy for plane being parallel to ground...
         {
            c->moveIASimple(&traverse_F);
-           delay(2000);
+           delay(1500);
            c->moveIASimple(&traverse_R);
-           delay(2000);
+           delay(1500);
         }
         else
         {
-          c->blockingBlink(&red,20);
+          delay(300);
         }
-        //if(!changed)
-        //{
-         // magicVariable = 1;
-          
-          //delay(1000);
-          //c->updateSensors();
-          //delay(3000);
-         // c->goToPlaneParallel(topFace);
-        //}
       } 
     }
     
     /* 
      *  this happens if we suspect we might be stuck...
-     *  we will try three times to move, and if each one fails
+     *  we will try to move, and if we fail
      *  then we set the stuck flag to be true,
      */
     else if(iMightBeStuck)
         {
-          //iAmPrettyStuck = true;
           iMightBeStuck = false; // reset flag
-          if(!(c->roll(-1, buf, 8000))) // try to roll if we fail... advance to more change plane
+          if(c->roll(-1, buf, 8000) == false) // try to roll if we fail... advance to more change plane
             {
               delay(10);
               c->blinkAmerica();
@@ -207,80 +203,76 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
               iMightBeStuck = true;
             }
           delay(1000);
-             //we try to move again! and if so... we will start something else...
-         // if(!c->moveIASimple(&softShake_F))
-          //{
-           // c->blinkRainbow();
-//            iAmPrettyStuck = true;
-//            iMightBeStuck = true;
-          //}  
         }
     else if(c->returnForwardFace() == -1)
     {
       Serial.println("bldcaccel f 6000 1500");
       delay(1600);
       Serial.println("bldcstop b");
-      delay(6000);
-      iMightBeStuck = true;
+      delay(5000);
     }
     else if(brightestFace == c->returnForwardFace())
     {
-      if(!c->roll(1, buf, 11000))
+      if(c->roll(1, buf, 11000) == false)
         iMightBeStuck = true;
     }
     else if(brightestFace == c->returnReverseFace())
     {
-      if(!c->roll(-1, buf, 11000))
+      if(c->roll(-1, buf, 11000) == false)
         iMightBeStuck = true;
     }
     else if(nextBrightestFace == c->returnForwardFace())
     {
-      if(!c->roll(1, buf, 6500))
+      if(c->roll(1, buf, 6500) == false)
         iMightBeStuck = true;
     }
     else if(nextBrightestFace == c->returnReverseFace())
     {
-      if(!c->roll(-1, buf, 6500))
+      if(c->roll(-1, buf, 6500) == false)
         iMightBeStuck = true;
     }
     else if(thirdBrightestFace == c->returnReverseFace())
     {
-      if(!c->roll(-1, buf, 6500))
+      if(c->roll(-1, buf, 6500) == false)
         iMightBeStuck = true;
     }
     else if(thirdBrightestFace == c->returnForwardFace())
     {
-     if(!c->roll(1, buf, 6500))
+     if(c->roll(1, buf, 6500) == false)
         iMightBeStuck = true;
     }
     else
-      if(!c->roll(1, buf, 7000)) 
+      if(c->roll(1, buf, 7000) == false) 
         iMightBeStuck = true;
 //************** End if else if chain **************************
     loopCounter++;
-    delay(1000);
+    delay(500);
     nextBehavior = basicUpkeep(c, nextBehavior, buf);  // check for neighbors, etc...
   }
-  c->blockingBlink(&white,6);
   return(nextBehavior);
 }
 
-//================================================================
-//==========================CLIMB=================================
-//================================================================
+/*
+ * This is triggered when the cube has one neighbor... and when the neighbor
+ * is on one of the faces other than the top and bottom faces...
+ * goal is to move plane to be parallel and then to climb up ontop
+ * 
+ */
 Behavior climb(Cube* c, SerialDecoderBuffer* buf)
 {
-  if(MAGIC_DEBUG) {Serial.println("***CLIMB***");}
+  if(MAGIC_DEBUG) {Serial.println("***Beginning CLIMB***");}
+  
   int connectedFace = -1;
   long loopCounter = 0;
   Behavior nextBehavior = CLIMB;
   nextBehavior = basicUpkeep(c, nextBehavior, buf);
+ 
   while(nextBehavior == CLIMB) // loop until something changes the next behavior
   {
     nextBehavior = basicUpkeep(c, nextBehavior, buf);
-    if(c->numberOfNeighbors(0,0) == 1)
+    if(c->numberOfCubeNeighbors() == 1)
     {
-      if(MAGIC_DEBUG) {Serial.println("We Have one neighbor, starting to see how to MOVE!");}
+      if(MAGIC_DEBUG) {Serial.println("We Have one CUBE neighbor, starting to see how to MOVE!");}
       for(int i = 0; i < 6; i++)
       {     
         if((c->faces[i].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) ||
@@ -291,16 +283,19 @@ Behavior climb(Cube* c, SerialDecoderBuffer* buf)
         }
       }
       c->lightFace(connectedFace,&yellow);
-      delay(300);
+      delay(200);
       c->lightFace(c->returnTopFace(),&red);
-      delay(300);
+      delay(200);
+      c->lightCube(&off);
+      
       if((connectedFace >= 0) && (connectedFace != c->returnTopFace()) &&
-         (connectedFace != c->returnBottomFace()) )
+         (connectedFace != c->returnBottomFace()))
       {
         if(MAGIC_DEBUG) {Serial.println("ABOUT TO TRY TO CHANGE PLANES... WOOO!");}
+        
         if(c->goToPlaneIncludingFaces(connectedFace, c->returnTopFace(), buf))
         {
-          c->blockingBlink(&purple,7);
+          c->blockingBlink(&purple);
           c->clearRGB();
           delay(50);
           int CW_or_CCW = faceClockiness(connectedFace, c->returnBottomFace());
@@ -354,15 +349,13 @@ Behavior attractive(Cube* c, SerialDecoderBuffer* buf)
 {
   Behavior nextBehavior = ATTRACTIVE;
   if(MAGIC_DEBUG) {Serial.println("***ATTRACTIVE***");}   
-//  c->blockingBlink(&red);
-//  c->blockingBlink(&white);
 
-//  c->blockingBlink(&blue);
   while(nextBehavior == ATTRACTIVE)
   {
-    nextBehavior = basicUpkeep(c, nextBehavior, buf);
+    nextBehavior = basicUpkeep(c, nextBehavior, buf, false);
     delay(100);
     c->lightCube(&off);
+    delay(100);
     for(int i = 0; i < 6; i++)
       {
         if((i == c->returnTopFace()) || (i == c->returnBottomFace())) // This ensures we only 
@@ -372,11 +365,11 @@ Behavior attractive(Cube* c, SerialDecoderBuffer* buf)
           delay(1);
         else
           {
-            c->faces[i].turnOnFaceLEDs(1,1,1,1); // turns on LEDs on any exposed face that isn't top/bottom/connected
-            delay(300);
+            c->faces[i].turnOnFaceLEDs(1,1,1,1); // turns on LEDs on any exposed face thats not top/bottom/connected
+            delay(150);
           }
       }
-    wifiDelay(6000); // delay 10 seconds...
+    wifiDelay(6500); // delay 10 seconds...
     for(int i = 0; i < 6; i++)
     {
       c->faces[i].turnOffFaceLEDs(); // turn off face LEDs
@@ -409,7 +402,7 @@ Behavior crystalize(Cube* c, painlessMesh* m)
 }
 
 
-Behavior basicUpkeep(Cube* c, Behavior currentBehaviorNew, SerialDecoderBuffer* buf)
+Behavior basicUpkeep(Cube* c, Behavior currentBehaviorNew, SerialDecoderBuffer* buf, bool checkForLightMessages)
 /*
  * This function does basic state machine switching
  * It (1) Updates the sensors, including magnetic sensors
@@ -421,7 +414,7 @@ Behavior basicUpkeep(Cube* c, Behavior currentBehaviorNew, SerialDecoderBuffer* 
 {
   Behavior behaviorToReturnWIFI = currentBehaviorNew;
   Behavior behaviorToReturnMAGNETIC = currentBehaviorNew;
-  c->updateSensors();
+  c->updateSensors(checkForLightMessages);
   behaviorToReturnWIFI = checkForBasicWifiCommands(c, currentBehaviorNew, buf);
   delay(100);
   behaviorToReturnMAGNETIC = checkForMagneticTagsStandard(c, behaviorToReturnWIFI, buf);
@@ -447,16 +440,18 @@ Behavior basicUpkeep(Cube* c, Behavior currentBehaviorNew, SerialDecoderBuffer* 
 Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf)
 {
   if(MAGIC_DEBUG) {Serial.println("Checking for basic WIFI Commands...");}
+  
   int attempts = 5;
   Behavior resultBehavior = currentBehavior;
-  while(!jsonCircularBuffer.empty() && attempts > 0) // while there are still messages, and we haven't tried 5 times...
+  while(!jsonCircularBuffer.empty() && attempts > 0) //while there are still messages, and we haven't tried 5 times
   {
     StaticJsonBuffer<1000> jb;
     JsonObject& root = jb.parseObject(jsonCircularBuffer.pop());
     if((root["cubeID"] == getCubeIDFromEsp(ESP.getChipId())) || // If message matches your ID
        (root["cubeID"] == -1))                                  // or if message is brodcast
     {
-      resultBehavior = cmdToBehaviors(root["cmd"], currentBehavior); // checks to see if we recieved message to switch behaviors
+      resultBehavior = cmdToBehaviors(root["cmd"], currentBehavior); // checks to see if we recieved message 
+                                                                    //to switch behaviors
       if(c->cubeID > 40) // cubeID's over 40 means it is attached by a cable... not a real cube // so we print
       {
         String receivedID = root["cubeID"];
@@ -483,6 +478,7 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior, SerialDeco
 Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf)
 {
   if(MAGIC_DEBUG) {Serial.println("Checking for MAGNETIC TAGS");}
+  
   Behavior resultBehavior = currentBehavior;
   for(int i =0; i < 6; i++)
     { 

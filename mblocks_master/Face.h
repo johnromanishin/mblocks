@@ -85,6 +85,7 @@ class Face
     int neighborFaceData[10];
     int neighborAngleData[10];
     bool neighborPresenceData[10];
+    int neighborLightDigitData[10];
     
       // Circular Buffers for Magnetic Tag Variables
     CircularBuffer<TagType>     neighborTypeBuffer;
@@ -93,6 +94,7 @@ class Face
     CircularBuffer<int>         neighborFaceBuffer;
     CircularBuffer<int>         neighborAngleBuffer;
     CircularBuffer<bool>        neighborPresenceBuffer;
+    CircularBuffer<int>         neighborLightDigitBuffer;
     
   public:
       // Constructors
@@ -133,7 +135,7 @@ class Face
     //bool updateReflectivity();
     bool updateMagneticBarcode(); // Reads both magnet sensors,
     bool isThereNeighbor(); // true == yes! // false == NO
-    bool updateFace(); // Enables sensors, Updates ambient values, updates magnetic sensors, neighbors...
+    bool updateFace(bool checkForLightYo); // Enables sensors, Updates ambient values, updates magnetic sensors, neighbors...
       // Sending simple messages - length of blink = digit... 100ms == "1" 200ms == "2" ... etc.
     int checkForMessage(int waitTime);
     void blinkOutMessage(int digit); 
@@ -157,6 +159,7 @@ class Face
     int returnNeighborFace(int index);
     TagType returnNeighborType(int index);
     TagCommand returnNeighborCommand(int index);
+    int returnNeighborLightDigit(int index);
 };
 
 void activateLightSensor(int address);

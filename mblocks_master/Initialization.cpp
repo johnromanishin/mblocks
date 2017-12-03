@@ -223,7 +223,7 @@ void lookUpCalibrationValues()
       break;
     //********************************
     
-    case 13374829:   
+    case 13374829:   // Cube on Smaller Breadboard
       GlobalCubeID = 99;
       
       TRAVERSE_RPM_F = 999;
@@ -241,6 +241,7 @@ void lookUpCalibrationValues()
     //********************************
     case 959694: // Purple PEI
       GlobalCubeID = 0;
+      
       GlobalPlaneAccel = 2000;
       TRAVERSE_RPM_F = 7000;
       TRAVERSE_RPM_R = 7000;

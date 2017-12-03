@@ -46,19 +46,19 @@ Cube::Cube()
 //////////////////////COMMONLY USED FUNCTIONS///////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
-// In later sections, super long...
-// bool Cube::lightCube(bool r, bool g, bool b)
-
 bool Cube::roll(int forwardReverse, SerialDecoderBuffer* buf, int rpm)
 /*
  * This function is intended to be used when a cube is NOT on a lattice
  * It will roll around the environment, defaults to FORWARD with 6000 RPM
+ * it returns TRUE and Blinks Green if it thinks it moved Substantially
+ * and returns FALSE and Blinks REd if it thinkgs it did not move...
  */
 {
   this->processState(); // update IMU's and "topFace" 
   delay(400);
   int faceUpBeginning = this->returnTopFace();
   bool succeed = false;
+  int shakingThreshold = 30000;
   String CW_CCW;
   if(forwardReverse < 0)
     {
@@ -73,19 +73,23 @@ bool Cube::roll(int forwardReverse, SerialDecoderBuffer* buf, int rpm)
   delay(20);
   String stringToPrint = "bldcspeed" + CW_CCW + String(rpm); // generate String for motor
   Serial.println(stringToPrint); // this actually tells the thing to move.
-  delay(2500+(rpm-6000));
+  delay(2000+(rpm-6000));
   Serial.println("bldcstop b"); // this actually tells the start rolling
-  //if(!waitForSerialResponse(RESPONSE_STOP_BLDC_EB, 1000, buf)) // if we don't hear that it stopped
-  //{
-    //delay(500);
-    //Serial.println("bldcstop b");                               // try to stop motor again
-  //}
-  this->moveShakingBuffer.push(wifiDelayWithMotionDetection(2500)); // delays 2500 ms
+  int shakingAmmount = wifiDelayWithMotionDetection(2500);
+  this->moveShakingBuffer.push(rollingAmmount); // delays 2500 ms
+  if(MAGIC_DEBUG) {Serial.print("We detected this ammount of Shaking: ");Serial.println(shakingAmmount);}
   this->processState();
   delay(100);
-  if(this->returnTopFace() == faceUpBeginning)
+  if((this->returnTopFace() == faceUpBeginning) || (shakingAmmount < shakingThreshold))
   {
-    this->blockingBlink(&red);
+    /*
+     * this means the move failed...
+     * If we roll a lot, and end up with the same face as we started, the shakingAmmount
+     * should be quite high, above the threshold, so we will say we succeeded if we shake a ton, or if
+     * the face that is up is different than the face that was up before we started...
+     */
+    this->blockingBlink(&red); 
+                               
   }
   else
   {
@@ -103,7 +107,7 @@ bool Cube::moveIASimple(Motion* motion)
   PlaneEnum currentPlane = findPlaneStatus(true);
   if((currentPlane == PLANE0123) ||
      (currentPlane == PLANE0425) || 
-     (currentPlane == PLANE1453)) //  This makes sure we don't move when we shouldn'y
+     (currentPlane == PLANE1453)) //  This makes sure we don't move when we shouldn't
   {
     // Figure out our current state...
     this->processState(); // update IMU's and "topFace" 
@@ -174,14 +178,14 @@ void Cube::blinkParasiteLED(int blinkTime)
   wifiDelay(blinkTime);
   digitalWrite(LED, LOW);
 }
-bool Cube::updateSensors()
+bool Cube::updateSensors(bool ShouldIcheckForLightMessages)
 {
   /*
    * This functions updates all of the sensor buffers on each cube
    * It also refreshes variables like this->topFace/ forwardFace/ ...
    */
   this->processState();// -- this deals with anything involving IMUs 
-  this->updateFaces(); // -- this checks all of the specific sensors on each face
+  this->updateFaces(ShouldIcheckForLightMessages); // -- this checks all of the specific sensors on each face
   return(true);
 }
 
@@ -229,12 +233,12 @@ bool Cube::blockingBlink(Color* inputColor, int howManyTimes, int waitTime)
   }
 }
 
-bool Cube::updateFaces()
+bool Cube::updateFaces(bool checkForLight)
 {
 for(int i = 0; i< FACES; i++)
     {
       delay(3);
-      this->faces[i].updateFace();  // updateFace updates light and Magnetic sensors  
+      this->faces[i].updateFace(checkForLight);  // updateFace updates light and Magnetic sensors  
       delay(3);
     }
 }
@@ -624,6 +628,20 @@ int Cube::numberOfNeighbors(int index, bool doIlightFace)
         this->lightFace(face,&green);
         delay(200);
       }
+    }
+  }
+return(neighbors);
+}
+
+int Cube::numberOfCubeNeighbors(int index)
+{
+  int neighbors = 0;
+  for(int face = 0; face < 6; face++)
+  {
+    if((this->faces[face].returnNeighborType(index) == TAGTYPE_REGULAR_CUBE) ||
+       (this->faces[face].returnNeighborType(index) == TAGTYPE_PASSIVE_CUBE)) 
+    {
+      neighbors++;
     }
   }
 return(neighbors);
@@ -1114,6 +1132,7 @@ void Cube::blinkAmerica(int delayTime)
   delay(delayTime);
   this->lightCube(&blue);
   delay(delayTime);
+  this->lightCube(&off);
 }
 
 void Cube::blinkSpecial(int delayTime)
@@ -1134,6 +1153,8 @@ void Cube::blinkSpecial(int delayTime)
   delay(delayTime);
   this->lightCube(&red);
   delay(delayTime);
+  this->lightCube(&off);
+  
 }
 void Cube::blinkRainbow(int delayTime)
 {
@@ -1152,7 +1173,6 @@ void Cube::blinkRainbow(int delayTime)
   this->lightCube(&white);
   delay(delayTime);
   this->lightCube(&off);
-  delay(delayTime);
 }
 
 void Cube::updateCubeID(int idNUM)

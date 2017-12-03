@@ -20,7 +20,8 @@ Face::Face()
     neighborCommandBuffer(ARRAY_SIZEOF(this->neighborCommandData), this->neighborCommandData),
     neighborFaceBuffer(ARRAY_SIZEOF(this->neighborFaceData), this->neighborFaceData),
     neighborTypeBuffer(ARRAY_SIZEOF(this->neighborTypeData), this->neighborTypeData),
-    neighborPresenceBuffer(ARRAY_SIZEOF(this->neighborPresenceData), this->neighborPresenceData)
+    neighborPresenceBuffer(ARRAY_SIZEOF(this->neighborPresenceData), this->neighborPresenceData),
+    neighborLightDigitBuffer(ARRAY_SIZEOF(this->neighborLightDigitData), this->neighborLightDigitData)
 {
   this->IOExpanderState[0] = (this->IOExpanderState[1] = byte(0xff)); // sets bytes of IO expander to be all 1's
 }
@@ -39,17 +40,24 @@ Face::Face()
 //  this->IOExpanderState[0] = (this->IOExpanderState[1] = byte(0xff));
 //}
 
-bool Face::updateFace()
+bool Face::updateFace(bool checkForLightYo)
 {
   bool success = 
-      (this->enableSensors() 
-    && this->updateAmbient()
-    && this->turnOnFaceLEDs(0,0,1,0)    // TEMP
-    //&& this->updateReflectivity()            // temp
-    && this->updateMagneticBarcode()
-    && this->turnOffFaceLEDs()
-    && this->disableSensors());
-    this->neighborPresenceBuffer.push(this->processTag());
+        (this->enableSensors() 
+      && this->updateAmbient()
+      && this->turnOnFaceLEDs(0,0,1,0)
+    //&& this->updateReflectivity()       
+      && this->updateMagneticBarcode() // actually reads magnetic valuess
+      && this->turnOffFaceLEDs());
+  this->neighborPresenceBuffer.push(this->processTag()); // actually processes Tag... adds 
+  if((this->returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) && checkForLightYo)
+  {
+    this->turnOnFaceLEDs(1,1,1,1);
+    delay(300);
+    this->turnOffFaceLEDs();
+    // ADD CODE HERE TO TRY TO READ A MESSAGE BLINKED OUT BY THE CUBE!!
+  }
+  this->disableSensors();
   return(success);
 }
 
@@ -337,7 +345,11 @@ int Face::returnNeighborFace(int index)
 {
   return(this->neighborFaceBuffer.access(index));
 }
-    
+
+int Face::returnNeighborLightDigit(int index)
+{
+  return(this->neighborLightDigitBuffer.access(index));
+}
 /**       V 
  *   0111 1010
  * & 1111 0111  <--- how do we generate this one?
@@ -398,6 +410,7 @@ bool Face::updateMagneticBarcode()
  */
 {
   this->getMagnetEncoderAddresses(this->faceMagnetAddresses);
+  delay(10);
   float AMS5048_scaling_factor = 45.5111;
 
   int angle_A  = round(readMagnetSensorAngle(this->faceMagnetAddresses[0])/AMS5048_scaling_factor);

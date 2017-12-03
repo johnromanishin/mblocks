@@ -137,6 +137,8 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior, SerialDeco
 Behavior relayBehavior(Cube* c, Behavior behaviorToRelay, int cubeToRelayTo = -1, int timesToRelay = 4);
 Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior);
 Behavior checkForBehaviors(Cube* c, SerialDecoderBuffer* buf, Behavior behavior);
-Behavior basicUpkeep(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf);
+
+Behavior basicUpkeep(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf, bool checkForLightMessages = true);
+
 String behaviorsToCmd(Behavior inputBehavior);
 #endif
