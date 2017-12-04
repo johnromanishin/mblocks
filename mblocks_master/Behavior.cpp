@@ -97,9 +97,9 @@ Behavior followArrows(Cube* c, SerialDecoderBuffer* buf)
     loopCounter++;
     nextBehavior = basicUpkeep(c, nextBehavior, buf);
     ////////////////////////////////
-    if(loopCounter%4)
+    if((loopCounter%4) == 0)
       c->lightCube(&purple);
-    else if((loopCounter-1)%4)
+    else if(((loopCounter-1)%4) == 0)
       c->lightCube(&off);
     delay(300);
     ///////////////////////////////
@@ -113,9 +113,9 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
   if(MAGIC_DEBUG) {Serial.println("***soloSeekLight***");}
   Behavior nextBehavior = SOLO_LIGHT_TRACK;
   int loopCounter = 0;
-  bool iAmPrettyStuck = false;
   bool iMightBeStuck  = false;
   bool iAmStuck  = false;
+  int direction = 0; // + is forward - is reverse
   
   // perform basic upkeep... this involves updating sensors...
   nextBehavior = basicUpkeep(c, nextBehavior, buf);
@@ -132,34 +132,46 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
     int brightestFace = c->returnXthBrightestFace(0, true);
     int nextBrightestFace = c->returnXthBrightestFace(1, true);
     int thirdBrightestFace = c->returnXthBrightestFace(2, true);
-
-    c->lightFace(brightestFace, &white);
-    delay(300);
-    c->lightFace(nextBrightestFace, &teal);
-    delay(300);
+    bool direct = false; // false = reverse...
+    if(c->returnForwardFace() == brightestFace)
+    {
+      direct = true;
+    }
+     
+    c->lightFace(brightestFace, &red);
+    delay(400);
+    c->lightFace(nextBrightestFace, &green);
+    delay(400);
     c->lightFace(thirdBrightestFace, &blue);
-    delay(300);
+    delay(400);
     c->lightCube(&off);
-    delay(300);
+    delay(100);
     /************* Begin if else if chain **************************
      *  The following if/else if chain represents the choices we can take
      *  give that we have recently updated our information, including light sensors,
      *  measurement if we are stuck or not (am I stuck FLAG), etc...
      */
 
-    /* if(iAmPrettyStuck)
+    /* if(iAmStuck)
      * This means we have previosuly tried to move and we think we are stuck
      * but we have already run basic upkeep, so we will try to move the plane 
      * parallel with the ground to align with the lattice
      */
-    if(iAmPrettyStuck)
+    if(c->findPlaneStatus(true) == PLANENONE)
+    {
+      c->blockingBlink(&yellow);
+      c->blinkAmerica();
+      c->blockingBlink(&yellow);
+      magicFace = c->returnTopFace(); 
+      magicVariable = 1;
+    }
+    else if(iAmStuck)
     {
       // if we succeed in moving... we break out of this loop
       if(c->roll(-1, buf, 8000)) // try to roll and succeed...
       {
-        iAmPrettyStuck = false; 
+        iAmStuck = false; 
         iMightBeStuck = false;
-        //c->blockingBlink(&white);
       }
       else
       {
@@ -167,14 +179,20 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
         //int attempts = 3;
         delay(500);
         int topFace = c->returnTopFace();
-        if(topFace > 0 && topFace < FACES) // if this is true we are 
+        if((topFace > -1) && (topFace < FACES)) // if this is true we are on the ground... so we should try
         {
           magicFace = topFace; 
           magicVariable = 1;
         }
-        
-        if(c->returnForwardFace() == -1) // this is a proxy for plane being parallel to ground...
+        else
         {
+          c->moveIASimple(&traverse_F);
+        }
+        
+        if(c->returnForwardFace() == -1) // this is a proxy for plane being parallel to ground... or an error
+        {
+           c->blockingBlink(&purple, 5);
+           c->blockingBlink(&yellow, 5);
            c->moveIASimple(&traverse_F);
            delay(1500);
            c->moveIASimple(&traverse_R);
@@ -182,7 +200,8 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
         }
         else
         {
-          delay(300);
+          c->blockingBlink(&blue, 5);
+          c->blockingBlink(&green, 5);
         }
       } 
     }
@@ -192,63 +211,95 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
      *  we will try to move, and if we fail
      *  then we set the stuck flag to be true,
      */
+    //****************************
     else if(iMightBeStuck)
+    {
+      iMightBeStuck = false; // reset flag
+      
+      if(c->returnForwardFace() == -1)
+      {
+        if(c->roll(1,buf,1600,"bldcaccel f 6000 1500") == false)
+          iMightBeStuck = true;
+      }
+      else // try to roll if we fail... advance to more change plane
+      {
+        if(c->roll(direct, buf, 6500) == false)
         {
-          iMightBeStuck = false; // reset flag
-          if(c->roll(-1, buf, 8000) == false) // try to roll if we fail... advance to more change plane
-            {
-              delay(10);
-              c->blinkAmerica();
-              iAmPrettyStuck = true;
-              iMightBeStuck = true;
-            }
-          delay(1000);
+          delay(10);
+          iAmStuck = true;
+          iMightBeStuck = true;
         }
+      }
+      delay(500);
+    }
+    //****************************
     else if(c->returnForwardFace() == -1)
     {
-      Serial.println("bldcaccel f 6000 1500");
-      delay(1600);
-      Serial.println("bldcstop b");
-      delay(5000);
+      if(c->roll(1,buf,1600,"bldcaccel f 6000 1500") == false)
+        iMightBeStuck = true;
+      delay(100);
     }
+    //****************************
     else if(brightestFace == c->returnForwardFace())
     {
-      if(c->roll(1, buf, 11000) == false)
-        iMightBeStuck = true;
+      if(c->roll(1, buf, 10000) == false)
+      {
+        delay(1000);
+        if(c->roll(1, buf, 10000) == false)
+        {
+          iMightBeStuck = true;
+        }
+      }
     }
+    //****************************
     else if(brightestFace == c->returnReverseFace())
     {
-      if(c->roll(-1, buf, 11000) == false)
-        iMightBeStuck = true;
+      if(c->roll(-1, buf, 10000) == false)
+      {
+        delay(1000);
+        if(c->roll(-1, buf, 10000) == false)
+        {
+          iMightBeStuck = true;
+        }
+      }
     }
+    //****************************
     else if(nextBrightestFace == c->returnForwardFace())
     {
-      if(c->roll(1, buf, 6500) == false)
+      if(c->roll(1, buf, 7500) == false)
         iMightBeStuck = true;
     }
+    //****************************
     else if(nextBrightestFace == c->returnReverseFace())
     {
-      if(c->roll(-1, buf, 6500) == false)
+      if(c->roll(-1, buf, 7500) == false)
         iMightBeStuck = true;
     }
+    //****************************
     else if(thirdBrightestFace == c->returnReverseFace())
     {
-      if(c->roll(-1, buf, 6500) == false)
+      if(c->roll(-1, buf, 7500) == false)
         iMightBeStuck = true;
     }
+    //****************************
     else if(thirdBrightestFace == c->returnForwardFace())
     {
-     if(c->roll(1, buf, 6500) == false)
+     if(c->roll(1, buf, 7500) == false)
         iMightBeStuck = true;
     }
+    //****************************
+    
     else
-      if(c->roll(1, buf, 7000) == false) 
+      c->blockingBlink(&teal, 10);
+      c->blockingBlink(&white, 10);
+      if(c->roll(1, buf, 7500) == false) 
         iMightBeStuck = true;
 //************** End if else if chain **************************
     loopCounter++;
-    delay(500);
+    delay(1000);
     nextBehavior = basicUpkeep(c, nextBehavior, buf);  // check for neighbors, etc...
   }
+  c->blinkSpecial();
   return(nextBehavior);
 }
 

@@ -83,7 +83,7 @@ class Cube
 
         // Functions involving motion
     bool moveIASimple(Motion* motion);
-    bool roll(int forwardReverse, SerialDecoderBuffer* buf, int rpm = 6000);
+    bool roll(int forwardReverse, SerialDecoderBuffer* buf, int rpm = 6000, String ALTERNATE = "nothing");
 
         // Related to the state itself
     bool processState();

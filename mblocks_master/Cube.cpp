@@ -46,50 +46,78 @@ Cube::Cube()
 //////////////////////COMMONLY USED FUNCTIONS///////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
-bool Cube::roll(int forwardReverse, SerialDecoderBuffer* buf, int rpm)
+bool Cube::roll(int forwardReverse, SerialDecoderBuffer* buf, int rpm, String ALTERNATE)
 /*
  * This function is intended to be used when a cube is NOT on a lattice
  * It will roll around the environment, defaults to FORWARD with 6000 RPM
  * it returns TRUE and Blinks Green if it thinks it moved Substantially
  * and returns FALSE and Blinks REd if it thinkgs it did not move...
+ * 
+ * There are two ways to use this function.. leave ALTERNATE Blank, and 
+ * then it will generate a movement based on RPM and forward/reverse
+ * 
+ * type something in alternate, and it will use RPM as the delayBeforeBrake time
+ * and will just print what ever the text of ALTERNATE to Kyles board, but will 
+ * do the same work of assesssing whether the movement was successfull or not
  */
 {
   this->processState(); // update IMU's and "topFace" 
-  delay(400);
+  delay(200);
+  int timeToDelayBeforeBrake = (1500 + (rpm-6000));
   int faceUpBeginning = this->returnTopFace();
   bool succeed = false;
-  int shakingThreshold = 30000;
+  int shakingThreshold = 10000;
   String CW_CCW;
+  String stringToPrint = "ver";
   if(forwardReverse < 0)
-    {
-      this->blockingBlink(&yellow);
-      CW_CCW = " r "; // set the direction to "reverse" if forwardReverse is negatuve
-    }
+  {
+    this->blockingBlink(&yellow);
+    CW_CCW = " r "; // set the direction to "reverse" if forwardReverse is negatuve
+  }
+  else if(forwardReverse > 0)
+  {
+    this->blockingBlink(&teal);
+    CW_CCW = " f ";
+  }
   else
-    {
-      this->blockingBlink(&teal);
-      CW_CCW = " f ";
-    }
+  {
+    this->blockingBlink(&white);
+  }
   delay(20);
-  String stringToPrint = "bldcspeed" + CW_CCW + String(rpm); // generate String for motor
+  if(ALTERNATE == "nothing")
+  {
+    stringToPrint = "bldcspeed" + CW_CCW + String(rpm); // generate String for motor
+  }
+  else
+  {
+    stringToPrint = ALTERNATE;
+    timeToDelayBeforeBrake = rpm;
+  }
   Serial.println(stringToPrint); // this actually tells the thing to move.
-  delay(2000+(rpm-6000));
-  Serial.println("bldcstop b"); // this actually tells the start rolling
-  int shakingAmmount = wifiDelayWithMotionDetection(2500);
-  this->moveShakingBuffer.push(rollingAmmount); // delays 2500 ms
+  delay(timeToDelayBeforeBrake);
+  Serial.println("bldcstop b"); // this actually tells the Cube to start rolling
+  int shakingAmmount = wifiDelayWithMotionDetection(2600);
+  this->moveShakingBuffer.push(shakingAmmount); // delays 2500 ms
   if(MAGIC_DEBUG) {Serial.print("We detected this ammount of Shaking: ");Serial.println(shakingAmmount);}
   this->processState();
   delay(100);
-  if((this->returnTopFace() == faceUpBeginning) || (shakingAmmount < shakingThreshold))
+  if((this->returnTopFace() == faceUpBeginning) || (this->returnTopFace() == -1)) // If the same face is point up... or it failed
   {
+    if(shakingAmmount > shakingThreshold)
+    {
+      this->blockingBlink(&green);
+      succeed = true;
+    }
+    else
+    {
+      this->blockingBlink(&red);
+    }
     /*
      * this means the move failed...
      * If we roll a lot, and end up with the same face as we started, the shakingAmmount
      * should be quite high, above the threshold, so we will say we succeeded if we shake a ton, or if
      * the face that is up is different than the face that was up before we started...
      */
-    this->blockingBlink(&red); 
-                               
   }
   else
   {
@@ -115,10 +143,10 @@ bool Cube::moveIASimple(Motion* motion)
     bool succeed = false;
     
     // do some blinky light work...
-    delay(500);
+    delay(100);
     this->blockingBlink(&green,2);
     this->lightsOff();
-    delay(1000);
+    delay(500);
   
     // Actually send the action to Kyles Board...
     String iaString = "ia " + String(motion->for_rev)+ " " + String(motion->rpm) + " " + String(motion->current) + " " + String(motion->brakeTime) + " e 15";
@@ -306,12 +334,25 @@ int Cube::wifiDelayWithMotionDetection(int delayTime) //**WIP
   while((millis() - millisNow) < delayTime)
   {
     mesh.update();
-    if(this->updateCoreIMU())
+    if(this->cubeID < 30)
     {
-      updateCount++;
-      motionSum += (abs(this->gxCoreBuffer.access(0)) + 
-                    abs(this->gyCoreBuffer.access(0)) + 
-                    abs(this->gzCoreBuffer.access(0)));     
+      if(this->updateCoreIMU())
+      {
+        updateCount++;
+        motionSum += (abs(this->gxCoreBuffer.access(0)) + 
+                      abs(this->gyCoreBuffer.access(0)) + 
+                      abs(this->gzCoreBuffer.access(0)));     
+      }
+    }
+    else
+    {
+    if(this->updateFrameIMU())
+      {
+        updateCount++;
+        motionSum += (abs(this->gxFrameBuffer.access(0)) + 
+                      abs(this->gyFrameBuffer.access(0)) + 
+                      abs(this->gzFrameBuffer.access(0)));     
+      }
     }
     mesh.update();
     delay(50);
@@ -320,8 +361,9 @@ int Cube::wifiDelayWithMotionDetection(int delayTime) //**WIP
   {
     return(0); // to make sure we don't have a divide by zero error...
   }
-  return(motionSum/(updateCount));
+  return(motionSum /(updateCount));
 }
+
 ////////////////////////////////////////////////////////////////////////////////////
 //////////////////////REGARDING PLANE CHANGING//////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
@@ -668,13 +710,17 @@ int Cube::returnXthBrightestFace(int X, bool ExcludeTop)
   {
     int topFace = this->returnTopFace();
     // make sure to protect inputs... it will be -1 if cube is funny orientation
-    if((topFace > 0) && (topFace < FACES))
+    if((topFace > -1) && (topFace < FACES))
     {
       this->faces[topFace].forceUpdateAmbientValue(0);
     }
+    else
+    {
+      this->blinkAmerica();
+    }
   }
   
-  if( (X < 0) || (X > FACES) ) {return(-1);}
+  if((X < 0) || (X > FACES)) return(-1);
   int tempArray[FACES];
   for(int i = 0; i < FACES; i++)
   {

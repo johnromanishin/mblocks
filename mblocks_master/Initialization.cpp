@@ -7,6 +7,27 @@
 #include <painlessMesh.h>  // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
 #include <ArduinoJson.h>
 
+
+/*
+ * ** PEI BLACK **
+ * ** PEI GREEN **
+ * ** PEI ORANGE **
+ * ** PEI PURPLE **
+ * PEI RED
+ * PEI YELLOW
+ * PEI BROWN
+ * PEI BLUE
+ * 
+ * ** PC BLACK **
+ * PC BLUE
+ * PC PURPLE
+ * PC GREEN
+ * PC BROWN
+ * ** PC YELLOW **
+ * ** PC ORANGE **
+ * 
+ * ORANGEPC BLACK
+ */
 void initializeCube()
 {
   initializeHardware();
@@ -239,24 +260,45 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 999;
       break;
     //********************************
-    case 959694: // Purple PEI
-      GlobalCubeID = 0;
+    //*********Real Cubes*************
+    //********************************
+    
+    case 959839:   // PEI BLACK DB:9D:99:1A:BA:23
+      GlobalCubeID = 16;
+      
+      TRAVERSE_RPM_F = 6000;
+      TRAVERSE_RPM_R = 6000;
+      TRAVERSE_CURRENT_F = 2500;
+      TRAVERSE_CURRENT_R = 2500;
+
+      CC_RPM_F = 16000;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 3000;
+      CC_CURRENT_R = 3000;
+      CC_BRAKETIME_F = 10;
+      CC_BRAKETIME_R = 10;
+      break;
+      
+    //********************************
+    case 959694: // PEI PURPLE | FA:AA:25:19:C7:DF
+      GlobalCubeID = 14;
       
       GlobalPlaneAccel = 2000;
       TRAVERSE_RPM_F = 7000;
       TRAVERSE_RPM_R = 7000;
-      TRAVERSE_CURRENT_F = 3600;
-      TRAVERSE_CURRENT_R = 4000;
+      TRAVERSE_CURRENT_F = 3000;
+      TRAVERSE_CURRENT_R = 3000;
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 2800;
-      CC_CURRENT_R = 2800;
+      CC_CURRENT_F = 2900;
+      CC_CURRENT_R = 2900;
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
+      break;
     //********************************
-    case 960348: // GREEN PEI
-      GlobalCubeID = 0;
+    case 960348: // PEI GREEN | EC:47:A9:35:1F:02
+      GlobalCubeID = 15;
       
       TRAVERSE_RPM_F = 6500;
       TRAVERSE_RPM_R = 6500;
@@ -270,6 +312,7 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
       break;
+      
     case 960043: // YELLOW PEI
       GlobalCubeID = 0;
       
@@ -302,8 +345,8 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 13;
       break;
 
-    case 960242: // ORANGE PEI
-      GlobalCubeID = 0;
+    case 960242: // PEI ORANGE E6:F6:05:69:08:F2
+      GlobalCubeID = 7;
       
       TRAVERSE_RPM_F = 7000;
       TRAVERSE_RPM_R = 7000;
@@ -318,6 +361,21 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 10;
       break;
       
+    case 8576514: // PC BLACK  E3:6B:C6:CE:DA:31
+      GlobalCubeID = 9;
+      
+      TRAVERSE_RPM_F = 6500;
+      TRAVERSE_RPM_R = 6500;
+      TRAVERSE_CURRENT_F = 2800;
+      TRAVERSE_CURRENT_R = 3300;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 3000;
+      CC_CURRENT_R = 3000;
+      CC_BRAKETIME_F = 10;
+      CC_BRAKETIME_R = 10;
+      break;  
     case 15044426: // RED PEI
       GlobalCubeID = 23;
       
@@ -349,6 +407,39 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
       break;
+
+    case 959709: // PC YELLOW  - FB:0D:8F:2C:3B:B4
+      GlobalCubeID = 8;
+      
+      TRAVERSE_RPM_F = 6500;
+      TRAVERSE_RPM_R = 7000;
+      TRAVERSE_CURRENT_F = 3000;
+      TRAVERSE_CURRENT_R = 3300;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 3000;
+      CC_CURRENT_R = 3000;
+      CC_BRAKETIME_F = 10;
+      CC_BRAKETIME_R = 10;
+      break;
+
+     case 8577103: // PC ORANGE  - E6:E5:82:26:C7:8B
+      GlobalCubeID = 11;
+      
+      TRAVERSE_RPM_F = 6500;
+      TRAVERSE_RPM_R = 7000;
+      TRAVERSE_CURRENT_F = 3000;
+      TRAVERSE_CURRENT_R = 3300;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 2600;
+      CC_CURRENT_R = 2800;
+      CC_BRAKETIME_F = 5;
+      CC_BRAKETIME_R = 10;
+      break;
+      
     break;
   }
 }
