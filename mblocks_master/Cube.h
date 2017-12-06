@@ -67,7 +67,7 @@ class Cube
     void resetI2C();
     void blinkParasiteLED(int blinkTime = 100);
     int wifiDelayWithMotionDetection(int delayTime);
-    int shutDownTime = (60000*5); // time until board goes to sleep
+    int shutDownTime = (60000*12); // time until board goes to sleep
 
       // Update Functions involving SENSORS
     bool updateSensors(bool ShouldIcheckForLightMessages = true); // Updates almost everything on the cube...

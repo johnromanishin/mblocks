@@ -9,22 +9,22 @@
 
 
 /*
- * ** PEI BLACK **
- * ** PEI GREEN **
- * ** PEI ORANGE **
- * ** PEI PURPLE **
- * PEI RED
- * PEI YELLOW
- * PEI BROWN
- * PEI BLUE
+ * ** PEI BLACK   **
+ * ** PEI GREEN   **
+ * ** PEI ORANGE  **
+ * ** PEI PURPLE  **
+ * ** PEI RED     **
+ * ** PEI YELLOW  **
+ * ** PEI BROWN   **
+ * ** PEI BLUE    **
  * 
- * ** PC BLACK **
+ * ** PC BLACK    **
  * PC BLUE
- * PC PURPLE
+ * ** PC PURPLE   **      * 
  * PC GREEN
  * PC BROWN
- * ** PC YELLOW **
- * ** PC ORANGE **
+ * ** PC YELLOW   **
+ * ** PC ORANGE   **
  * 
  * ORANGEPC BLACK
  */
@@ -312,38 +312,6 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
       break;
-      
-    case 960043: // YELLOW PEI
-      GlobalCubeID = 0;
-      
-      TRAVERSE_RPM_F = 7000;
-      TRAVERSE_RPM_R = 7000;
-      TRAVERSE_CURRENT_F = 3500;   
-      TRAVERSE_CURRENT_R = 4000;
-
-      CC_RPM_F = 15500;
-      CC_RPM_R = 15500;
-      CC_CURRENT_F = 4500;
-      CC_CURRENT_R = 4500;
-      CC_BRAKETIME_F = 15;
-      CC_BRAKETIME_R = 15;
-      break;
-      
-    case 8577715: // Brown PC
-      GlobalCubeID = 1;
-      
-      TRAVERSE_RPM_F = 7000;
-      TRAVERSE_RPM_R = 7000;
-      TRAVERSE_CURRENT_F = 3500;
-      TRAVERSE_CURRENT_R = 4000;
-
-      CC_RPM_F = 15500;
-      CC_RPM_R = 15500;
-      CC_CURRENT_F = 3600;
-      CC_CURRENT_R = 4000;
-      CC_BRAKETIME_F = 11;
-      CC_BRAKETIME_R = 13;
-      break;
 
     case 960242: // PEI ORANGE E6:F6:05:69:08:F2
       GlobalCubeID = 7;
@@ -376,37 +344,6 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
       break;  
-    case 15044426: // RED PEI
-      GlobalCubeID = 23;
-      
-      TRAVERSE_RPM_F = 6500;
-      TRAVERSE_RPM_R = 6500;
-      TRAVERSE_CURRENT_F = 3000;
-      TRAVERSE_CURRENT_R = 3000;
-
-      CC_RPM_F = 15500;
-      CC_RPM_R = 15500;
-      CC_CURRENT_F = 3100;
-      CC_CURRENT_R = 3300;
-      CC_BRAKETIME_F = 10;
-      CC_BRAKETIME_R = 10;
-      break;
-
-    case 8575308: // GREEN PC
-      GlobalCubeID = 23;
-      
-      TRAVERSE_RPM_F = 6500;
-      TRAVERSE_RPM_R = 6500;
-      TRAVERSE_CURRENT_F = 2800;
-      TRAVERSE_CURRENT_R = 3000;
-
-      CC_RPM_F = 15500;
-      CC_RPM_R = 15500;
-      CC_CURRENT_F = 3000;
-      CC_CURRENT_R = 3000;
-      CC_BRAKETIME_F = 10;
-      CC_BRAKETIME_R = 10;
-      break;
 
     case 959709: // PC YELLOW  - FB:0D:8F:2C:3B:B4
       GlobalCubeID = 8;
@@ -440,17 +377,162 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 10;
       break;
       
+     case 10229112: // PC PURPLE  - DF:DF:3C:A0:F1:77
+      GlobalCubeID = 2;
+      
+      TRAVERSE_RPM_F = 7000;
+      TRAVERSE_RPM_R = 7000;
+      TRAVERSE_CURRENT_F = 3600;
+      TRAVERSE_CURRENT_R = 4000;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 3500;
+      CC_CURRENT_R = 3800;
+      CC_BRAKETIME_F = 10;
+      CC_BRAKETIME_R = 10;
+      break;  
+
+    case 960662: // PEI BROWN  - F1:E8:71:B2:99:B5
+      GlobalCubeID = 1;
+      
+      TRAVERSE_RPM_F = 6500;
+      TRAVERSE_RPM_R = 7000;
+      TRAVERSE_CURRENT_F = 2500;
+      TRAVERSE_CURRENT_R = 4500;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 2800;
+      CC_CURRENT_R = 4700;
+      CC_BRAKETIME_F = 10;
+      CC_BRAKETIME_R = 11;
+      break; 
+      
+    case 960558: // PEI BLUE  f7:AE:59:2B:D9:4D
+      GlobalCubeID = 10;
+      
+      TRAVERSE_RPM_F = 7000;
+      TRAVERSE_RPM_R = 7000;
+      TRAVERSE_CURRENT_F = 3000;
+      TRAVERSE_CURRENT_R = 3500;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 2800;
+      CC_CURRENT_R = 3800;
+      CC_BRAKETIME_F = 10;
+      CC_BRAKETIME_R = 11;
+      break; 
+      
+    case 960043: // PEI YELLOW  CC:F1:4F:AF:64:A8
+      GlobalCubeID = 12;
+      
+      TRAVERSE_RPM_F = 7500;
+      TRAVERSE_RPM_R = 7500;
+      TRAVERSE_CURRENT_F = 6000;
+      TRAVERSE_CURRENT_R = 6000;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 4500;
+      CC_CURRENT_R = 5800;
+      CC_BRAKETIME_F = 15;
+      CC_BRAKETIME_R = 20;
+      break;   
+      
+     case 960427: // PEI RED  D0:D5:6F:CB:32:4C
+      GlobalCubeID = 5;
+      
+      TRAVERSE_RPM_F = 6500;
+      TRAVERSE_RPM_R = 6500;
+      TRAVERSE_CURRENT_F = 2500;
+      TRAVERSE_CURRENT_R = 2500;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 3000;
+      CC_CURRENT_R = 2800;
+      CC_BRAKETIME_F = 9;
+      CC_BRAKETIME_R = 5;
+      break;   
+      
+    case 15044359: // ORANGE PC RED  CD:2B:5E:AB:3E:F3
+      GlobalCubeID = 3;
+      
+      TRAVERSE_RPM_F = 6500;
+      TRAVERSE_RPM_R = 6500;
+      TRAVERSE_CURRENT_F = 2800;
+      TRAVERSE_CURRENT_R = 3000;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 2800;
+      CC_CURRENT_R = 3000;
+      CC_BRAKETIME_F = 10;
+      CC_BRAKETIME_R = 5;
+      break;   
+      
+  case 8577715: // PC Brown  C5:FF:AB:04:3B:9D
+      GlobalCubeID = 6;
+      
+      TRAVERSE_RPM_F = 6500;
+      TRAVERSE_RPM_R = 6500;
+      TRAVERSE_CURRENT_F = 2800;
+      TRAVERSE_CURRENT_R = 3100;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 2700;
+      CC_CURRENT_R = 3000;
+      CC_BRAKETIME_F = 6;
+      CC_BRAKETIME_R = 10;
+      break;
+       
+    case 3: // PC Blue
+      GlobalCubeID = 3;
+      
+      TRAVERSE_RPM_F = 6500;
+      TRAVERSE_RPM_R = 6500;
+      TRAVERSE_CURRENT_F = 2500;
+      TRAVERSE_CURRENT_R = 2500;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 3000;
+      CC_CURRENT_R = 2800;
+      CC_BRAKETIME_F = 9;
+      CC_BRAKETIME_R = 5;
+      break;   
+      
+    case 4: // PC Green
+      GlobalCubeID = 3;
+      
+      TRAVERSE_RPM_F = 6500;
+      TRAVERSE_RPM_R = 6500;
+      TRAVERSE_CURRENT_F = 2500;
+      TRAVERSE_CURRENT_R = 2500;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 3000;
+      CC_CURRENT_R = 2800;
+      CC_BRAKETIME_F = 9;
+      CC_BRAKETIME_R = 5;
+      break;   
+       
     break;
   }
 }
 
-
+//10229112
 void loadMotionData(Motion* motion, int RPM, int Current, int brakeTime)
 {
   motion->rpm = RPM;
   motion->current = Current;
   motion->brakeTime = brakeTime;
 }
+
 void actuallyLoadMotionData()
 {
   loadMotionData(&traverse_F, TRAVERSE_RPM_F, TRAVERSE_CURRENT_F, 10);
