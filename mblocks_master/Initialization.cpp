@@ -226,7 +226,6 @@ void lookUpCalibrationValues()
   {
     //********************************
     case 9086927: // This is the cube on the BIG Breadboard
-      Serial.println("WOOO!");
       GlobalCubeID = 99;
       
       TRAVERSE_RPM_F = 6969;
@@ -245,7 +244,7 @@ void lookUpCalibrationValues()
     //********************************
     
     case 13374829:   // Cube on Smaller Breadboard
-      GlobalCubeID = 99;
+      GlobalCubeID = 98;
       
       TRAVERSE_RPM_F = 999;
       TRAVERSE_RPM_R = 999;
@@ -489,8 +488,8 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 10;
       break;
        
-    case 3: // PC Blue
-      GlobalCubeID = 3;
+    case 3: // PC Blue  D8:9C:4D:EA:27:65
+      GlobalCubeID = 13;
       
       TRAVERSE_RPM_F = 6500;
       TRAVERSE_RPM_R = 6500;
@@ -505,20 +504,21 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 5;
       break;   
       
-    case 4: // PC Green
-      GlobalCubeID = 3;
+    case 8575308: // PC Green : ED:A6:6A:8E:1B:58
+      GlobalCubeID = 4;
+      GlobalPlaneAccel = 2500;
       
       TRAVERSE_RPM_F = 6500;
       TRAVERSE_RPM_R = 6500;
-      TRAVERSE_CURRENT_F = 2500;
-      TRAVERSE_CURRENT_R = 2500;
+      TRAVERSE_CURRENT_F = 3000;
+      TRAVERSE_CURRENT_R = 3000;
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
       CC_CURRENT_F = 3000;
-      CC_CURRENT_R = 2800;
-      CC_BRAKETIME_F = 9;
-      CC_BRAKETIME_R = 5;
+      CC_CURRENT_R = 3000;
+      CC_BRAKETIME_F = 10;
+      CC_BRAKETIME_R = 10;
       break;   
        
     break;

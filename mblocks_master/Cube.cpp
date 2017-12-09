@@ -406,7 +406,7 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
      (targetCorePlane == PLANEERROR) || 
      (targetCorePlane == PLANEMOVING)) // this protects the inputs
   {
-    this->blockingBlink(&yellow,12);
+    this->blockingBlink(&yellow,4);
     return(false);
   }
   if(this->findPlaneStatus(false) == targetCorePlane)
@@ -415,17 +415,17 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
     return(true);
   }
   
-  this->blockingBlink(&teal, 5);
+  this->blockingBlink(&green, 1);
+  this->blockingBlink(&teal, 2);
+  this->blockingBlink(&blue, 1);
   this->lightsOff();
-  delay(1500);
+  delay(500);
   Serial.println("   ");
   delay(100);
   Serial.println("sma retractcurrent 999");
   delay(100);
   Serial.println("   ");
-  delay(2000);
-  this->blockingBlink(&purple);
-  delay(2000);
+  delay(1500);
   bool succeed = false;
   Serial.println("sma retract 7500");
   delay(100);
@@ -433,7 +433,16 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
   delay(700);
   while((this->findPlaneStatus(false) != targetCorePlane) && ((millis()-beginTime) < 8000))
   {
+    PlaneEnum likelyStatus = this->currentPlaneBuffer.access(0);
+    if(likelyStatus == PLANEMOVING)
+    {
+      delay(500);
+    }
     String bldcaccelString = "bldcaccel f " + String(GlobalPlaneAccel) + " 800";
+    if(likelyStatus == PLANENONE)
+    {
+       bldcaccelString = "bldcaccel f " + String(GlobalPlaneAccel) + " 400";
+    }
     Serial.println(bldcaccelString);
     delay(900);
     if(this->findPlaneStatus(false) == targetCorePlane)
@@ -518,7 +527,7 @@ bool Cube::isFaceNeitherTopNorBottom(int face)
 
 PlaneEnum Cube::findPlaneStatus(bool reset)
 {
-  if(this->cubeID > 50) // this means it is a benchtop example and doesn't cant run this.
+  if(this->cubeID > 50) // this means it is a benchtop example and it can't actually run this.
     return(PLANE0123);
   PlaneEnum likelyStatus = PLANEERROR; 
   if(this->updateBothIMUs()) // try to update IMU...

@@ -50,14 +50,23 @@ bool Face::updateFace(bool checkForLightYo)
       && this->updateMagneticBarcode() // actually reads magnetic valuess
       && this->turnOffFaceLEDs());
   this->neighborPresenceBuffer.push(this->processTag()); // actually processes Tag... adds 
-  if((this->returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) && checkForLightYo)
+  
+  if((this->returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) && checkForLightYo) // checks for lightdigits...
   {
-    this->turnOnFaceLEDs(1,1,1,1);
-    delay(300);
-    this->turnOffFaceLEDs();
-    // ADD CODE HERE TO TRY TO READ A MESSAGE BLINKED OUT BY THE CUBE!!
+    this->turnOnFaceLEDs(1,1,1,1); // briefly turn on lights just for fun... || later change this to blink out actual digit
+    delay(200);
+    this->turnOffFaceLEDs(); // turn off all of the lights on your face...
+    int lightDigit = this->checkForMessage(2000); // this samples light sensor at rate of 50 hz...
+    if(this->isThereNeighbor()) // if we are still connected to a cube on this face...
+    {
+      this->neighborLightDigitBuffer.push(lightDigit); // add the lightDigit to the buffer
+    }   
+    else
+    {
+      this->neighborLightDigitBuffer.push(-1);         // if we were initially connected, but then disconnected, FAIL!
+    }
   }
-  this->disableSensors();
+  this->disableSensors(); // turn off sensors...
   return(success);
 }
 
@@ -162,9 +171,12 @@ bool Face::processTag()
       if(magDigit1 == 27) // 
         tagCommand = TAGCOMMAND_27;
       if(magDigit1 == 23 || magDigit1 == 24) 
+      
         tagCommand = TAGCOMMAND_23;
       if(magDigit1 == 5) // change plane
         tagCommand = TAGCOMMAND_PURPLE;
+      if((magDigit1 == 13) || (magDigit1 == 12))
+        tagCommand = TAGCOMMAND_13_ESPOFF;
     }
   }
 this->neighborTypeBuffer.push(tagType); 
@@ -201,7 +213,6 @@ if (2 <= Wire.available()) //ambientLight  = twiBuf[0] << 2;
   reading |= Wire.read()<<8;
 }
 this->ambientBuffer.push(reading); // adds the sensor value to the buffer 
-//Serial.println(reading);
 return(true);
 }
 void Face::forceUpdateAmbientValue(int value)
@@ -231,14 +242,20 @@ int Face::checkForMessage(int waitTime)
  *  blink for 300ms == "3"
  *  blink for 400ms == "4"
  *  blink for 500ms == "5"
- *  blink for 600+ms == "6"
+ *  blink for 600+ms== "6"
  */
 {
+  Serial.println("beginning check for message");
+  int cycles = waitTime/50;
   int result = 0;
   int lengthOn = 0;
-  if(!this->isThereNeighbor()) // if we are not connected... EXIT
+  delay(10);
+  for(int i = 0; i < cycles; i++)
   {
-    return(result);
+    this->updateAmbient();
+    Serial.print("   ");
+    Serial.print(this->returnAmbientValue(0));
+    delay(1);
   }
  // for(int i = 0; // 
 }

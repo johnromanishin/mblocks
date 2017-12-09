@@ -107,6 +107,51 @@ Behavior followArrows(Cube* c, SerialDecoderBuffer* buf)
   return(nextBehavior);
 }
 
+
+//================================================================
+//==========================CHILLING==============================
+//================================================================
+Behavior Pre_Solo_Light(Cube* c, SerialDecoderBuffer* buf)
+{
+  if(MAGIC_DEBUG) {Serial.println("***ABOUT TO BEGIN SOLO_LIGHT***");}  
+  long loopCounter = 0;
+  Behavior nextBehavior = PRE_SOLO_LIGHT;
+  while(nextBehavior == PRE_SOLO_LIGHT && loopCounter < 6) // loop until something changes the next behavior
+  {
+    nextBehavior = basicUpkeep(c, nextBehavior, buf);
+    if(c->numberOfNeighbors(0,0) > 0)
+    {
+      loopCounter = 0;
+    }
+    wifiDelay(100);
+    c->blockingBlink(&yellow);
+    c->blockingBlink(&teal);
+    loopCounter++;
+  }
+  return SOLO_LIGHT_TRACK;
+}
+
+Behavior forcedChilling(Cube* c, SerialDecoderBuffer* buf)
+{
+  if(MAGIC_DEBUG) {Serial.println("***ABOUT TO BEGIN SOLO_LIGHT***");}  
+  long loopCounter = 0;
+  Behavior nextBehavior = PRE_SOLO_LIGHT;
+  while(nextBehavior == PRE_SOLO_LIGHT && loopCounter < 6) // loop until something changes the next behavior
+  {
+    nextBehavior = basicUpkeep(c, nextBehavior, buf);
+    if(c->numberOfNeighbors(0,0) > 0)
+    {
+      loopCounter = 0;
+    }
+    wifiDelay(100);
+    c->blockingBlink(&yellow);
+    c->blockingBlink(&teal);
+    loopCounter++;
+  }
+  return SOLO_LIGHT_TRACK;
+}
+
+
 Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
 {
   // General Starting things... initialize flags, etc...
@@ -551,7 +596,7 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
       {
         if(i == c->returnBottomFace())
         {
-          c->blinkSpecial();
+          //c->blinkSpecial();
           resultBehavior = FOLLOW_ARROWS;
         }
         else if((c->returnForwardFace() == i) ||
@@ -561,6 +606,7 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
           resultBehavior = ATTRACTIVE;
       }
 
+      // If we are connected to another active cube...
       if(((c->faces[i].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) &&
           (c->faces[i].returnNeighborType(1) == TAGTYPE_REGULAR_CUBE)))  
       {
@@ -583,7 +629,6 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
       if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_PURPLE ||
         (magicVariable == 1))
       {
-        c->blinkAmerica();
         int z = i;
         if(magicVariable)
         {
@@ -614,12 +659,9 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
       
       if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_23)
       {
-        Serial.println("ia f 5000 4000 12");
-        delay(5000);
-        //c->roll(-1, buf, 8000);
-       // delay(2000);
-        //c->goToPlaneParallel(i);
-        resultBehavior = relayBehavior(c, PURPLE);
+        delay(1000);
+        c->blockingBlink(&blue);
+        resultBehavior = PRE_SOLO_LIGHT;
       }
       
       if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_19)
@@ -655,7 +697,7 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
     * Logic Involving more than one cube...
     */    
   if(MAGIC_DEBUG) {Serial.print("Starting Multi Cube Logic...");}
-  if(c->numberOfNeighbors(0,0) >= 2)
+  if((c->numberOfNeighbors(0,0) >= 2) && (resultBehavior != SLEEP)  && (resultBehavior != CHILLING))
   {  
      bool areAnyTagsCommands = false;
      for(int i = 0; i < 6; i++)
@@ -736,6 +778,8 @@ Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior)
   else if(cmd == "red")                 {behaviorToReturn = RED;}
   else if(cmd == "blue")                {behaviorToReturn = BLUE;}
   else if(cmd == "green")               {behaviorToReturn = GREEN;}
+  else if(cmd == "forced_chilling")     {behaviorToReturn = FORCED_CHILLING;}
+  else if(cmd == "pre_solo_light")      {behaviorToReturn = PRE_SOLO_LIGHT;}
   else if(cmd == "white")               {behaviorToReturn = WHITE;}
   else if(cmd == "lightsoff")           {behaviorToReturn = LIGHTSOFF;}
 return(behaviorToReturn);
@@ -757,12 +801,14 @@ String behaviorsToCmd(Behavior inputBehavior)
   else if(inputBehavior == SHUT_DOWN)             {stringToReturn = "shut_down";}
   else if(inputBehavior == SLEEP)                 {stringToReturn = "sleep";}
   else if(inputBehavior == YELLOW)                {stringToReturn = "yellow";}
+  else if(inputBehavior == FORCED_CHILLING)       {stringToReturn = "forced_chilling";}
   else if(inputBehavior == PURPLE)                {stringToReturn = "purple";}
   else if(inputBehavior == TEAL)                  {stringToReturn = "teal";}
   else if(inputBehavior == RED)                   {stringToReturn = "red";}
   else if(inputBehavior == BLUE)                  {stringToReturn = "blue";}
   else if(inputBehavior == GREEN)                 {stringToReturn = "green";}
   else if(inputBehavior == WHITE)                 {stringToReturn = "white";}
+  else if(inputBehavior == PRE_SOLO_LIGHT)        {stringToReturn = "pre_solo_light";}
   else if(inputBehavior == LIGHTSOFF)             {stringToReturn = "lightsoff";}
 return(stringToReturn);
 }
@@ -782,12 +828,16 @@ Behavior checkForBehaviors(Cube* c, SerialDecoderBuffer* buf, Behavior behavior)
     behavior = chilling(c, buf);
   else if (behavior == ATTRACTIVE)
     behavior = attractive(c, buf);
+  else if (behavior == FORCED_CHILLING)
+    behavior = forcedChilling(c, buf);
   else if (behavior == SLEEP)
     behavior = sleep(c);
   else if (behavior == YELLOW)
     behavior = Yellow(c, buf);
   else if (behavior == PURPLE)
     behavior = Purple(c, buf);
+  else if (behavior == PRE_SOLO_LIGHT)
+    behavior = Pre_Solo_Light(c, buf);
   else if (behavior == TEAL)
     behavior = Teal(c, buf);
   else

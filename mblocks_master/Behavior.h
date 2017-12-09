@@ -44,6 +44,7 @@ Behavior Green(Cube* c, SerialDecoderBuffer* buf);
 Behavior White(Cube* c, SerialDecoderBuffer* buf);
 Behavior Lightsoff(Cube* c, SerialDecoderBuffer* buf);
 Behavior sleep(Cube* c);
+Behavior forcedChilling(Cube* c, SerialDecoderBuffer* buf);
 
 Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf);
 /*        --- What it does ---
@@ -55,6 +56,16 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf);
  * b. Checks to see if it has tried and failed to move repeaditly      >>>> Lattice alignment Behavior
  */
 
+Behavior Pre_Solo_Light(Cube* c, SerialDecoderBuffer* buf);
+/*        --- What it does ---
+ * 0. Updated sensors and checks if exit conditions are met
+ * 1. Determine which face is the brightest
+ * 2. Attempts to Moves towards the brightest face
+ *        --- Exit Conditions ---
+ * a. Checks if it is attached to a lattice (c->numberOfNeighbors > 0) >>>> Lattice Behavior
+ * b. Checks to see if it has tried and failed to move repeaditly      >>>> Lattice alignment Behavior
+ */
+ 
 Behavior latticeAlign(Cube* c, SerialDecoderBuffer* buf);
 /*        --- What it does ---
  * 0. Updated sensors and checks if exit conditions are met

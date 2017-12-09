@@ -14,6 +14,7 @@ typedef enum TagCommand
   TAGCOMMAND_23,
   TAGCOMMAND_21,
   TAGCOMMAND_19,
+  TAGCOMMAND_13_ESPOFF,
 } TagCommand;
 
 typedef enum TagType
@@ -27,10 +28,12 @@ typedef enum TagType
 
 typedef enum Behavior
 {
+    PRE_SOLO_LIGHT,
     SOLO_LIGHT_TRACK,
     DUO_LIGHT_TRACK,
     FOLLOW_ARROWS,
     CHILLING,
+    FORCED_CHILLING,
     CLIMB,
     ATTRACTIVE,
     TESTING, 
