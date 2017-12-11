@@ -498,7 +498,7 @@ Behavior crystalize(Cube* c, painlessMesh* m)
 }
 
 
-Behavior basicUpkeep(Cube* c, Behavior currentBehaviorNew, SerialDecoderBuffer* buf, bool checkForLightMessages)
+Behavior basicUpkeep(Cube* c, Behavior currentBehaviorNew, SerialDecoderBuffer* buf, int lightDigit, bool checkForLightMessages)
 /*
  * This function does basic state machine switching
  * It (1) Updates the sensors, including magnetic sensors
@@ -510,7 +510,7 @@ Behavior basicUpkeep(Cube* c, Behavior currentBehaviorNew, SerialDecoderBuffer* 
 {
   Behavior behaviorToReturnWIFI = currentBehaviorNew;
   Behavior behaviorToReturnMAGNETIC = currentBehaviorNew;
-  c->updateSensors(checkForLightMessages);
+  c->updateSensors(lightDigit, checkForLightMessages);
   behaviorToReturnWIFI = checkForBasicWifiCommands(c, currentBehaviorNew, buf);
   delay(100);
   behaviorToReturnMAGNETIC = checkForMagneticTagsStandard(c, behaviorToReturnWIFI, buf);

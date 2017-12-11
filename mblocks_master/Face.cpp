@@ -40,7 +40,7 @@ Face::Face()
 //  this->IOExpanderState[0] = (this->IOExpanderState[1] = byte(0xff));
 //}
 
-bool Face::updateFace(bool checkForLightYo)
+bool Face::updateFace(int lightDigit, bool checkForLightYo)
 {
   bool success = 
         (this->enableSensors() 
@@ -54,9 +54,9 @@ bool Face::updateFace(bool checkForLightYo)
   if((this->returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) && checkForLightYo) // checks for lightdigits...
   {
     this->turnOnFaceLEDs(1,1,1,1); // briefly turn on lights just for fun... || later change this to blink out actual digit
-    delay(200);
+    delay(50);
     this->turnOffFaceLEDs(); // turn off all of the lights on your face...
-    int lightDigit = this->checkForMessage(2000); // this samples light sensor at rate of 50 hz...
+    int lightDigit = this->checkForMessage(lightDigit, 3000); // this samples light sensor at rate of 50 hz...
     if(this->isThereNeighbor()) // if we are still connected to a cube on this face...
     {
       this->neighborLightDigitBuffer.push(lightDigit); // add the lightDigit to the buffer
@@ -198,10 +198,13 @@ bool Face::updateIOExpander()
   else                           {return(false);}
 }
 
-bool Face::readAmbient()
+bool Face::readAmbient(bool activate)
 {
-activateLightSensor(this->ambientSensorAddress);
-delay(20);
+if(activate)
+{
+  activateLightSensor(this->ambientSensorAddress);
+}
+delay(19);
 int reading = 0;
 Wire.beginTransmission(this->ambientSensorAddress); 
 Wire.write(byte(0x8C)); // this is the register where the Ambient values are stored
@@ -215,21 +218,22 @@ if (2 <= Wire.available()) //ambientLight  = twiBuf[0] << 2;
 this->ambientBuffer.push(reading); // adds the sensor value to the buffer 
 return(true);
 }
+
 void Face::forceUpdateAmbientValue(int value)
 {
   this->ambientBuffer.push(value); // adds the sensor value to the buffer 
 }
 
-bool Face::updateAmbient()
+bool Face::updateAmbient(bool activate)
 /*
  * This function reads the ambient sensor on this instance of "Face" 
  */
 {
-this->readAmbient();
+this->readAmbient(activate);
 return(true);
 }
 
-int Face::checkForMessage(int waitTime)
+int Face::checkForMessage(int lightDigit, int waitTime)
 /*  This code is blocking, and is intended to ONLY run
  *  on a face that is magnetically connected to a different 
  *  Cube.
@@ -242,23 +246,64 @@ int Face::checkForMessage(int waitTime)
  *  blink for 300ms == "3"
  *  blink for 400ms == "4"
  *  blink for 500ms == "5"
- *  blink for 600+ms== "6"
+ *  blink for 600ms == "6"
+ *  blink for 700ms == "7"
+ *  blink for 800ms == "8"
+ *  blink for 900ms == "9"
+ *  blink for 1000ms== "10"
  */
 {
-  Serial.println("beginning check for message");
-  int cycles = waitTime/50;
+  //Serial.println("beginning check for message");
+  int cycles = waitTime/20;
   int result = 0;
+  int counter = 0;
   int lengthOn = 0;
+  int highLightThreshold = 4000;
+  bool wasLastValueHigh = false;
   delay(10);
-  for(int i = 0; i < cycles; i++)
+  this->updateAmbient(); // get initial reading
+  while(this->returnAmbientValue(0) > highLightThreshold) // wait for it to go low...
   {
-    this->updateAmbient();
-    Serial.print("   ");
-    Serial.print(this->returnAmbientValue(0));
+    this->updateAmbient(false);
+    counter++;
+    if(counter > 40) // if it never goes low... we return that we saw 6...
+    {
+      Serial.println("WOOOOO!!! FUCK YAH");
+      return(6);
+    }
+  }
+  counter = 0;
+  // we will get to this point once we see a low value so we know wasLastValueHigh == false;
+  for(int i = 0; i < cycles; i++) // begin checking for messages... we gaurentee we have seen a low value as the first value
+  {
+    this->updateAmbient(false);
+    if(this->returnAmbientValue(0) > highLightThreshold)
+    {
+      if(wasLastValueHigh == true)
+        {
+          counter++;
+        }
+      wasLastValueHigh = true;
+    }
+    else
+    {
+      if(wasLastValueHigh == true)
+        {
+          if(counter > 2)
+          {
+            
+            Serial.println((counter+3)/5);
+          }
+          counter = 0;
+        }
+      wasLastValueHigh = false;
+    }
+    
     delay(1);
   }
  // for(int i = 0; // 
 }
+
 
 void Face::blinkOutMessage(int digit)
 {

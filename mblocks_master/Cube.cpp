@@ -194,7 +194,7 @@ void Cube::reconnectI2C()
 
 void Cube::resetI2C()
 {
-  this->blockingBlink(&red, 20);
+  //this->blockingBlink(&red, 2);
   this->disconnectI2C();
   wifiDelay(300);
   this->reconnectI2C();
@@ -206,14 +206,14 @@ void Cube::blinkParasiteLED(int blinkTime)
   wifiDelay(blinkTime);
   digitalWrite(LED, LOW);
 }
-bool Cube::updateSensors(bool ShouldIcheckForLightMessages)
+bool Cube::updateSensors(int lightDigit, bool ShouldIcheckForLightMessages)
 {
   /*
    * This functions updates all of the sensor buffers on each cube
    * It also refreshes variables like this->topFace/ forwardFace/ ...
    */
   this->processState();// -- this deals with anything involving IMUs 
-  this->updateFaces(ShouldIcheckForLightMessages); // -- this checks all of the specific sensors on each face
+  this->updateFaces(lightDigit, ShouldIcheckForLightMessages); // -- this checks all of the specific sensors on each face
   return(true);
 }
 
@@ -261,12 +261,12 @@ bool Cube::blockingBlink(Color* inputColor, int howManyTimes, int waitTime)
   }
 }
 
-bool Cube::updateFaces(bool checkForLight)
+bool Cube::updateFaces(int lightDigit, bool checkForLight)
 {
 for(int i = 0; i< FACES; i++)
     {
       delay(3);
-      this->faces[i].updateFace(checkForLight);  // updateFace updates light and Magnetic sensors  
+      this->faces[i].updateFace(lightDigit, checkForLight);  // updateFace updates light and Magnetic sensors  
       delay(3);
     }
 }

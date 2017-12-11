@@ -70,10 +70,10 @@ class Cube
     int shutDownTime = (60000*12); // time until board goes to sleep
 
       // Update Functions involving SENSORS
-    bool updateSensors(bool ShouldIcheckForLightMessages = true); // Updates almost everything on the cube...
+    bool updateSensors(int lightDigit = 0, bool ShouldIcheckForLightMessages = true); // Updates almost everything on the cube...
     int numberOfNeighbors(int index = 0, bool lightFace = true);
     int numberOfCubeNeighbors(int index = 0);
-    bool updateFaces(bool checkForLight = true); // Updates all of the face sensors on all faces
+    bool updateFaces(int lightDigit = 0, bool checkForLight = true); // Updates all of the face sensors on all faces
     bool updateBothIMUs(); // updates BOTH IMU's
     bool updateFrameIMU();
     bool updateCoreIMU();
