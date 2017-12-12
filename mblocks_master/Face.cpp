@@ -40,7 +40,7 @@ Face::Face()
 //  this->IOExpanderState[0] = (this->IOExpanderState[1] = byte(0xff));
 //}
 
-bool Face::updateFace(int lightDigit, bool checkForLightYo)
+bool Face::updateFace(int blinkOutDigit, bool checkForLightYo)
 {
   bool success = 
         (this->enableSensors() 
@@ -56,7 +56,7 @@ bool Face::updateFace(int lightDigit, bool checkForLightYo)
     this->turnOnFaceLEDs(1,1,1,1); // briefly turn on lights just for fun... || later change this to blink out actual digit
     delay(50);
     this->turnOffFaceLEDs(); // turn off all of the lights on your face...
-    int lightDigit = this->checkForMessage(lightDigit, 3000); // this samples light sensor at rate of 50 hz...
+    int lightDigit = this->checkForMessage(blinkOutDigit, 4000); // this samples light sensor at rate of 50 hz...
     if(this->isThereNeighbor()) // if we are still connected to a cube on this face...
     {
       this->neighborLightDigitBuffer.push(lightDigit); // add the lightDigit to the buffer
@@ -171,9 +171,8 @@ bool Face::processTag()
       if(magDigit1 == 27) // 
         tagCommand = TAGCOMMAND_27;
       if(magDigit1 == 23 || magDigit1 == 24) 
-      
         tagCommand = TAGCOMMAND_23;
-      if(magDigit1 == 5) // change plane
+      if(magDigit1 == 5 || magDigit1 == 4) // change plane
         tagCommand = TAGCOMMAND_PURPLE;
       if((magDigit1 == 13) || (magDigit1 == 12))
         tagCommand = TAGCOMMAND_13_ESPOFF;
@@ -233,7 +232,7 @@ this->readAmbient(activate);
 return(true);
 }
 
-int Face::checkForMessage(int lightDigit, int waitTime)
+int Face::checkForMessage(int blinkOutDigit, int waitTime)
 /*  This code is blocking, and is intended to ONLY run
  *  on a face that is magnetically connected to a different 
  *  Cube.
@@ -250,16 +249,22 @@ int Face::checkForMessage(int lightDigit, int waitTime)
  *  blink for 700ms == "7"
  *  blink for 800ms == "8"
  *  blink for 900ms == "9"
- *  blink for 1000ms== "10"
+ *  blink for 1000+ms== "10"
+ *  
+ *  It will also blink out a digit (int blinkOutDigit) every 1 second.
  */
 {
-  //Serial.println("beginning check for message");
   int cycles = waitTime/20;
+  int howManyResults = 0;
   int result = 0;
   int counter = 0;
   int lengthOn = 0;
   int highLightThreshold = 4000;
   bool wasLastValueHigh = false;
+  if(blinkOutDigit == 10)
+  {
+    this->turnOnFaceLEDs(1,1,1,1);
+  }
   delay(10);
   this->updateAmbient(); // get initial reading
   while(this->returnAmbientValue(0) > highLightThreshold) // wait for it to go low...
@@ -268,14 +273,23 @@ int Face::checkForMessage(int lightDigit, int waitTime)
     counter++;
     if(counter > 40) // if it never goes low... we return that we saw 6...
     {
-      Serial.println("WOOOOO!!! FUCK YAH");
-      return(6);
+      //Serial.println("WOOOOO!!! FUCK YAH");
+      this->turnOffFaceLEDs();
+      return(10);
     }
   }
   counter = 0;
   // we will get to this point once we see a low value so we know wasLastValueHigh == false;
   for(int i = 0; i < cycles; i++) // begin checking for messages... we gaurentee we have seen a low value as the first value
   {
+    if((i % 50) && (blinkOutDigit < 10) && (blinkOutDigit > 0))
+    {
+       this->turnOnFaceLEDs(1,1,1,1);
+    }
+    if((i % (50 + 5*blinkOutDigit)) && (blinkOutDigit < 10) && (blinkOutDigit > 0))
+    {
+      this->turnOffFaceLEDs();
+    }
     this->updateAmbient(false);
     if(this->returnAmbientValue(0) > highLightThreshold)
     {
@@ -289,21 +303,23 @@ int Face::checkForMessage(int lightDigit, int waitTime)
     {
       if(wasLastValueHigh == true)
         {
-          if(counter > 2)
+          if(counter > 4)
           {
-            
+            howManyResults++;
+            result = ((counter+3)/5);
+            Serial.print("Counter result = ");
             Serial.println((counter+3)/5);
           }
           counter = 0;
         }
       wasLastValueHigh = false;
     }
-    
     delay(1);
   }
+this->turnOffFaceLEDs();
+return(result);
  // for(int i = 0; // 
 }
-
 
 void Face::blinkOutMessage(int digit)
 {

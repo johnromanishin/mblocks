@@ -35,14 +35,6 @@
 ////////////////////////////////////////////////////////////////////////////////////
 // I. Behaviors involving non lattice connected Cubes or small mobile assemblies////
 ////////////////////////////////////////////////////////////////////////////////////
-Behavior Yellow(Cube* c, SerialDecoderBuffer* buf);
-Behavior Purple(Cube* c, SerialDecoderBuffer* buf);
-Behavior Teal(Cube* c, SerialDecoderBuffer* buf);
-Behavior Red(Cube* c, SerialDecoderBuffer* buf);
-Behavior Blue(Cube* c, SerialDecoderBuffer* buf);
-Behavior Green(Cube* c, SerialDecoderBuffer* buf);
-Behavior White(Cube* c, SerialDecoderBuffer* buf);
-Behavior Lightsoff(Cube* c, SerialDecoderBuffer* buf);
 Behavior sleep(Cube* c);
 Behavior forcedChilling(Cube* c, SerialDecoderBuffer* buf);
 
@@ -149,7 +141,7 @@ Behavior relayBehavior(Cube* c, Behavior behaviorToRelay, int cubeToRelayTo = -1
 Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior);
 Behavior checkForBehaviors(Cube* c, SerialDecoderBuffer* buf, Behavior behavior);
 
-Behavior basicUpkeep(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf, int lightDigit = 4, bool checkForLightMessages = true);
+Behavior basicUpkeep(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf, int lightDigit = 0, bool checkForLightMessages = true);
 
 String behaviorsToCmd(Behavior inputBehavior);
 #endif

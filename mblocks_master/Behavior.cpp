@@ -10,44 +10,7 @@
 #include "Communication.h"      // Includes wifi
 #include "Defines.h"
 #include "SerialDecoder.h"
-//================================================================
-//==========================Colors================================
-//================================================================
-Behavior Yellow(Cube* c, SerialDecoderBuffer* buf)
-{
-  if(MAGIC_DEBUG) {Serial.println("Teal");}
-  Behavior nextBehavior = YELLOW;
-  while((basicUpkeep(c, nextBehavior, buf) == YELLOW) && (millis() < c->shutDownTime))
-  {
-    c->lightCube(&yellow);
-    delay(1000);
-  }
-}
-/////
-/////
-Behavior Purple(Cube* c, SerialDecoderBuffer* buf)
-{
-  if(MAGIC_DEBUG) {Serial.println("Teal");}
-  Behavior nextBehavior = PURPLE;
-  while((basicUpkeep(c, nextBehavior, buf) == PURPLE) && (millis() < c->shutDownTime))
-  {
-    c->lightCube(&purple);
-    delay(1000);
-  }
-}
-/////
-/////
-Behavior Teal(Cube* c, SerialDecoderBuffer* buf)
-{
-  if(MAGIC_DEBUG) {Serial.println("Teal");}
-  Behavior nextBehavior = TEAL;
-  while((basicUpkeep(c, nextBehavior, buf) == TEAL) && (millis() < c->shutDownTime))
-  {
-    c->lightCube(&teal);
-    delay(1000);
-  }
-}
-/////
+
 Behavior sleep(Cube* c)
 {
   c->blockingBlink(&red,10);
@@ -116,41 +79,16 @@ Behavior Pre_Solo_Light(Cube* c, SerialDecoderBuffer* buf)
   if(MAGIC_DEBUG) {Serial.println("***ABOUT TO BEGIN SOLO_LIGHT***");}  
   long loopCounter = 0;
   Behavior nextBehavior = PRE_SOLO_LIGHT;
-  while(nextBehavior == PRE_SOLO_LIGHT && loopCounter < 6) // loop until something changes the next behavior
+  while(nextBehavior == PRE_SOLO_LIGHT && loopCounter < 3) // loop until something changes the next behavior
   {
     nextBehavior = basicUpkeep(c, nextBehavior, buf);
-    if(c->numberOfNeighbors(0,0) > 0)
-    {
-      loopCounter = 0;
-    }
     wifiDelay(100);
-    c->blockingBlink(&yellow);
-    c->blockingBlink(&teal);
+    c->blockingBlink(&yellow, 10, 101);
+
     loopCounter++;
   }
   return SOLO_LIGHT_TRACK;
 }
-
-Behavior forcedChilling(Cube* c, SerialDecoderBuffer* buf)
-{
-  if(MAGIC_DEBUG) {Serial.println("***ABOUT TO BEGIN SOLO_LIGHT***");}  
-  long loopCounter = 0;
-  Behavior nextBehavior = PRE_SOLO_LIGHT;
-  while(nextBehavior == PRE_SOLO_LIGHT && loopCounter < 6) // loop until something changes the next behavior
-  {
-    nextBehavior = basicUpkeep(c, nextBehavior, buf);
-    if(c->numberOfNeighbors(0,0) > 0)
-    {
-      loopCounter = 0;
-    }
-    wifiDelay(100);
-    c->blockingBlink(&yellow);
-    c->blockingBlink(&teal);
-    loopCounter++;
-  }
-  return SOLO_LIGHT_TRACK;
-}
-
 
 Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
 {
@@ -164,11 +102,11 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
   
   // perform basic upkeep... this involves updating sensors...
   nextBehavior = basicUpkeep(c, nextBehavior, buf);
-
+  
   // if basic upkeep decides to change behavior, we exit now...
   // otherwise we keep running in this loop until something 
   // changes the state
-  while((nextBehavior == SOLO_LIGHT_TRACK) && // if we haven't changes state
+  while((nextBehavior == SOLO_LIGHT_TRACK) && // if we haven't changed state
         (c->numberOfNeighbors(0,0) == 0)  && // and if we have ZERO neighbors
         (millis() < c->shutDownTime))        // and if we aren't feeling sleepy
   {
@@ -177,20 +115,34 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
     int brightestFace = c->returnXthBrightestFace(0, true);
     int nextBrightestFace = c->returnXthBrightestFace(1, true);
     int thirdBrightestFace = c->returnXthBrightestFace(2, true);
-    bool direct = false; // false = reverse...
-    if(c->returnForwardFace() == brightestFace)
-    {
-      direct = true;
-    }
-     
-    c->lightFace(brightestFace, &red);
-    delay(400);
-    c->lightFace(nextBrightestFace, &green);
-    delay(400);
+    //
+    c->lightFace(brightestFace, &green);
+    delay(350);
+    c->lightFace(nextBrightestFace, &red);
+    delay(350);
     c->lightFace(thirdBrightestFace, &blue);
-    delay(400);
+    delay(350);
     c->lightCube(&off);
     delay(100);
+    
+    // Figure out which way we should try to move
+    bool direct = false; // false = reverse...
+    if(brightestFace == c->returnForwardFace())
+      direct = true;
+    else if(brightestFace == c->returnReverseFace())
+      direct = false;
+      // Ok Nothing is directly Aligned... Checking Next Brightest
+    else if(nextBrightestFace == c->returnForwardFace())
+      direct = true;
+    else if(nextBrightestFace == c->returnReverseFace())
+      direct = false;
+          // Ok Checking 3rd brightest face...
+    else if(thirdBrightestFace == c->returnForwardFace())
+      direct = true;
+    else if(thirdBrightestFace == c->returnReverseFace())
+      direct = false;
+    
+    
     /************* Begin if else if chain **************************
      *  The following if/else if chain represents the choices we can take
      *  give that we have recently updated our information, including light sensors,
@@ -204,16 +156,15 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
      */
     if(c->findPlaneStatus(true) == PLANENONE)
     {
-      c->blockingBlink(&yellow);
-      c->blinkAmerica();
-      c->blockingBlink(&yellow);
+      c->superSpecialBlink(&purple, 600);
+      c->superSpecialBlink(&red, 600);
       magicFace = c->returnTopFace(); 
       magicVariable = 1;
     }
     else if(iAmStuck)
     {
       // if we succeed in moving... we break out of this loop
-      if(c->roll(-1, buf, 8000)) // try to roll and succeed...
+      if(c->roll(direct, buf, 8000) == true) // try to roll and succeed...
       {
         iAmStuck = false; 
         iMightBeStuck = false;
@@ -224,12 +175,12 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
         //int attempts = 3;
         delay(500);
         int topFace = c->returnTopFace();
-        if((topFace > -1) && (topFace < FACES)) // if this is true we are on the ground... so we should try
+        if((topFace > -1) && (topFace < FACES)) // if this is true we are on the ground... so we should try to change planes
         {
           magicFace = topFace; 
           magicVariable = 1;
         }
-        else
+        else // we are not on the ground... So we jump a little bit...
         {
           c->moveIASimple(&traverse_F);
         }
@@ -242,11 +193,6 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
            delay(1500);
            c->moveIASimple(&traverse_R);
            delay(1500);
-        }
-        else
-        {
-          c->blockingBlink(&blue, 5);
-          c->blockingBlink(&green, 5);
         }
       } 
     }
@@ -263,88 +209,40 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf)
       
       if(c->returnForwardFace() == -1)
       {
-        if(c->roll(1,buf,1600,"bldcaccel f 6000 1500") == false)
-          iMightBeStuck = true;
+        if(c->roll(1,buf,1800,"bldcaccel f 6000 1500") == false)
+          iAmStuck = true;
       }
-      else // try to roll if we fail... advance to more change plane
+      else // try to roll... if we fail... advance to plane changing, etc...
       {
-        if(c->roll(direct, buf, 6500) == false)
+        if(c->roll(direct, buf, 11000) == false)
         {
           delay(10);
           iAmStuck = true;
           iMightBeStuck = true;
         }
       }
-      delay(500);
     }
     //****************************
     else if(c->returnForwardFace() == -1)
     {
-      if(c->roll(1,buf,1600,"bldcaccel f 6000 1500") == false)
+      if(c->roll(1,buf,1800,"bldcaccel f 6000 1500") == false)
         iMightBeStuck = true;
       delay(100);
     }
-    //****************************
-    else if(brightestFace == c->returnForwardFace())
-    {
-      if(c->roll(1, buf, 10000) == false)
-      {
-        delay(1000);
-        if(c->roll(1, buf, 10000) == false)
-        {
-          iMightBeStuck = true;
-        }
-      }
-    }
-    //****************************
-    else if(brightestFace == c->returnReverseFace())
-    {
-      if(c->roll(-1, buf, 10000) == false)
-      {
-        delay(1000);
-        if(c->roll(-1, buf, 10000) == false)
-        {
-          iMightBeStuck = true;
-        }
-      }
-    }
-    //****************************
-    else if(nextBrightestFace == c->returnForwardFace())
-    {
-      if(c->roll(1, buf, 7500) == false)
-        iMightBeStuck = true;
-    }
-    //****************************
-    else if(nextBrightestFace == c->returnReverseFace())
-    {
-      if(c->roll(-1, buf, 7500) == false)
-        iMightBeStuck = true;
-    }
-    //****************************
-    else if(thirdBrightestFace == c->returnReverseFace())
-    {
-      if(c->roll(-1, buf, 7500) == false)
-        iMightBeStuck = true;
-    }
-    //****************************
-    else if(thirdBrightestFace == c->returnForwardFace())
-    {
-     if(c->roll(1, buf, 7500) == false)
-        iMightBeStuck = true;
-    }
-    //****************************
-    
+    //**************************** this is regular light tracking...
     else
-      c->blockingBlink(&teal, 10);
-      c->blockingBlink(&white, 10);
-      if(c->roll(1, buf, 7500) == false) 
+    {
+      if(c->roll(direct, buf, 9500) == false)
+      {
         iMightBeStuck = true;
+      }
+    }
+ 
 //************** End if else if chain **************************
     loopCounter++;
-    delay(1000);
+    delay(200);
     nextBehavior = basicUpkeep(c, nextBehavior, buf);  // check for neighbors, etc...
   }
-  c->blinkSpecial();
   return(nextBehavior);
 }
 
@@ -457,6 +355,11 @@ Behavior attractive(Cube* c, SerialDecoderBuffer* buf)
         if((i == c->returnTopFace()) || (i == c->returnBottomFace())) // This ensures we only 
           delay(1);                                              // turn on 4 faces in horizontal plane
           //break;
+        else if(c->faces[i].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) // if we have a neighbor on that face....
+          {
+            c->faces[i].turnOnFaceLEDs(1,1,1,1); 
+            delay(4000);
+          }
         else if(c->faces[i].returnNeighborPresence(0) == true) // if we have a neighbor on that face....
           delay(1);
         else
@@ -510,6 +413,16 @@ Behavior basicUpkeep(Cube* c, Behavior currentBehaviorNew, SerialDecoderBuffer* 
 {
   Behavior behaviorToReturnWIFI = currentBehaviorNew;
   Behavior behaviorToReturnMAGNETIC = currentBehaviorNew;
+  if(c->numberOfNeighbors(0,0) == 1)
+  {
+    c->superSpecialBlink(&white, 300);
+    lightDigit = 6;
+  }
+  if(c->numberOfNeighbors(0,0) > 1)
+  {
+    c->superSpecialBlink(&white, 300);
+    lightDigit = 10;
+  }
   c->updateSensors(lightDigit, checkForLightMessages);
   behaviorToReturnWIFI = checkForBasicWifiCommands(c, currentBehaviorNew, buf);
   delay(100);
@@ -659,11 +572,20 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
       
       if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_23)
       {
-        delay(1000);
-        c->blockingBlink(&blue);
-        resultBehavior = PRE_SOLO_LIGHT;
+        for(int times = 0; times < 5; times++)
+        {
+          Serial.println("sleep");
+          delay(500);
+        }
       }
-      
+      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_13_ESPOFF)
+      {
+        for(int times = 0; times < 5; times++)
+        {
+          Serial.println("espoff");
+          delay(500);
+        }
+      }
       if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_19)
       {
 //        //====================SEND DEBUG =================== 
@@ -765,23 +687,14 @@ Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior)
 {
   Behavior behaviorToReturn = defaultBehavior;
        if(cmd == "solo_light_track")    {behaviorToReturn = SOLO_LIGHT_TRACK;}
-  else if(cmd == "duo_light_tracj")     {behaviorToReturn = DUO_LIGHT_TRACK;}
+  else if(cmd == "duo_light_track")     {behaviorToReturn = DUO_LIGHT_TRACK;}
   else if(cmd == "follow_arrows")       {behaviorToReturn = FOLLOW_ARROWS;}
   else if(cmd == "chilling")            {behaviorToReturn = CHILLING;}
   else if(cmd == "climb")               {behaviorToReturn = CLIMB;}
   else if(cmd == "attractive")          {behaviorToReturn = ATTRACTIVE;}
   else if(cmd == "shut_down")           {behaviorToReturn = SHUT_DOWN;}
   else if(cmd == "sleep")               {behaviorToReturn = SLEEP;}
-  else if(cmd == "yellow")              {behaviorToReturn = YELLOW;}
-  else if(cmd == "purple")              {behaviorToReturn = PURPLE;}
-  else if(cmd == "teal")                {behaviorToReturn = TEAL;}
-  else if(cmd == "red")                 {behaviorToReturn = RED;}
-  else if(cmd == "blue")                {behaviorToReturn = BLUE;}
-  else if(cmd == "green")               {behaviorToReturn = GREEN;}
-  else if(cmd == "forced_chilling")     {behaviorToReturn = FORCED_CHILLING;}
   else if(cmd == "pre_solo_light")      {behaviorToReturn = PRE_SOLO_LIGHT;}
-  else if(cmd == "white")               {behaviorToReturn = WHITE;}
-  else if(cmd == "lightsoff")           {behaviorToReturn = LIGHTSOFF;}
 return(behaviorToReturn);
 }
 
@@ -800,16 +713,7 @@ String behaviorsToCmd(Behavior inputBehavior)
   else if(inputBehavior == ATTRACTIVE)            {stringToReturn = "attractive";}
   else if(inputBehavior == SHUT_DOWN)             {stringToReturn = "shut_down";}
   else if(inputBehavior == SLEEP)                 {stringToReturn = "sleep";}
-  else if(inputBehavior == YELLOW)                {stringToReturn = "yellow";}
-  else if(inputBehavior == FORCED_CHILLING)       {stringToReturn = "forced_chilling";}
-  else if(inputBehavior == PURPLE)                {stringToReturn = "purple";}
-  else if(inputBehavior == TEAL)                  {stringToReturn = "teal";}
-  else if(inputBehavior == RED)                   {stringToReturn = "red";}
-  else if(inputBehavior == BLUE)                  {stringToReturn = "blue";}
-  else if(inputBehavior == GREEN)                 {stringToReturn = "green";}
-  else if(inputBehavior == WHITE)                 {stringToReturn = "white";}
   else if(inputBehavior == PRE_SOLO_LIGHT)        {stringToReturn = "pre_solo_light";}
-  else if(inputBehavior == LIGHTSOFF)             {stringToReturn = "lightsoff";}
 return(stringToReturn);
 }
 
@@ -828,18 +732,10 @@ Behavior checkForBehaviors(Cube* c, SerialDecoderBuffer* buf, Behavior behavior)
     behavior = chilling(c, buf);
   else if (behavior == ATTRACTIVE)
     behavior = attractive(c, buf);
-  else if (behavior == FORCED_CHILLING)
-    behavior = forcedChilling(c, buf);
   else if (behavior == SLEEP)
     behavior = sleep(c);
-  else if (behavior == YELLOW)
-    behavior = Yellow(c, buf);
-  else if (behavior == PURPLE)
-    behavior = Purple(c, buf);
   else if (behavior == PRE_SOLO_LIGHT)
     behavior = Pre_Solo_Light(c, buf);
-  else if (behavior == TEAL)
-    behavior = Teal(c, buf);
   else
   {
     //Serial.println("ERROR: unknown behavior.  Reverting to \"CHILLING\"");

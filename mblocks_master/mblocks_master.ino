@@ -37,6 +37,10 @@ void setup() // Actually the main loop...
                     // (Wifi, i2c, serial) and instantiates classes and calibration values
   c.updateSensors(); // populates initial readings for variables such as which face is up, and # of neighbors
   c.updateCubeID(GlobalCubeID); // updated variable c.cubeID from initialization loop up table...
+  c.superSpecialBlink(&purple, 100);
+  c.superSpecialBlink(&yellow, 50);
+  c.superSpecialBlink(&teal, 25);
+  c.lightCube(&off);
   ///////////////////DO THIS ONCE////////////////////
 //  for(int i = 0; i < 30; i++)
 //  {

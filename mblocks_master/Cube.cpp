@@ -1,4 +1,3 @@
-// We want to implement classes for ease of reference as we construct and modify code.
 // Includes
 #include "Defines.h"
 #include "Behavior.h"
@@ -46,7 +45,7 @@ Cube::Cube()
 //////////////////////COMMONLY USED FUNCTIONS///////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
-bool Cube::roll(int forwardReverse, SerialDecoderBuffer* buf, int rpm, String ALTERNATE)
+bool Cube::roll(bool forwardReverse, SerialDecoderBuffer* buf, int rpm, String ALTERNATE)
 /*
  * This function is intended to be used when a cube is NOT on a lattice
  * It will roll around the environment, defaults to FORWARD with 6000 RPM
@@ -69,44 +68,44 @@ bool Cube::roll(int forwardReverse, SerialDecoderBuffer* buf, int rpm, String AL
   int shakingThreshold = 10000;
   String CW_CCW;
   String stringToPrint = "ver";
-  if(forwardReverse < 0)
+  if(forwardReverse == false)
   {
     this->blockingBlink(&yellow);
     CW_CCW = " r "; // set the direction to "reverse" if forwardReverse is negatuve
   }
-  else if(forwardReverse > 0)
+  else
   {
     this->blockingBlink(&teal);
     CW_CCW = " f ";
   }
-  else
-  {
-    this->blockingBlink(&white);
-  }
   delay(20);
-  if(ALTERNATE == "nothing")
+  
+  if(ALTERNATE == "nothing") // Normal Mode ... Ignore the string, just spin up RPM
   {
     stringToPrint = "bldcspeed" + CW_CCW + String(rpm); // generate String for motor
   }
-  else
+  else // This if if we have input a string, then we take RPM to be the delay...
   {
     stringToPrint = ALTERNATE;
     timeToDelayBeforeBrake = rpm;
   }
+  
   Serial.println(stringToPrint); // this actually tells the thing to move.
   delay(timeToDelayBeforeBrake);
   Serial.println("bldcstop b"); // this actually tells the Cube to start rolling
-  int shakingAmmount = wifiDelayWithMotionDetection(2600);
+  int shakingAmmount = wifiDelayWithMotionDetection(3000);
+  Serial.println("bldcstop");
+  delay(100);
   this->moveShakingBuffer.push(shakingAmmount); // delays 2500 ms
   if(MAGIC_DEBUG) {Serial.print("We detected this ammount of Shaking: ");Serial.println(shakingAmmount);}
   this->processState();
   delay(100);
-  if((this->returnTopFace() == faceUpBeginning) || (this->returnTopFace() == -1)) // If the same face is point up... or it failed
+  if((this->returnTopFace() == faceUpBeginning) || (this->returnTopFace() == -1)) // If the same face is pointing up... or it failed
   {
-    if(shakingAmmount > shakingThreshold)
+    if(shakingAmmount > shakingThreshold) // if we shook a bunch... but same face is up...
     {
       this->blockingBlink(&green);
-      succeed = true;
+      succeed = true;                   // consider it a success!
     }
     else
     {
@@ -268,6 +267,12 @@ for(int i = 0; i< FACES; i++)
       delay(3);
       this->faces[i].updateFace(lightDigit, checkForLight);  // updateFace updates light and Magnetic sensors  
       delay(3);
+//      if(this->faces[i].returnNeighborLightDigit(0) > 0)
+//      {
+//        Serial.print("WOOO HEY WE FOUND SOMETHING!!!!! ");
+//        Serial.println(this->faces[i].returnNeighborLightDigit(0));
+//        this->superSpecialBlink(&yellow, 100);
+//      }
     }
 }
 
@@ -402,29 +407,29 @@ bool Cube::goToPlaneParallel(int faceExclude)
 
 bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
 {   
+  this->superSpecialBlink(&purple, 100);
+  this->superSpecialBlink(&red, 100);
+  this->superSpecialBlink(&yellow, 100);
+  this->superSpecialBlink(&green, 100);
+  this->lightsOff();
   if((targetCorePlane == PLANENONE)  ||
      (targetCorePlane == PLANEERROR) || 
      (targetCorePlane == PLANEMOVING)) // this protects the inputs
   {
-    this->blockingBlink(&yellow,4);
+    this->superSpecialBlink(&red,200);
+    this->superSpecialBlink(&red,150);
+    this->superSpecialBlink(&red,100);
+    this->superSpecialBlink(&red,66);
+    this->superSpecialBlink(&red,33);
     return(false);
   }
   if(this->findPlaneStatus(false) == targetCorePlane)
   {
-    this->blockingBlink(&green);
+    this->superSpecialBlink(&green,100);
     return(true);
   }
-  
-  this->blockingBlink(&green, 1);
-  this->blockingBlink(&teal, 2);
-  this->blockingBlink(&blue, 1);
-  this->lightsOff();
-  delay(500);
-  Serial.println("   ");
-  delay(100);
-  Serial.println("sma retractcurrent 999");
-  delay(100);
-  Serial.println("   ");
+  delay(200);
+  Serial.println("sma retractcurrent 1050");
   delay(1500);
   bool succeed = false;
   Serial.println("sma retract 7500");
@@ -436,7 +441,7 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
     PlaneEnum likelyStatus = this->currentPlaneBuffer.access(0);
     if(likelyStatus == PLANEMOVING)
     {
-      delay(500);
+      delay(250);
     }
     String bldcaccelString = "bldcaccel f " + String(GlobalPlaneAccel) + " 800";
     if(likelyStatus == PLANENONE)
@@ -464,13 +469,13 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
   
   if(this->findPlaneStatus(false) == targetCorePlane)
   {
-    this->blockingBlink(&green, 2);
+    this->superSpecialBlink(&green, 100);
     return(true);
   }
   /*
    * Nothing checked out... So the default is to return false
    */
-  this->blockingBlink(&red, 2);
+  this->superSpecialBlink(&red, 100);
   return(false);
 }
 
@@ -794,6 +799,38 @@ int sortList(int* inputList, int listLength, int desiredIndex)
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
+
+bool Cube::lightCorner(int corner, Color* inputColor)
+{
+    /*
+   * Lights up a particular face with the color r | g | b
+   */
+   bool r = inputColor->r;
+   bool g = inputColor->g;
+   bool b = inputColor->b;
+
+  this->clearRGB(); // Sets all RGB bits to HIGH / aka off
+  if(corner % 2 == 0)
+  {
+     if(r){this->faces[corner / 2].setPinLow(this->faces[corner / 2].r_0);}
+     if(g){this->faces[corner / 2].setPinLow(this->faces[corner / 2].g_0);}
+     if(b){this->faces[corner / 2].setPinLow(this->faces[corner / 2].b_0);}
+     for(int i = 0; i< 4; i++)
+     {
+        this->faces[i].updateIOExpander();
+     }
+  }
+  else
+  {
+     if(r){this->faces[corner / 2].setPinLow(this->faces[corner / 2].r_1);}
+     if(g){this->faces[corner / 2].setPinLow(this->faces[corner / 2].g_1);}
+     if(b){this->faces[corner / 2].setPinLow(this->faces[corner / 2].b_1);}
+     for(int i = 0; i< 4; i++)
+     {
+        this->faces[i].updateIOExpander();
+     }
+  }      
+}
 
 bool Cube::lightFace(int face, Color* inputColor)
 {
@@ -1230,6 +1267,14 @@ void Cube::blinkRainbow(int delayTime)
   this->lightCube(&off);
 }
 
+void Cube::superSpecialBlink(Color* inputColor, int delayTime)
+{
+  for(int corner = 0; corner < 8; corner++)
+  {
+    this->lightCorner(corner, inputColor);
+    delay(delayTime);
+  }
+}
 void Cube::updateCubeID(int idNUM)
 {
   this->cubeID = idNUM;

@@ -33,21 +33,12 @@ typedef enum Behavior
     DUO_LIGHT_TRACK,
     FOLLOW_ARROWS,
     CHILLING,
-    FORCED_CHILLING,
     CLIMB,
     ATTRACTIVE,
     TESTING, 
     SHUT_DOWN,
     SLEEP,
-    RELAY_SLEEP,
-    YELLOW,
-    PURPLE,
-    TEAL,
-    WHITE,
-    BLUE,
-    RED,
-    GREEN,
-    LIGHTSOFF
+    RELAY_SLEEP
 } Behavior;
 
 // This is a struct for organizing information about motions

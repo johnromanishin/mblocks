@@ -83,7 +83,7 @@ class Cube
 
         // Functions involving motion
     bool moveIASimple(Motion* motion);
-    bool roll(int forwardReverse, SerialDecoderBuffer* buf, int rpm = 6000, String ALTERNATE = "nothing");
+    bool roll(bool forwardReverse, SerialDecoderBuffer* buf, int rpm = 6000, String ALTERNATE = "nothing");
 
         // Related to the state itself
     bool processState();
@@ -106,6 +106,7 @@ class Cube
       // Functions involving LED's
     bool clearRGB(); // Turns off all LED's on the cube DUAL VERSIONS
     void lightsOff();
+    bool lightCorner(int corner, Color* inputColor);
     bool lightFace(int face, Color* inputColor); //DUAL VERSIONS
     bool lightCube(Color* inputColor); // lights entire cube, defaults to yellow
     bool blockingBlink(Color* inputColor, int howManyTimes = 6, int waitTime = 100);
@@ -113,7 +114,7 @@ class Cube
     void blinkRainbow(int delayTime = 250);
     void blinkSpecial(int delayTime = 250);
     void blinkAmerica(int delayTime = 250);
-
+    void superSpecialBlink(Color* inputColor, int delayTime);
     // Misc. Useful Functions
     bool determineIfLatticeConnected();
     void printOutDebugInformation();

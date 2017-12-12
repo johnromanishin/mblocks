@@ -13,14 +13,14 @@
  * ** PEI GREEN   **
  * ** PEI ORANGE  **
  * ** PEI PURPLE  **
- * ** PEI RED     **
+ * ** PEI RED     **  *
  * ** PEI YELLOW  **
  * ** PEI BROWN   **
  * ** PEI BLUE    **
  * 
  * ** PC BLACK    **
  * PC BLUE
- * ** PC PURPLE   **      * 
+ * ** PC PURPLE   **      
  * PC GREEN
  * PC BROWN
  * ** PC YELLOW   **
@@ -290,8 +290,8 @@ void lookUpCalibrationValues()
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 2900;
-      CC_CURRENT_R = 2900;
+      CC_CURRENT_F = 3300;
+      CC_CURRENT_R = 3200;
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
       break;
