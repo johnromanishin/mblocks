@@ -16,18 +16,6 @@
 //    CHILLING,
 //    CLIMB,
 //    ATTRACTIVE,
-//    TESTING, 
-//    SHUT_DOWN,
-//    SLEEP,
-//    RELAY_SLEEP,
-//    YELLOW,
-//    PURPLE,
-//    TEAL,
-//    WHITE,
-//    BLUE,
-//    RED,
-//    GREEN,
-//    LIGHTSOFF
 //} Behavior;
 
 // Behaviors are enumerated
@@ -36,7 +24,6 @@
 // I. Behaviors involving non lattice connected Cubes or small mobile assemblies////
 ////////////////////////////////////////////////////////////////////////////////////
 Behavior sleep(Cube* c);
-Behavior forcedChilling(Cube* c, SerialDecoderBuffer* buf);
 
 Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf);
 /*        --- What it does ---
@@ -58,18 +45,7 @@ Behavior Pre_Solo_Light(Cube* c, SerialDecoderBuffer* buf);
  * b. Checks to see if it has tried and failed to move repeaditly      >>>> Lattice alignment Behavior
  */
  
-Behavior latticeAlign(Cube* c, SerialDecoderBuffer* buf);
-/*        --- What it does ---
- * 0. Updated sensors and checks if exit conditions are met
- * 1. Attempts to roll forward/ backwards... Checks gyro sensor to see if we have rolled
- * 2. Attemps to Aligns flywheel to be parallal to the ground
- * 3. Performs several actuation events to attempt to join the lattice.
- *        --- Exit Conditions ---
- * a. Checks if it is attached to a lattice (c->numberOfNeighbors > 0) >>>> Lattice Behavior
- * b. Checks to see if it has tried and failed to move repeaditly      >>>> go to sleep
- */
-
-Behavior duoSeekLight();
+Behavior duoSeekLight(Cube* c, SerialDecoderBuffer* buf);
 /*        --- What it does ---
  * 0.
  * 1.
@@ -141,7 +117,7 @@ Behavior relayBehavior(Cube* c, Behavior behaviorToRelay, int cubeToRelayTo = -1
 Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior);
 Behavior checkForBehaviors(Cube* c, SerialDecoderBuffer* buf, Behavior behavior);
 
-Behavior basicUpkeep(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf, int lightDigit = 0, bool checkForLightMessages = true);
+Behavior basicUpkeep(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf, int lightDigit = 5, bool checkForLightMessages = true, bool blinkLEDs = true);
 
 String behaviorsToCmd(Behavior inputBehavior);
 #endif

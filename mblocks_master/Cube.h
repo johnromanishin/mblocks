@@ -70,10 +70,11 @@ class Cube
     int shutDownTime = (60000*12); // time until board goes to sleep
 
       // Update Functions involving SENSORS
-    bool updateSensors(int lightDigit = 0, bool ShouldIcheckForLightMessages = true); // Updates almost everything on the cube...
+    bool updateSensors(int lightDigit = 0, bool ShouldIcheckForLightMessages = true, bool blinkLEDs = true); // Updates almost everything on the cube...
     int numberOfNeighbors(int index = 0, bool lightFace = true);
     int numberOfCubeNeighbors(int index = 0);
-    bool updateFaces(int lightDigit = 0, bool checkForLight = true); // Updates all of the face sensors on all faces
+    int numberOfNeighborsCheckNow(); //quickly checks the magnetic field sensors to see if tehre are neighbors
+    bool updateFaces(int lightDigit = 0, bool checkForLight = true, bool blinkLEDs = true); // Updates all of the face sensors on all faces
     bool updateBothIMUs(); // updates BOTH IMU's
     bool updateFrameIMU();
     bool updateCoreIMU();
@@ -119,7 +120,7 @@ class Cube
     bool determineIfLatticeConnected();
     void printOutDebugInformation();
     void shutDown();                   // Turns off the entire cub
-    //
+    void blinkOutMessageWholeCube(int lightDigit, int numberOfBlinks);
     long cubeMAC = ESP.getChipId();
     //
     CircularBuffer<long> faceSensorUpdateTimeBuffer;

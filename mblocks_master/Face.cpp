@@ -40,25 +40,36 @@ Face::Face()
 //  this->IOExpanderState[0] = (this->IOExpanderState[1] = byte(0xff));
 //}
 
-bool Face::updateFace(int blinkOutDigit, bool checkForLightYo)
+bool Face::updateFace(int blinkOutDigit, bool checkForLightYo, bool blinkLEDs)
 {
-  bool success = 
+  bool updateSuccess = false;
+  if(blinkLEDs)
+  {
+    updateSuccess = 
         (this->enableSensors() 
       && this->updateAmbient()
       && this->turnOnFaceLEDs(0,0,1,0)
     //&& this->updateReflectivity()       
       && this->updateMagneticBarcode() // actually reads magnetic valuess
       && this->turnOffFaceLEDs());
-  this->neighborPresenceBuffer.push(this->processTag()); // actually processes Tag... adds 
+  }
+  else
+  {
+    updateSuccess = 
+        (this->enableSensors() 
+      && this->updateAmbient()
+      && this->updateMagneticBarcode()); // actually reads magnetic valuess
+  }
   
+  this->neighborPresenceBuffer.push(this->processTag()); // actually processes Tag... adds 
+  delay(10);
   if((this->returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) && checkForLightYo) // checks for lightdigits...
   {
-    this->turnOnFaceLEDs(1,1,1,1); // briefly turn on lights just for fun... || later change this to blink out actual digit
-    delay(50);
-    this->turnOffFaceLEDs(); // turn off all of the lights on your face...
-    int lightDigit = this->checkForMessage(blinkOutDigit, 4000); // this samples light sensor at rate of 50 hz...
+    this->blinkOutMessage(blinkOutDigit);
+    int lightDigit = this->checkForMessage(blinkOutDigit, 15000); // this samples light sensor at rate of 50 hz...
     if(this->isThereNeighbor()) // if we are still connected to a cube on this face...
     {
+      if(MAGIC_DEBUG){Serial.print("PUSHING LIGHT DIGIT TO THE QUE!!");}
       this->neighborLightDigitBuffer.push(lightDigit); // add the lightDigit to the buffer
     }   
     else
@@ -66,8 +77,12 @@ bool Face::updateFace(int blinkOutDigit, bool checkForLightYo)
       this->neighborLightDigitBuffer.push(-1);         // if we were initially connected, but then disconnected, FAIL!
     }
   }
+  else
+  {
+     this->neighborLightDigitBuffer.push(-1); 
+  }
   this->disableSensors(); // turn off sensors...
-  return(success);
+  return(updateSuccess);
 }
 
 
@@ -254,10 +269,12 @@ int Face::checkForMessage(int blinkOutDigit, int waitTime)
  *  It will also blink out a digit (int blinkOutDigit) every 1 second.
  */
 {
+  if(MAGIC_DEBUG) {Serial.print("blink out digit: ");Serial.println(blinkOutDigit);}
   int cycles = waitTime/20;
-  int howManyResults = 0;
   int result = 0;
   int counter = 0;
+  int lightsOnCounter = 0;
+  bool lightsOn = false;
   int lengthOn = 0;
   int highLightThreshold = 4000;
   bool wasLastValueHigh = false;
@@ -265,60 +282,74 @@ int Face::checkForMessage(int blinkOutDigit, int waitTime)
   {
     this->turnOnFaceLEDs(1,1,1,1);
   }
-  delay(10);
   this->updateAmbient(); // get initial reading
   while(this->returnAmbientValue(0) > highLightThreshold) // wait for it to go low...
   {
     this->updateAmbient(false);
     counter++;
-    if(counter > 40) // if it never goes low... we return that we saw 6...
+    if(counter > 40) // if it never goes low... we return that we saw 10...
     {
-      //Serial.println("WOOOOO!!! FUCK YAH");
       this->turnOffFaceLEDs();
       return(10);
     }
   }
   counter = 0;
   // we will get to this point once we see a low value so we know wasLastValueHigh == false;
-  for(int i = 0; i < cycles; i++) // begin checking for messages... we gaurentee we have seen a low value as the first value
+  int i = 0; // begin checking for messages... we gaurentee we have seen a low value as the first value
+  while((lightsOn == true) || (cycles > 0))
   {
-    if((i % 50) && (blinkOutDigit < 10) && (blinkOutDigit > 0))
+    //// THIS SECTION DEALS WITH SENDING OUT THE BLINK MESSAGE
+    if(((i % 50) == 0) && (blinkOutDigit < 10) && (blinkOutDigit > 0))
     {
-       this->turnOnFaceLEDs(1,1,1,1);
+      lightsOn = true;
+      this->turnOnFaceLEDs(1,1,1,1);
     }
-    if((i % (50 + 5*blinkOutDigit)) && (blinkOutDigit < 10) && (blinkOutDigit > 0))
+    if(lightsOn)
     {
-      this->turnOffFaceLEDs();
+      lightsOnCounter++;
+      if(lightsOnCounter > blinkOutDigit*5)
+      {
+        lightsOn = false;
+        this->turnOffFaceLEDs();
+        lightsOnCounter = 0;
+      }
     }
+    //// THIS SECTION DEALS WITH READING INCOMMING MESSAGE
     this->updateAmbient(false);
-    if(this->returnAmbientValue(0) > highLightThreshold)
+    if(this->returnAmbientValue(0) > highLightThreshold) // if we see a high value...
     {
-      if(wasLastValueHigh == true)
+      if(wasLastValueHigh == true)                       // if the last one was also high...
         {
-          counter++;
+          counter++;                                     // increment a counter
         }
-      wasLastValueHigh = true;
+      wasLastValueHigh = true;                           // and set flag waslastvalue to true;
     }
-    else
+    else                                            // if the light value is low...
     {
-      if(wasLastValueHigh == true)
+      if((wasLastValueHigh == true) && (cycles > 0))  // if the previous one is HIGH, we just ended reading a message
         {
-          if(counter > 4)
+          if(counter > 4)                           // if the message lasted at least 100ms... then we have a valid message!
           {
-            howManyResults++;
-            result = ((counter+3)/5);
-            Serial.print("Counter result = ");
-            Serial.println((counter+3)/5);
+            result = ((counter+3)/5);               // take the length of the message, and turn it into a digit...
+            cycles = 0;                             // stop collecting data... but we will wait for the current blinking to be done...
+            // this->blinkRing(100, 2);
+            if(MAGIC_DEBUG) Serial.print("FOUND A MESSAGE: ");
+            if(MAGIC_DEBUG) Serial.println(result);
           }
           counter = 0;
         }
       wasLastValueHigh = false;
     }
+    cycles--;
+    i++;
     delay(1);
   }
+delay(100);
+this->blinkOutMessage(blinkOutDigit);
 this->turnOffFaceLEDs();
+if(result > 10) // 10 is the maximum value we can report... just because
+  result = 10;
 return(result);
- // for(int i = 0; // 
 }
 
 void Face::blinkOutMessage(int digit)
@@ -340,6 +371,20 @@ void Face::blinkOutMessage(int digit)
   this->turnOffFaceLEDs();
 }
 
+void Face::blinkRing(int delayLength, int numberOfTimes)
+{
+  for(int i = 0; i < numberOfTimes; i++)
+  {
+    this->turnOnFaceLEDs(1, 0, 0, 0);
+    delay(delayLength);
+    this->turnOnFaceLEDs(0, 1, 0, 0);
+    delay(delayLength);
+    this->turnOnFaceLEDs(0, 0, 1, 0);
+    delay(delayLength);
+    this->turnOnFaceLEDs(0, 0, 0, 1);
+    delay(delayLength);
+  }
+}
 //bool Face::updateReflectivity()
 ///*
 // * 
@@ -467,8 +512,11 @@ bool Face::setPinHigh(int pin)
 
 bool Face::isThereNeighbor()
 {
+  this->enableSensors();
+  delay(20);
   int mag_A = readMagnetSensorFieldStrength(this->faceMagnetAddresses[0]);
   int mag_B = readMagnetSensorFieldStrength(this->faceMagnetAddresses[1]);
+  this->disableSensors();
   if(((mag_A < 250) && (mag_A > 0)) &&
    ((mag_B < 250) && (mag_B > 0)))
   {
@@ -535,15 +583,32 @@ bool Face::turnOffFaceLEDs()
   return(this->updateIOExpander());
 }
 
-bool Face::turnOnFaceLEDs(bool LED_A, bool LED_B, bool LED_C, bool LED_D)
+bool Face::turnOnFaceLEDs(bool LED_A, bool LED_B,  bool LED_C,  bool LED_D)
 {
   /* Turns on the four white LED's on each face
    * (bool LED_A = true, bool LED_B = true, bool LED_C = true, bool LED_D = true);
    */
-  if(LED_A) {this->setPinLow(this->led_A);}
-  if(LED_B) {this->setPinLow(this->led_B);}
-  if(LED_C) {this->setPinLow(this->led_C);}
-  if(LED_D) {this->setPinLow(this->led_D);}
+   //if(MAGIC_DEBUG){Serial.println("WHAT THE BROBRO?");}
+  if(LED_A)
+    this->setPinLow(this->led_A);
+  else
+    this->setPinHigh(this->led_A);
+    
+  if(LED_B)
+    this->setPinLow(this->led_B);
+  else
+    this->setPinHigh(this->led_B);
+    
+  if(LED_C) 
+    this->setPinLow(this->led_C);
+  else
+    this->setPinHigh(this->led_C);
+    
+  if(LED_D) 
+    this->setPinLow(this->led_D);
+  else
+    this->setPinHigh(this->led_D);
+    
   return this->updateIOExpander();
 }
 

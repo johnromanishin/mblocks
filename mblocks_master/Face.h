@@ -126,6 +126,7 @@ class Face
       //LED Related Commands
     bool turnOnFaceLEDs(bool LED_A = true, bool LED_B = true, bool LED_C = true, bool LED_D = true); 
     bool turnOffFaceLEDs();
+    void blinkRing(int delayLength = 100, int numberOfTimes = 6);
 
       // Sensor Related Commands
     bool enableSensors();   
@@ -135,7 +136,7 @@ class Face
     //bool updateReflectivity();
     bool updateMagneticBarcode(); // Reads both magnet sensors,
     bool isThereNeighbor(); // true == yes! // false == NO
-    bool updateFace(int lightDigit, bool checkForLightYo); // Enables sensors, Updates ambient values, updates magnetic sensors, neighbors...
+    bool updateFace(int lightDigit, bool checkForLightYo, bool blinkLEDs = true); // Enables sensors, Updates ambient values, updates magnetic sensors, neighbors...
       // Sending simple messages - length of blink = digit... 100ms == "1" 200ms == "2" ... etc.
     int checkForMessage(int lightDigit, int waitTime);
     void blinkOutMessage(int digit); 

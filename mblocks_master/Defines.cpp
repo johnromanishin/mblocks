@@ -26,6 +26,9 @@ Motion cornerClimb_R  = {"cornerClimb", true    , 15500           , 7000        
 Motion shake_F        = {"shake"      , false   , 4500            , 4000          , 3500              , 20            , 250       ,"f"};
 Motion softShake_F    = {"softShake"  , false   , 3500            , 3000          , 3000              , 20            , 250       ,"f"};
 
+
+Motion explode_F      = {"explode"    , false   , 15500            , 6000         , 5000              , 30            , 250       ,"f"};
+Motion explode_R      = {"explode"    , false   , 15500            , 6000         , 5000              , 30            , 250       ,"r"};
 //
 
 //  List of possible colors;

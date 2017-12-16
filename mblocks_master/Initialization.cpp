@@ -9,19 +9,20 @@
 
 
 /*
- * ** PEI BLACK   **
- * ** PEI GREEN   **
- * ** PEI ORANGE  **
- * ** PEI PURPLE  **
+ * ** PEI BLACK   **  *
+ * ** PEI GREEN   **  *
+ * ** PEI ORANGE  **  *
+ * ** PEI PURPLE  **  *
  * ** PEI RED     **  *
- * ** PEI YELLOW  **
- * ** PEI BROWN   **
- * ** PEI BLUE    **
+ * ** PEI YELLOW  **  *
+ * ** PEI BROWN   **  *
+ * ** PEI BLUE    **  *
  * 
  * ** PC BLACK    **
  * PC BLUE
  * ** PC PURPLE   **      
- * PC GREEN
+ * 
+ * PC GREEN             *
  * PC BROWN
  * ** PC YELLOW   **
  * ** PC ORANGE   **
@@ -402,10 +403,10 @@ void lookUpCalibrationValues()
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 2800;
-      CC_CURRENT_R = 4700;
+      CC_CURRENT_F = 3000;
+      CC_CURRENT_R = 5300;
       CC_BRAKETIME_F = 10;
-      CC_BRAKETIME_R = 11;
+      CC_BRAKETIME_R = 13;
       break; 
       
     case 960558: // PEI BLUE  f7:AE:59:2B:D9:4D
@@ -467,9 +468,9 @@ void lookUpCalibrationValues()
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
       CC_CURRENT_F = 2800;
-      CC_CURRENT_R = 3000;
+      CC_CURRENT_R = 3700;
       CC_BRAKETIME_F = 10;
-      CC_BRAKETIME_R = 5;
+      CC_BRAKETIME_R = 7;
       break;   
       
   case 8577715: // PC Brown  C5:FF:AB:04:3B:9D
@@ -525,7 +526,6 @@ void lookUpCalibrationValues()
   }
 }
 
-//10229112
 void loadMotionData(Motion* motion, int RPM, int Current, int brakeTime)
 {
   motion->rpm = RPM;

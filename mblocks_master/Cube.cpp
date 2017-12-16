@@ -104,7 +104,6 @@ bool Cube::roll(bool forwardReverse, SerialDecoderBuffer* buf, int rpm, String A
   {
     if(shakingAmmount > shakingThreshold) // if we shook a bunch... but same face is up...
     {
-      this->blockingBlink(&green);
       succeed = true;                   // consider it a success!
     }
     else
@@ -142,8 +141,6 @@ bool Cube::moveIASimple(Motion* motion)
     bool succeed = false;
     
     // do some blinky light work...
-    delay(100);
-    this->blockingBlink(&green,2);
     this->lightsOff();
     delay(500);
   
@@ -177,7 +174,6 @@ bool Cube::moveIASimple(Motion* motion)
   }
   else
   {
-    this->blockingBlink(&red,30);
     return(false);
   }
 }
@@ -205,14 +201,14 @@ void Cube::blinkParasiteLED(int blinkTime)
   wifiDelay(blinkTime);
   digitalWrite(LED, LOW);
 }
-bool Cube::updateSensors(int lightDigit, bool ShouldIcheckForLightMessages)
+bool Cube::updateSensors(int lightDigit, bool ShouldIcheckForLightMessages, bool blinkLEDs)
 {
   /*
    * This functions updates all of the sensor buffers on each cube
    * It also refreshes variables like this->topFace/ forwardFace/ ...
    */
   this->processState();// -- this deals with anything involving IMUs 
-  this->updateFaces(lightDigit, ShouldIcheckForLightMessages); // -- this checks all of the specific sensors on each face
+  this->updateFaces(lightDigit, ShouldIcheckForLightMessages, blinkLEDs); // -- this checks all of the specific sensors on each face
   return(true);
 }
 
@@ -260,12 +256,12 @@ bool Cube::blockingBlink(Color* inputColor, int howManyTimes, int waitTime)
   }
 }
 
-bool Cube::updateFaces(int lightDigit, bool checkForLight)
+bool Cube::updateFaces(int lightDigit, bool checkForLight, bool blinkLEDs)
 {
 for(int i = 0; i< FACES; i++)
     {
       delay(3);
-      this->faces[i].updateFace(lightDigit, checkForLight);  // updateFace updates light and Magnetic sensors  
+      this->faces[i].updateFace(lightDigit, checkForLight, blinkLEDs);  // updateFace updates light and Magnetic sensors  
       delay(3);
 //      if(this->faces[i].returnNeighborLightDigit(0) > 0)
 //      {
@@ -556,7 +552,7 @@ PlaneEnum Cube::findPlaneStatus(bool reset)
       return(likelyStatus);   // if it fails on second try... exit
     }
   }
-    const int validPlaneThreshold = 165; // This number is what determines if it is actually in a proper plane
+    const int validPlaneThreshold = 200; // This number is what determines if it is actually in a proper plane
     const int gyroMovingThreshold  = 1700; // This represents what "moving" is
     
     int32_t coreAccel[3] =   {this->axCoreBuffer.access(0),     
@@ -684,6 +680,19 @@ int Cube::numberOfNeighbors(int index, bool doIlightFace)
         this->lightFace(face,&green);
         delay(200);
       }
+    }
+  }
+return(neighbors);
+}
+
+int Cube::numberOfNeighborsCheckNow()
+{
+  int neighbors = 0;
+  for(int face = 0; face < 6; face++)
+  {
+    if(this->faces[face].isThereNeighbor() == true)
+    {
+      neighbors++;
     }
   }
 return(neighbors);
@@ -1094,6 +1103,29 @@ bool Cube::determineForwardFace() // FUN3 // plane should be either int 1234, 15
         }
   return(true);
 }
+void Cube::blinkOutMessageWholeCube(int lightDigit, int numberOfBlinks)
+{
+  for(int i = 0; i < numberOfBlinks; i++)
+  {
+    delay(300);
+    int startTime = millis();
+    if(lightDigit > 0)
+    {
+      for(int face = 0; face < 6; face++)
+      {
+        this->faces[face].turnOnFaceLEDs(1, 1, 1, 1);
+      }
+    }
+    while((millis()-startTime) < lightDigit*100) // while the timer is still going
+    {
+      delay(5);
+    }
+    for(int face = 0; face < 6; face++)
+      {
+        this->faces[face].turnOffFaceLEDs();
+      }
+  }
+}
 
 bool Cube::updateBothIMUs()
 {
@@ -1255,6 +1287,7 @@ void Cube::blinkRainbow(int delayTime)
   this->lightCube(&red);
   delay(delayTime);
   this->lightCube(&yellow);
+  
   delay(delayTime);
   this->lightCube(&green);
   delay(delayTime);
@@ -1274,7 +1307,9 @@ void Cube::superSpecialBlink(Color* inputColor, int delayTime)
     this->lightCorner(corner, inputColor);
     delay(delayTime);
   }
+  this->lightsOff();
 }
+
 void Cube::updateCubeID(int idNUM)
 {
   this->cubeID = idNUM;
