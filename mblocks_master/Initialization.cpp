@@ -10,24 +10,23 @@
 
 /*
  * ** PEI BLACK   **  *
- * ** PEI GREEN   **  *
- * ** PEI ORANGE  **  *
- * ** PEI PURPLE  **  *
+ * ** PEI GREEN   **  *                                   ** Mech. Plane Change                                                          
+ * ** PEI ORANGE  **  *                                                                   ** Oscillating Bad Mode - Needs 175K
+ * ** PEI PURPLE  **  *                                                                                                                   ** Drains Battery...
  * ** PEI RED     **  *
- * ** PEI YELLOW  **  *
- * ** PEI BROWN   **  *
- * ** PEI BLUE    **  *
+ * ** PEI YELLOW  **  *                   ** BAD MODE    ** Accel Plabe Changine Problems
+ * ** PEI BROWN   **  *     **6000ma Cuts
+ * ** PEI BLUE    **  *                   ** BAD MODE
  * 
  * ** PC BLACK    **
- * PC BLUE
+ * PC BLUE                                ** BAD MODE
  * ** PC PURPLE   **      
- * 
  * PC GREEN             *
  * PC BROWN
- * ** PC YELLOW   **
+ * ** PC YELLOW   **                      ** BAD MODE
  * ** PC ORANGE   **
  * 
- * ORANGEPC BLACK
+ * ORANGEPC RED
  */
 void initializeCube()
 {

@@ -43,7 +43,8 @@ void setup() // Actually the main loop...
   c.superSpecialBlink(&teal, 45);
   c.superSpecialBlink(&blue, 35);
   c.superSpecialBlink(&white, 30);
-  c.blinkOutMessageWholeCube(6, 2);
+  if(c.cubeID != 12)
+    c.blinkOutMessageWholeCube(6, 2);
   c.lightCube(&off);
 //  for(int i = 0; i < 10; i++)
 //  {
