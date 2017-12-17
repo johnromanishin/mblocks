@@ -685,6 +685,23 @@ int Cube::numberOfNeighbors(int index, bool doIlightFace)
 return(neighbors);
 }
 
+int Cube::whichFaceHasNeighbor()
+{
+  int faceToReturn = -1;
+  int facesCount = 0;
+  for(int face = 0; face < 6; face++)
+  {
+    if(this->faces[face].returnNeighborPresence(0) == true)
+    {
+      faceToReturn = face;
+      facesCount++;
+    }
+  }
+if(facesCount > 1)
+  faceToReturn = 9;
+return(faceToReturn); 
+}
+
 int Cube::numberOfNeighborsCheckNow()
 {
   int neighbors = 0;
@@ -737,9 +754,10 @@ int Cube::returnXthBrightestFace(int X, bool ExcludeTop)
     {
       this->faces[topFace].forceUpdateAmbientValue(0);
     }
-    else
+    int connectedFace = this->whichFaceHasNeighbor();
+    if((connectedFace > -1) && (connectedFace < 6))
     {
-      this->blinkAmerica();
+      this->faces[connectedFace].forceUpdateAmbientValue(0);
     }
   }
   

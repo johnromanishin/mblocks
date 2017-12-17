@@ -41,11 +41,17 @@ void setup() // Actually the main loop...
   c.superSpecialBlink(&red, 75);
   c.superSpecialBlink(&yellow, 50);
   c.superSpecialBlink(&teal, 45);
-  c.superSpecialBlink(&blue, 25);
-  c.superSpecialBlink(&white, 20);
+  c.superSpecialBlink(&blue, 35);
+  c.superSpecialBlink(&white, 30);
   c.blinkOutMessageWholeCube(6, 2);
   c.lightCube(&off);
-  
+//  for(int i = 0; i < 10; i++)
+//  {
+//    c.updateSensors();
+//    Serial.print("Neighbor on Face: ");
+//    Serial.println(c.whichFaceHasNeighbor());
+//    delay(1000);
+//  }
   ///////////////////ACTUAL LOOP////////////////////
   while((millis() < c.shutDownTime) && (!shutDown))
   {

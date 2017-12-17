@@ -378,160 +378,78 @@ Behavior attractive(Cube* c, SerialDecoderBuffer* buf)
 
 Behavior duoSeekLight(Cube* c, SerialDecoderBuffer* buf)
 {
-// // General Starting things... initialize flags, etc...
-//  if(MAGIC_DEBUG) {Serial.println("***DuoSeekLight***");}
-//  Behavior nextBehavior = DUO_LIGHT_TRACK;
-//  int loopCounter = 0;
-//  bool iMightBeStuck  = false;
-//  bool iAmStuck  = false;
-//  int direction = 0; // + is forward - is reverse
-//  
-//  // perform basic upkeep... this involves updating sensors...
-//  nextBehavior = basicUpkeep(c, nextBehavior, buf, 0, false, false);
-//  
-//  // if basic upkeep decides to change behavior, we exit now...
-//  // otherwise we keep running in this loop until something 
-//  // changes the state
-//  while((nextBehavior == DUO_LIGHT_TRACK) && // if we haven't changed state
-//        (c->numberOfNeighbors(0,0) == 1)  && // and if we have ZERO neighbors
-//        (millis() < c->shutDownTime))        // and if we aren't feeling sleepy
-//  {
-//    // apply sorting function to generate list of brightest faces...
-//    // the "true" arguement excludes the top face...
-//    int brightestFace = c->returnXthBrightestFace(0, true);
-//    int nextBrightestFace = c->returnXthBrightestFace(1, true);
-//    //
-//    c->lightFace(brightestFace, &green);
-//    delay(350);
-//    c->lightFace(nextBrightestFace, &red);
-//    delay(350);
-//    c->lightFace(thirdBrightestFace, &blue);
-//    delay(350);
-//    c->lightCube(&off);
-//    delay(100);
-//    
-//    // Figure out which way we should try to move
-//    bool direct = false; // false = reverse...
-//    if(brightestFace == c->returnForwardFace())
-//      direct = true;
-//    else if(brightestFace == c->returnReverseFace())
-//      direct = false;
-//      // Ok Nothing is directly Aligned... Checking Next Brightest
-//    else if(nextBrightestFace == c->returnForwardFace())
-//      direct = true;
-//    else if(nextBrightestFace == c->returnReverseFace())
-//      direct = false;
-//          // Ok Checking 3rd brightest face...
-//    else if(thirdBrightestFace == c->returnForwardFace())
-//      direct = true;
-//    else if(thirdBrightestFace == c->returnReverseFace())
-//      direct = false;
-//    
-//    
-//    /************* Begin if else if chain **************************
-//     *  The following if/else if chain represents the choices we can take
-//     *  give that we have recently updated our information, including light sensors,
-//     *  measurement if we are stuck or not (am I stuck FLAG), etc...
-//     */
-//
-//    /* if(iAmStuck)
-//     * This means we have previosuly tried to move and we think we are stuck
-//     * but we have already run basic upkeep, so we will try to move the plane 
-//     * parallel with the ground to align with the lattice
-//     */
-//    if(c->findPlaneStatus(true) == PLANENONE)
-//    {
-//      c->superSpecialBlink(&red, 200);
-//      c->superSpecialBlink(&red, 180);
-//      c->superSpecialBlink(&red, 160);
-//      c->superSpecialBlink(&red, 120);
-//      magicFace = c->returnTopFace(); 
-//      magicVariable = 1;
-//    }
-//    else if(iAmStuck)
-//    {
-//      // if we succeed in moving... we break out of this loop
-//      if(c->roll(direct, buf, 8000) == true) // try to roll and succeed...
-//      {
-//        iAmStuck = false; 
-//        iMightBeStuck = false;
-//      }
-//      else
-//      {
-//        // If we fail to move, we try to move plane parallel to ground
-//        //int attempts = 3;
-//        int topFace = c->returnTopFace();
-//        if((topFace > -1) && (topFace < FACES)) // if this is true we are on the ground... so we should try to change planes
-//        {
-//          magicFace = topFace; 
-//          magicVariable = 1; // this triggers a plane change later in the program...
-//        }
-//        else // we are not on the ground... So we jump a little bit...
-//        {
-//          c->moveIASimple(&traverse_F);
-//        }
-//        
-//        if(c->returnForwardFace() == -1) // this is a proxy for plane being parallel to ground... or an error
-//        {
-//           c->superSpecialBlink(&yellow, 50);
-//           c->moveIASimple(&traverse_F);
-//           delay(1500);
-//           if(c->numberOfNeighborsCheckNow() == 0)
-//           c->moveIASimple(&traverse_R);
-//           delay(1500);
-//        }
-//      } 
-//    }
-//    
-//    /* 
-//     *  this happens if we suspect we might be stuck...
-//     *  we will try to move, and if we fail
-//     *  then we set the stuck flag to be true,
-//     */
-//    //****************************
-//    else if(iMightBeStuck)
-//    {
-//      iMightBeStuck = false; // reset flag
-//      
-//      if(c->returnForwardFace() == -1)
-//      {
-//        if(c->roll(1,buf,1800,"bldcaccel f 6000 1500") == false)
-//          iAmStuck = true;
-//      }
-//      else // try to roll... if we fail... advance to plane changing, etc...
-//      {
-//        if(c->roll(direct, buf, 10000) == false)
-//        {
-//          delay(10);
-//          iAmStuck = true;
-//          iMightBeStuck = true;
-//        }
-//      }
-//    }
-//    //****************************
-//    else if(c->returnForwardFace() == -1)
-//    {
-//      if(c->roll(1,buf,1800,"bldcaccel f 6000 1500") == false)
-//        iMightBeStuck = true;
-//      delay(100);
-//    }
-//    //**************************** this is regular light tracking...
-//    else
-//    {
-//      if(c->roll(direct, buf, 9500) == false)
-//      {
-//        iMightBeStuck = true;
-//        
-//      }
-//    }
-// 
-////************** End if else if chain **************************
-//    loopCounter++;
-//    delay(200);
-//    nextBehavior = basicUpkeep(c, nextBehavior, buf);  // check for neighbors, etc...
-//  }
-//  return(nextBehavior);
-//}
+ // General Starting things... initialize flags, etc...
+  if(MAGIC_DEBUG) {Serial.println("***DuoSeekLight***");}
+  Behavior nextBehavior = DUO_LIGHT_TRACK;
+  int loopCounter = 0;
+  bool correctPlane = false;
+  bool iMightBeStuck  = false;
+  bool iAmStuck  = false;
+  int connectedFace = c->whichFaceHasNeighbor();
+  
+  // perform basic upkeep... this involves updating sensors...
+  nextBehavior = basicUpkeep(c, nextBehavior, buf, 0, false, false);
+  
+  // if basic upkeep decides to change behavior, we exit now...
+  // otherwise we keep running in this loop until something 
+  // changes the state
+  while((nextBehavior == DUO_LIGHT_TRACK) && // if we haven't changed state
+        (c->numberOfNeighbors(0,0) == 1)  && // and if we have ZERO neighbors
+        (millis() < c->shutDownTime))        // and if we aren't feeling sleepy
+  {
+    // try to get into the correct plane...
+    if((correctPlane == false) && (c->goToPlaneParallel(connectedFace) == true))
+    {
+      correctPlane = true;
+      c->lightFace(connectedFace,&yellow);
+      delay(500);
+      c->lightFace(connectedFace,&red);
+      delay(500);
+    }
+    // Regular Light Tracking...
+    else
+    {
+      int brightestFace = c->returnXthBrightestFace(0, true);
+      int nextBrightestFace = c->returnXthBrightestFace(1, true);
+      //
+      c->lightFace(brightestFace, &white);
+      delay(500);
+      c->lightFace(nextBrightestFace, &teal);
+      delay(500);
+      c->lightCube(&off);
+      delay(100);
+      // Figure out which way we should try to move
+      bool direct = false; // false = reverse...
+      if(brightestFace == c->returnForwardFace())
+        direct = true;
+      else if(brightestFace == c->returnReverseFace())
+        direct = false;
+      // Ok Nothing is directly Aligned... Checking Next Brightest
+      else if(nextBrightestFace == c->returnForwardFace())
+        direct = true;
+      else if(nextBrightestFace == c->returnReverseFace())
+        direct = false;
+
+      if(direct == true)
+      {
+        c->moveIASimple(&cornerClimb_F);
+        delay(1000);
+      }
+      else
+      {
+        c->moveIASimple(&cornerClimb_R);
+        delay(1000);
+      }
+    }    
+//************** End if else if chain **************************
+    loopCounter++;
+    delay(200);
+    nextBehavior = basicUpkeep(c, nextBehavior, buf);  // check for neighbors, etc...
+    c->superSpecialBlink(&blue, 150);
+    c->superSpecialBlink(&teal, 150);
+    c->superSpecialBlink(&green, 150);
+  }
+  return(nextBehavior);
 }
 
 //================================================================

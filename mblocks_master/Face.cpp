@@ -63,10 +63,25 @@ bool Face::updateFace(int blinkOutDigit, bool checkForLightYo, bool blinkLEDs)
   
   this->neighborPresenceBuffer.push(this->processTag()); // actually processes Tag... adds 
   delay(10);
+  // if we are connected... and we are supposed to check for light, wait 15 seconds to try to find a message
   if((this->returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) && checkForLightYo) // checks for lightdigits...
   {
     this->blinkOutMessage(blinkOutDigit);
     int lightDigit = this->checkForMessage(blinkOutDigit, 15000); // this samples light sensor at rate of 50 hz...
+    if(this->isThereNeighbor()) // if we are still connected to a cube on this face...
+    {
+      if(MAGIC_DEBUG){Serial.print("PUSHING LIGHT DIGIT TO THE QUE!!");}
+      this->neighborLightDigitBuffer.push(lightDigit); // add the lightDigit to the buffer
+    }   
+    else
+    {
+      this->neighborLightDigitBuffer.push(-1);         // if we were initially connected, but then disconnected, FAIL!
+    }
+  }
+  // if we are connected, but we AREN't Supposed to check for light, we do it anyway assuming we see a light, but we do it for less time
+  else if((this->returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) && (this->returnAmbientValue(0) > 4000))
+  {
+    int lightDigit = this->checkForMessage(blinkOutDigit, 5000); // this samples light sensor at rate of 50 hz...
     if(this->isThereNeighbor()) // if we are still connected to a cube on this face...
     {
       if(MAGIC_DEBUG){Serial.print("PUSHING LIGHT DIGIT TO THE QUE!!");}

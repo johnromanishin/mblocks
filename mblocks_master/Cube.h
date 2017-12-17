@@ -70,8 +70,9 @@ class Cube
     int shutDownTime = (60000*12); // time until board goes to sleep
 
       // Update Functions involving SENSORS
-    bool updateSensors(int lightDigit = 0, bool ShouldIcheckForLightMessages = true, bool blinkLEDs = true); // Updates almost everything on the cube...
+    bool updateSensors(int lightDigit = 0, bool ShouldIcheckForLightMessages = false, bool blinkLEDs = false); // Updates almost everything on the cube...
     int numberOfNeighbors(int index = 0, bool lightFace = true);
+    int whichFaceHasNeighbor();
     int numberOfCubeNeighbors(int index = 0);
     int numberOfNeighborsCheckNow(); //quickly checks the magnetic field sensors to see if tehre are neighbors
     bool updateFaces(int lightDigit = 0, bool checkForLight = true, bool blinkLEDs = true); // Updates all of the face sensors on all faces

@@ -273,8 +273,8 @@ void lookUpCalibrationValues()
 
       CC_RPM_F = 16000;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 3000;
-      CC_CURRENT_R = 3000;
+      CC_CURRENT_F = 3100;
+      CC_CURRENT_R = 3100;
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
       break;
@@ -291,8 +291,8 @@ void lookUpCalibrationValues()
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 3300;
-      CC_CURRENT_R = 3200;
+      CC_CURRENT_F = 3400;
+      CC_CURRENT_R = 3300;
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
       break;
@@ -307,8 +307,8 @@ void lookUpCalibrationValues()
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15000;
-      CC_CURRENT_F = 3400;
-      CC_CURRENT_R = 3100;
+      CC_CURRENT_F = 3500;
+      CC_CURRENT_R = 3200;
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
       break;
@@ -323,8 +323,8 @@ void lookUpCalibrationValues()
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 3300;
-      CC_CURRENT_R = 3300;
+      CC_CURRENT_F = 3400;
+      CC_CURRENT_R = 3400;
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
       break;
@@ -339,8 +339,8 @@ void lookUpCalibrationValues()
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 3000;
-      CC_CURRENT_R = 3000;
+      CC_CURRENT_F = 3100;
+      CC_CURRENT_R = 3100;
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
       break;  
@@ -355,8 +355,8 @@ void lookUpCalibrationValues()
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 3000;
-      CC_CURRENT_R = 3000;
+      CC_CURRENT_F = 3100;
+      CC_CURRENT_R = 3100;
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
       break;
@@ -371,7 +371,7 @@ void lookUpCalibrationValues()
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 2600;
+      CC_CURRENT_F = 2700;
       CC_CURRENT_R = 2800;
       CC_BRAKETIME_F = 5;
       CC_BRAKETIME_R = 10;
@@ -387,8 +387,8 @@ void lookUpCalibrationValues()
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 3500;
-      CC_CURRENT_R = 3800;
+      CC_CURRENT_F = 3600;
+      CC_CURRENT_R = 3900;
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
       break;  
@@ -403,8 +403,8 @@ void lookUpCalibrationValues()
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 3000;
-      CC_CURRENT_R = 5300;
+      CC_CURRENT_F = 3100;
+      CC_CURRENT_R = 5400;
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 13;
       break; 
@@ -419,8 +419,8 @@ void lookUpCalibrationValues()
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 2800;
-      CC_CURRENT_R = 3800;
+      CC_CURRENT_F = 2900;
+      CC_CURRENT_R = 3900;
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 11;
       break; 
@@ -435,8 +435,8 @@ void lookUpCalibrationValues()
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 4500;
-      CC_CURRENT_R = 5800;
+      CC_CURRENT_F = 4600;
+      CC_CURRENT_R = 5900;
       CC_BRAKETIME_F = 15;
       CC_BRAKETIME_R = 20;
       break;   
@@ -451,8 +451,8 @@ void lookUpCalibrationValues()
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 3000;
-      CC_CURRENT_R = 2800;
+      CC_CURRENT_F = 3100;
+      CC_CURRENT_R = 2900;
       CC_BRAKETIME_F = 9;
       CC_BRAKETIME_R = 5;
       break;   
@@ -467,8 +467,8 @@ void lookUpCalibrationValues()
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 2800;
-      CC_CURRENT_R = 3700;
+      CC_CURRENT_F = 2900;
+      CC_CURRENT_R = 3800;
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 7;
       break;   
@@ -483,8 +483,8 @@ void lookUpCalibrationValues()
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 2700;
-      CC_CURRENT_R = 3000;
+      CC_CURRENT_F = 2800;
+      CC_CURRENT_R = 3100;
       CC_BRAKETIME_F = 6;
       CC_BRAKETIME_R = 10;
       break;
@@ -499,8 +499,8 @@ void lookUpCalibrationValues()
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 3000;
-      CC_CURRENT_R = 2800;
+      CC_CURRENT_F = 3100;
+      CC_CURRENT_R = 2900;
       CC_BRAKETIME_F = 9;
       CC_BRAKETIME_R = 5;
       break;   
@@ -516,8 +516,8 @@ void lookUpCalibrationValues()
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 3000;
-      CC_CURRENT_R = 3000;
+      CC_CURRENT_F = 3100;
+      CC_CURRENT_R = 3100;
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
       break;   
