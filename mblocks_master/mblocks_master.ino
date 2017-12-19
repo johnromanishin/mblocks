@@ -39,19 +39,18 @@ void setup() // Actually the main loop...
   c.updateCubeID(GlobalCubeID); // updated variable c.cubeID from initialization loop up table...
   c.superSpecialBlink(&purple, 100);
   c.superSpecialBlink(&red, 75);
-  c.superSpecialBlink(&yellow, 50);
-  c.superSpecialBlink(&teal, 45);
-  c.superSpecialBlink(&blue, 35);
-  c.superSpecialBlink(&white, 30);
-  if(c.cubeID != 12)
-    c.blinkOutMessageWholeCube(6, 2);
+  c.superSpecialBlink(&yellow, 55);
+  c.superSpecialBlink(&teal, 50);
+  c.superSpecialBlink(&blue, 40);
+  c.superSpecialBlink(&white, 40);
+  c.blinkRingAll();
+  //if(c.cubeID != 12)
+  //c.blinkOutMessageWholeCube(3, 2);
   c.lightCube(&off);
 //  for(int i = 0; i < 10; i++)
 //  {
-//    c.updateSensors();
-//    Serial.print("Neighbor on Face: ");
-//    Serial.println(c.whichFaceHasNeighbor());
-//    delay(1000);
+//    c.debugAccelerometers();
+//    delay(500);
 //  }
   ///////////////////ACTUAL LOOP////////////////////
   while((millis() < c.shutDownTime) && (!shutDown))

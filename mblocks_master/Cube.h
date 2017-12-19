@@ -70,19 +70,21 @@ class Cube
     int shutDownTime = (60000*12); // time until board goes to sleep
 
       // Update Functions involving SENSORS
-    bool updateSensors(int lightDigit = 0, bool ShouldIcheckForLightMessages = false, bool blinkLEDs = false); // Updates almost everything on the cube...
+    bool updateSensors(int lightDigit = 0, bool ShouldIcheckForLightMessages = false, bool blinkLEDs = false, int timeToCheck = 10000); // Updates almost everything on the cube...
     int numberOfNeighbors(int index = 0, bool lightFace = true);
     int whichFaceHasNeighbor();
+    int whichFaceHasNeighborCheckNow();
     int numberOfCubeNeighbors(int index = 0);
     int numberOfNeighborsCheckNow(); //quickly checks the magnetic field sensors to see if tehre are neighbors
-    bool updateFaces(int lightDigit = 0, bool checkForLight = true, bool blinkLEDs = true); // Updates all of the face sensors on all faces
+    
+    bool updateFaces(int lightDigit = 0, bool checkForLight = true, bool blinkLEDs = true, int timeToCheck = 5000); // Updates all of the face sensors on all faces
     bool updateBothIMUs(); // updates BOTH IMU's
     bool updateFrameIMU();
     bool updateCoreIMU();
     bool wakeIMU(int i2cAddress);
     int returnXthBrightestFace(int index, bool ExcludeTop);
     int returnSumOfAmbient(); // returns the sum of all of the light sensors
-
+    
         // Functions involving motion
     bool moveIASimple(Motion* motion);
     bool roll(bool forwardReverse, SerialDecoderBuffer* buf, int rpm = 6000, String ALTERNATE = "nothing");
@@ -96,13 +98,16 @@ class Cube
     int returnTopFace(int index = 0);
     int returnBottomFace();
     bool isFaceNeitherTopNorBottom(int face);
-
+    String debugAccelerometers();
+    
     // Functions involving PLane Changing
     PlaneEnum findPlaneStatus(bool reset = true);
     bool setCorePlaneSimple(PlaneEnum targetCorePlane);
     //bool setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int attemptTime = 6000); 
     bool goToPlaneParallel(int faceExclude);
     bool goToPlaneIncludingFaces(int face1, int face2, SerialDecoderBuffer* buf);
+    bool isPlaneParallel(int faceExclude);
+    bool isPlaneInOneOfTheOtherValidPlanes(int faceExclude);
     
 
       // Functions involving LED's
@@ -122,6 +127,8 @@ class Cube
     void printOutDebugInformation();
     void shutDown();                   // Turns off the entire cub
     void blinkOutMessageWholeCube(int lightDigit, int numberOfBlinks);
+    void blinkRingAll(int delayLength = 50, int numberOfTimes = 2);
+    
     long cubeMAC = ESP.getChipId();
     //
     CircularBuffer<long> faceSensorUpdateTimeBuffer;

@@ -136,7 +136,7 @@ class Face
     //bool updateReflectivity();
     bool updateMagneticBarcode(); // Reads both magnet sensors,
     bool isThereNeighbor(); // true == yes! // false == NO
-    bool updateFace(int lightDigit, bool checkForLightYo, bool blinkLEDs = true); // Enables sensors, Updates ambient values, updates magnetic sensors, neighbors...
+    bool updateFace(int lightDigit, bool checkForLightYo, bool blinkLEDs = true, int timeToCheck = 5000); // Enables sensors, Updates ambient values, updates magnetic sensors, neighbors...
       // Sending simple messages - length of blink = digit... 100ms == "1" 200ms == "2" ... etc.
     int checkForMessage(int lightDigit, int waitTime);
     void blinkOutMessage(int digit); 

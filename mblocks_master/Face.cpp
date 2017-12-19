@@ -40,7 +40,7 @@ Face::Face()
 //  this->IOExpanderState[0] = (this->IOExpanderState[1] = byte(0xff));
 //}
 
-bool Face::updateFace(int blinkOutDigit, bool checkForLightYo, bool blinkLEDs)
+bool Face::updateFace(int blinkOutDigit, bool checkForLightYo, bool blinkLEDs, int timeToCheck)
 {
   bool updateSuccess = false;
   if(blinkLEDs)
@@ -66,8 +66,9 @@ bool Face::updateFace(int blinkOutDigit, bool checkForLightYo, bool blinkLEDs)
   // if we are connected... and we are supposed to check for light, wait 15 seconds to try to find a message
   if((this->returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) && checkForLightYo) // checks for lightdigits...
   {
+    if(MAGIC_DEBUG){Serial.print("Beginning Light Digit Listening Period...");}
     this->blinkOutMessage(blinkOutDigit);
-    int lightDigit = this->checkForMessage(blinkOutDigit, 15000); // this samples light sensor at rate of 50 hz...
+    int lightDigit = this->checkForMessage(blinkOutDigit, timeToCheck); // this samples light sensor at rate of 50 hz...
     if(this->isThereNeighbor()) // if we are still connected to a cube on this face...
     {
       if(MAGIC_DEBUG){Serial.print("PUSHING LIGHT DIGIT TO THE QUE!!");}
@@ -284,7 +285,10 @@ int Face::checkForMessage(int blinkOutDigit, int waitTime)
  *  It will also blink out a digit (int blinkOutDigit) every 1 second.
  */
 {
-  if(MAGIC_DEBUG) {Serial.print("blink out digit: ");Serial.println(blinkOutDigit);}
+  if(MAGIC_DEBUG)
+  {
+    Serial.print("Starting CHECK4MESSAGE blink out digit: ");Serial.println(blinkOutDigit);
+  }
   int cycles = waitTime/20;
   int result = 0;
   int counter = 0;
@@ -346,10 +350,14 @@ int Face::checkForMessage(int blinkOutDigit, int waitTime)
           if(counter > 4)                           // if the message lasted at least 100ms... then we have a valid message!
           {
             result = ((counter+3)/5);               // take the length of the message, and turn it into a digit...
-            cycles = 0;                             // stop collecting data... but we will wait for the current blinking to be done...
-            // this->blinkRing(100, 2);
-            if(MAGIC_DEBUG) Serial.print("FOUND A MESSAGE: ");
-            if(MAGIC_DEBUG) Serial.println(result);
+            cycles = (cycles - 100);                            // stop collecting data... but we will wait for the current blinking to be done...
+            if(MAGIC_DEBUG)
+            {
+              Serial.print("FOUND A MESSAGE: ");
+              Serial.println(result);
+              Serial.print("CYCLES REMAINING");
+              Serial.println(cycles);
+            }
           }
           counter = 0;
         }
@@ -359,23 +367,35 @@ int Face::checkForMessage(int blinkOutDigit, int waitTime)
     i++;
     delay(1);
   }
-delay(100);
-this->blinkOutMessage(blinkOutDigit);
-this->turnOffFaceLEDs();
-if(result > 10) // 10 is the maximum value we can report... just because
+  if(MAGIC_DEBUG)
+  {
+    Serial.print("Exiting check for light digits after: ");
+    Serial.print(i);
+    Serial.print(" cycles, and the final result is: ");
+    Serial.println(result);
+  }
+  delay(100);
+  this->blinkOutMessage(blinkOutDigit);
+  delay(20);
+  this->turnOffFaceLEDs();
+  if(result > 10) // 10 is the maximum value we can report... just because
   result = 10;
-return(result);
+  return(result);
 }
 
 void Face::blinkOutMessage(int digit)
 {
+  if(MAGIC_DEBUG)
+  {
+     Serial.println("Starting to Blink Out a Digit");
+     Serial.print("Digit to blink out is... ");Serial.println(digit);
+  }
   int startTime = millis();
   if(digit > 0)
   {
     this->turnOnFaceLEDs(1, 1, 1, 1);
   }
   else
-  
   {
     return;
   }
@@ -384,6 +404,7 @@ void Face::blinkOutMessage(int digit)
     delay(5);
   }
   this->turnOffFaceLEDs();
+  return;
 }
 
 void Face::blinkRing(int delayLength, int numberOfTimes)
@@ -399,6 +420,7 @@ void Face::blinkRing(int delayLength, int numberOfTimes)
     this->turnOnFaceLEDs(0, 0, 0, 1);
     delay(delayLength);
   }
+  this->turnOffFaceLEDs();
 }
 //bool Face::updateReflectivity()
 ///*

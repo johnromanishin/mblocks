@@ -117,7 +117,7 @@ Behavior relayBehavior(Cube* c, Behavior behaviorToRelay, int cubeToRelayTo = -1
 Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior);
 Behavior checkForBehaviors(Cube* c, SerialDecoderBuffer* buf, Behavior behavior);
 
-Behavior basicUpkeep(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf, int lightDigit = 5, bool checkForLightMessages = true, bool blinkLEDs = true);
+Behavior basicUpkeep(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf, int lightDigit = 7, bool checkForLightMessages = true, bool blinkLEDs = true, int timeToCheck = 10000);
 
 String behaviorsToCmd(Behavior inputBehavior);
 #endif

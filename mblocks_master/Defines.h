@@ -86,6 +86,9 @@ extern Motion softShake_F;
 
 extern Motion explode_F;
 extern Motion explode_R;
+
+extern Motion rollDouble_F;
+extern Motion rollDouble_R;
 /// ESP ID to CUBE MAP ////
 typedef struct EspToCubeMapping
 {

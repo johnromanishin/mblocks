@@ -201,14 +201,14 @@ void Cube::blinkParasiteLED(int blinkTime)
   wifiDelay(blinkTime);
   digitalWrite(LED, LOW);
 }
-bool Cube::updateSensors(int lightDigit, bool ShouldIcheckForLightMessages, bool blinkLEDs)
+bool Cube::updateSensors(int lightDigit, bool ShouldIcheckForLightMessages, bool blinkLEDs, int timeToCheck)
 {
   /*
    * This functions updates all of the sensor buffers on each cube
    * It also refreshes variables like this->topFace/ forwardFace/ ...
    */
   this->processState();// -- this deals with anything involving IMUs 
-  this->updateFaces(lightDigit, ShouldIcheckForLightMessages, blinkLEDs); // -- this checks all of the specific sensors on each face
+  this->updateFaces(lightDigit, ShouldIcheckForLightMessages, blinkLEDs, timeToCheck); // -- this checks all of the specific sensors on each face
   return(true);
 }
 
@@ -230,11 +230,18 @@ bool Cube::processState()
     else
     {
        {
-         this->blinkAmerica();
          wifiDelay(500);
-         this->reconnectI2C();
-         wifiDelay(500);
-         succeed = this->updateBothIMUs();
+         this->resetI2C();
+         if(this->updateBothIMUs() == true)
+         {
+            succeed = true;
+         }
+         else
+         {
+            this->blockingBlink(&red,10);
+            this->blockingBlink(&yellow,10);
+            this->blockingBlink(&red,10);
+         }
        }
     }
   }
@@ -256,19 +263,13 @@ bool Cube::blockingBlink(Color* inputColor, int howManyTimes, int waitTime)
   }
 }
 
-bool Cube::updateFaces(int lightDigit, bool checkForLight, bool blinkLEDs)
+bool Cube::updateFaces(int lightDigit, bool checkForLight, bool blinkLEDs, int timeToCheck)
 {
 for(int i = 0; i< FACES; i++)
     {
       delay(3);
-      this->faces[i].updateFace(lightDigit, checkForLight, blinkLEDs);  // updateFace updates light and Magnetic sensors  
+      this->faces[i].updateFace(lightDigit, checkForLight, blinkLEDs, timeToCheck);  // updateFace updates light and Magnetic sensors  
       delay(3);
-//      if(this->faces[i].returnNeighborLightDigit(0) > 0)
-//      {
-//        Serial.print("WOOO HEY WE FOUND SOMETHING!!!!! ");
-//        Serial.println(this->faces[i].returnNeighborLightDigit(0));
-//        this->superSpecialBlink(&yellow, 100);
-//      }
     }
 }
 
@@ -375,8 +376,68 @@ bool Cube::goToPlaneIncludingFaces(int face1, int face2, SerialDecoderBuffer* bu
  */
 {
   bool result = false;
-  result = this->setCorePlaneSimple(returnPlane(face1, face2));
+  if((face1 > -1) && (face1 < 6))
+  {
+    if((face2 > -1) && (face2 < 6))
+    {
+        result = this->setCorePlaneSimple(returnPlane(face1, face2));
+    }
+  }
   return(result);
+}
+
+bool Cube::isPlaneParallel(int faceExclude)
+{
+  bool result = false;
+  if((faceExclude == 4 )|| (faceExclude == 5))
+  {
+    if(this->currentPlaneBuffer.access(0) == PLANE0123)
+      result = true;
+  }
+  else if((faceExclude == 1) ||( faceExclude == 3))
+  {
+    if(this->currentPlaneBuffer.access(0) == PLANE0425)
+      result = true;
+  }
+  else if((faceExclude == 0) || (faceExclude == 2))
+  {
+    if(this->currentPlaneBuffer.access(0) == PLANE1453)
+      result = true;
+  }
+return(result);
+}
+
+bool Cube::isPlaneInOneOfTheOtherValidPlanes(int faceExclude)
+{
+  bool result = false;
+  if((faceExclude == 4 )|| (faceExclude == 5))
+  {
+    if(this->currentPlaneBuffer.access(0) == PLANE0425)
+      result = true;
+    else if(this->currentPlaneBuffer.access(0) == PLANE1453)
+      result = true;
+  }
+  else if((faceExclude == 1) ||( faceExclude == 3))
+  {
+    if(this->currentPlaneBuffer.access(0) == PLANE0123)
+      result = true;
+    else if(this->currentPlaneBuffer.access(0) == PLANE1453)
+      result = true;
+
+  }
+  else if((faceExclude == 0) || (faceExclude == 2))
+  {
+    if(this->currentPlaneBuffer.access(0) == PLANE0123)
+      result = true;
+    else if(this->currentPlaneBuffer.access(0) == PLANE0425)
+      result = true;
+
+  }
+if(MAGIC_DEBUG && result)
+  Serial.println("Cube::isPlaneInOneOfTheOtherValidPlanes(int faceExclude) == TRUE!!!");
+else if(MAGIC_DEBUG)
+  Serial.println("Cube::isPlaneInOneOfTheOtherValidPlanes(int faceExclude) == FALSE!!!");
+return(result);
 }
 
 bool Cube::goToPlaneParallel(int faceExclude)
@@ -403,10 +464,10 @@ bool Cube::goToPlaneParallel(int faceExclude)
 
 bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
 {   
-  this->superSpecialBlink(&purple, 100);
-  this->superSpecialBlink(&red, 100);
-  this->superSpecialBlink(&yellow, 100);
-  this->superSpecialBlink(&green, 100);
+  this->superSpecialBlink(&purple, 50);
+  this->superSpecialBlink(&red, 50);
+  this->superSpecialBlink(&yellow, 50);
+  this->superSpecialBlink(&green, 50);
   this->lightsOff();
   if((targetCorePlane == PLANENONE)  ||
      (targetCorePlane == PLANEERROR) || 
@@ -529,7 +590,10 @@ bool Cube::isFaceNeitherTopNorBottom(int face)
 PlaneEnum Cube::findPlaneStatus(bool reset)
 {
   if(this->cubeID > 50) // this means it is a benchtop example and it can't actually run this.
+  {
+    this->currentPlaneBuffer.push(PLANE0123);
     return(PLANE0123);
+  }
   PlaneEnum likelyStatus = PLANEERROR; 
   if(this->updateBothIMUs()) // try to update IMU...
   {
@@ -702,6 +766,23 @@ if(facesCount > 1)
 return(faceToReturn); 
 }
 
+int Cube::whichFaceHasNeighborCheckNow()
+{
+  int faceToReturn = -1;
+  int facesCount = 0;
+  for(int face = 0; face < 6; face++)
+  {
+    if(this->faces[face].isThereNeighbor() == true)
+    {
+      faceToReturn = face;
+      facesCount++;
+    }
+  }
+//if(facesCount > 1)
+//  faceToReturn = 9;
+return(faceToReturn); 
+}
+
 int Cube::numberOfNeighborsCheckNow()
 {
   int neighbors = 0;
@@ -867,7 +948,14 @@ bool Cube::lightFace(int face, Color* inputColor)
    bool r = inputColor->r;
    bool g = inputColor->g;
    bool b = inputColor->b;
-
+  if((face > -1) && (face < 6)) // valid face arguement...
+  {
+   delay(1);
+  }
+  else
+  {
+    return(false);
+  }
   this->clearRGB(); // Sets all RGB bits to HIGH / aka off
 
   switch (face){
@@ -1328,6 +1416,13 @@ void Cube::superSpecialBlink(Color* inputColor, int delayTime)
   this->lightsOff();
 }
 
+void Cube::blinkRingAll(int delayLength, int numberOfTimes)
+{
+  for(int face = 0; face < FACES; face++)
+  {
+    this->faces[face].blinkRing(delayLength, numberOfTimes);
+  }
+}
 void Cube::updateCubeID(int idNUM)
 {
   this->cubeID = idNUM;
@@ -1350,5 +1445,93 @@ String Cube::returnCurrentPlane_STRING()
   else if ( thePlaneNow == PLANEMOVING) {ResultString = "PLANEMOVING";}
   else if ( thePlaneNow == PLANEERROR)  {ResultString = "PLANEERROR";}
   return(ResultString);
+}
+
+String Cube::debugAccelerometers()
+{
+  //PlaneEnum likelyStatus = PLANEERROR;
+  Serial.println("beginning Debug Accelerometers");
+  if(this->updateBothIMUs())
+  {
+    Serial.println("Succeeded Updating Accelerometers");
+  }
+  else
+  {
+    Serial.println("Failed Updating Accelerometers");
+  }
+  String newmsg = " Core.ax: "    + String(this->axCoreBuffer.access(0))
+                + " Core.ay: "    + String(this->ayCoreBuffer.access(0))
+                + " Core.az: "    + String(this->azCoreBuffer.access(0))
+                + " Frame.ax: "   + String(this->axFrameBuffer.access(0))
+                + " Frame.ay: "   + String(this->ayFrameBuffer.access(0))
+                + " Frame.az: "   + String(this->azFrameBuffer.access(0));
+  Serial.println(newmsg);
+  Serial.println("***********************************************************************");
+  const int validPlaneThreshold = 200; // This number is what determines if it is actually in a proper plane
+  const int gyroMovingThreshold  = 1700; // This represents what "moving" is
+  int32_t coreAccel[3] =   {this->axCoreBuffer.access(0),     
+                            this->ayCoreBuffer.access(0),
+                            this->azCoreBuffer.access(0)};
+  int32_t frameAccel[3] =  {this->axFrameBuffer.access(0), 
+                            this->ayFrameBuffer.access(0),
+                            this->azFrameBuffer.access(0)};
+  int32_t transformed[3][3];
+  int32_t distance[3];
+  int     centralGyro[3] =  {this->gxCoreBuffer.access(0),
+                             this->gyCoreBuffer.access(0),
+                             this->gzCoreBuffer.access(0)};
+  int     sumOfGyros = (abs(centralGyro[0]) + // add up three components of gyro
+                        abs(centralGyro[1]) + // tells us how much "movement"
+                        abs(centralGyro[2]));
+  Serial.print("Sum of Gyros = ");Serial.println(sumOfGyros);                      
+  for(int i = 0; i < 3; i++)
+  {
+    apply_3x3_mult(&rotationMatricies[i][0][0], coreAccel, &transformed[i][0]);
+    distance[i] = vector_distance_squared(&transformed[i][0], frameAccel);
+    Serial.print("for index item: ");Serial.print(i);Serial.print(" result is: ");Serial.println(distance[i]);
+  }
+  int mindist = distance[0];
+  int minidx = 0;
+  
+  for(int i = 1; i < 3; i++) // figure out which one is closest to the value
+  {
+    if(distance[i] < mindist)
+    {
+      minidx = i;
+      mindist = distance[i];
+    }
+  }
+  Serial.print("Smallest Index Item is: ");Serial.print(minidx);Serial.print(" result is: ");Serial.println(distance[minidx]);
+  // At this point we should have a vector with the distance between the actual readings
+  // and the perfect readings for each of the three planes... 
+  // and we know the one with the lowest value: minidx
+  if(sumOfGyros > gyroMovingThreshold)
+  {
+    //this->currentPlane = PLANEMOVING;
+    //likelyStatus = PLANEMOVING;
+    Serial.println("RESULT IS PLANE MOVING");
+  }
+  else if((distance[minidx] < validPlaneThreshold) && 
+          (sumOfGyros < gyroMovingThreshold))
+  {
+    //this->currentPlane = planeEnumMap[minidx];
+   // likelyStatus = planeEnumMap[minidx];
+    Serial.println("RESULT IS A VALID PLANE... Figure out from indexes...");
+  }
+  else if((distance[minidx] > validPlaneThreshold))
+  { 
+    //this->currentPlane = PLANENONE;
+    //likelyStatus = PLANENONE;
+    Serial.println("RESULT IS: PLANENONE");
+  }  
+  else
+  {
+    //this->currentPlane = PLANEERROR;
+    //likelyStatus = PLANEERROR;
+    Serial.println("RESULT IS: PLANE ERROR");
+  }
+  return("bro");
+  //this->currentPlaneBuffer.push(likelyStatus);
+  //**************************************************************************************                
 }
 

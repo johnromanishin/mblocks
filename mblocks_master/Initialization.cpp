@@ -9,24 +9,27 @@
 
 
 /*
- * ** PEI BLACK   **  *
- * ** PEI GREEN   **  *                                   ** Mech. Plane Change                                                          
- * ** PEI ORANGE  **  *                                                                   ** Oscillating Bad Mode - Needs 175K
- * ** PEI PURPLE  **  *                                                                                                                   ** Drains Battery...
- * ** PEI RED     **  *
- * ** PEI YELLOW  **  *                   ** BAD MODE    ** Accel Plabe Changine Problems
- * ** PEI BROWN   **  *     **6000ma Cuts
- * ** PEI BLUE    **  *                   ** BAD MODE
+ * *************************************************************************************************************************************************************************************
+ * ** Cube Name   ** Version      * Plane Ch      * BAD Red     * Bad White      * i2c Busted      * Mech. Rubbing *  Drains Bat  * Acceler Issue*  6000ma Kills * batteries Replaced                    
+ * *************************************************************************************************************************************************************************************
+ * ** PEI BLACK   **              *               *             *                *                 *               *              *              *     X         *                   
+ * ** PEI GREEN   **              *               *             *                *                 *               *              *              *               *    2017-12-17                                             
+ * ** PEI ORANGE  **              *               *    X        *  X             *                 *               *              *              *               *                                                                    
+ * ** PEI PURPLE  **              *               *             *                *                 *               *    X         *              *               *                                                                                                                 
+ * ** PEI RED     **              *               *             *                *                 *               *              *              *               *
+ * ** PEI YELLOW  **              *               *    X        *                *                 *               *              *     X        *               *                
+ * ** PEI BROWN   **              *               *             *                *                 *               *              *              *      X        *
+ * ** PEI BLUE    **              *               *    X        *                *                 *               *              *              *               *
  * 
- * ** PC BLACK    **
- * PC BLUE                                ** BAD MODE
- * ** PC PURPLE   **      
- * PC GREEN             *
- * PC BROWN
- * ** PC YELLOW   **                      ** BAD MODE
- * ** PC ORANGE   **
+ * ** PC BLACK    **              *               *             *                *                 *               *              *              *               *
+ * ** PC BLUE     **              *               *    X        *                *                 *               *              *              *               *                    
+ * ** PC PURPLE   **              *               *             *                *                 *               *              *              *               *      
+ * ** PC GREEN    **              *               *             *                *                 *               *              *              *               * 
+ * ** PC BROWN    **              *               *             *                *                 *               *              *              *               *
+ * ** PC YELLOW   **              *               *    X        *                *                 *               *              *              *               *
+ * ** PC ORANGE   **              *               *             *                *                 *               *              *              *               *
  * 
- * ORANGEPC RED
+ * ** ORANGEPC RED**              *               *             *                *                 *               *              *              *               *
  */
 void initializeCube()
 {
@@ -540,6 +543,8 @@ void actuallyLoadMotionData()
   loadMotionData(&cornerClimb_R, CC_RPM_R, CC_CURRENT_R, CC_BRAKETIME_R);
   loadMotionData(&roll_F, 7, 7, 7);
   loadMotionData(&roll_R, 7, 7, 7);
+  loadMotionData(&rollDouble_F, (CC_RPM_F-500), (CC_CURRENT_F-500), (CC_BRAKETIME_F-5));
+  loadMotionData(&rollDouble_R, (CC_RPM_R-500), (CC_CURRENT_R-500), (CC_BRAKETIME_R-5));
 }
 
 

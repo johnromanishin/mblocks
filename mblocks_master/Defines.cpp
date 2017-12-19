@@ -31,6 +31,9 @@ Motion explode_F      = {"explode"    , false   , 15500            , 6000       
 Motion explode_R      = {"explode"    , false   , 15500            , 6000         , 5000              , 30            , 250       ,"r"};
 //
 
+Motion rollDouble_F      = {"double"    , false   , 15500            , 3000         , 3000              , 5            , 250       ,"f"};
+Motion rollDouble_R      = {"double"    , false   , 15500            , 3000         , 3000              , 5            , 250       ,"r"};
+
 //  List of possible colors;
 Color red =     {1,0,0};
 Color green =   {0,1,0};
@@ -169,7 +172,15 @@ const int faceClockinessMatrix[FACES][FACES] =
 
 int faceClockiness(int faceTowards, int faceReference)
 {
-  return(faceClockinessMatrix[faceReference][faceTowards]);
+  int result = 0;
+  if((faceTowards > -1) && (faceTowards < 6))
+  {
+    if((faceReference > -1) && (faceReference < 6))
+    {
+      result = faceClockinessMatrix[faceReference][faceTowards];
+    }
+  }
+  return(result);
 }
 // PLANE0123, PLANE0425, PLANE1453, PLANENONE
 //PLANE0123, PLANE0425, PLANE1453, PLANENONE
