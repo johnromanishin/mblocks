@@ -18,7 +18,7 @@
  * ** PEI PURPLE  **              *               *             *                *                 *               *    X         *              *               *                                                                                                                 
  * ** PEI RED     **              *               *             *                *                 *               *              *              *               *
  * ** PEI YELLOW  **              *               *    X        *                *                 *               *              *     X        *               *                
- * ** PEI BROWN   **              *               *             *                *                 *               *              *              *      X        *
+ * ** PEI BROWN   **              *               *             *                *                 *               *              *              *     X         *
  * ** PEI BLUE    **              *               *    X        *                *                 *               *              *              *               *
  * 
  * ** PC BLACK    **              *               *             *                *                 *               *              *              *               *
@@ -453,9 +453,9 @@ void lookUpCalibrationValues()
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 3100;
+      CC_CURRENT_F = 3000;
       CC_CURRENT_R = 2900;
-      CC_BRAKETIME_F = 9;
+      CC_BRAKETIME_F = 8;
       CC_BRAKETIME_R = 5;
       break;   
       
@@ -543,8 +543,8 @@ void actuallyLoadMotionData()
   loadMotionData(&cornerClimb_R, CC_RPM_R, CC_CURRENT_R, CC_BRAKETIME_R);
   loadMotionData(&roll_F, 7, 7, 7);
   loadMotionData(&roll_R, 7, 7, 7);
-  loadMotionData(&rollDouble_F, (CC_RPM_F-500), (CC_CURRENT_F-500), (CC_BRAKETIME_F-5));
-  loadMotionData(&rollDouble_R, (CC_RPM_R-500), (CC_CURRENT_R-500), (CC_BRAKETIME_R-5));
+  loadMotionData(&rollDouble_F, (CC_RPM_F-500), (CC_CURRENT_F-500), (CC_BRAKETIME_F/2));
+  loadMotionData(&rollDouble_R, (CC_RPM_R-500), (CC_CURRENT_R-500), (CC_BRAKETIME_R/2));
 }
 
 

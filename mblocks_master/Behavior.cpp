@@ -402,7 +402,6 @@ Behavior duoSeekLight(Cube* c, SerialDecoderBuffer* buf)
   nextBehavior = basicUpkeep(c, nextBehavior, buf, lightDigit, true, true, 6000);
   c->superSpecialBlink(&teal, 100);
   c->superSpecialBlink(&white, 200);
-  c->superSpecialBlink(&teal, 100);
   // if basic upkeep decides to change behavior, we exit now...
   // otherwise we keep running in this loop until something 
   // changes the state
@@ -423,7 +422,7 @@ Behavior duoSeekLight(Cube* c, SerialDecoderBuffer* buf)
          c->faces[connectedFace].returnNeighborLightDigit(1) == 6)) &&
         (c->isPlaneInOneOfTheOtherValidPlanes(connectedFace) == true))
     {
-      c->superSpecialBlink(&purple, 50);
+      //c->superSpecialBlink(&purple, 50);
       whichMode = "steeringMode";    
     }
     // Normal mode is when the flywheel is parallel to the connected face...
@@ -431,7 +430,7 @@ Behavior duoSeekLight(Cube* c, SerialDecoderBuffer* buf)
     {
       if(correctPlane == false)
       {
-        if(loopCounter > 1) // wait a few times before trying to change plane...
+        if(loopCounter > 0) // wait a few times before trying to change plane...
         {
           if(c->isPlaneParallel(connectedFace) == true)
           {
@@ -452,9 +451,9 @@ Behavior duoSeekLight(Cube* c, SerialDecoderBuffer* buf)
         int nextBrightestFace = c->returnXthBrightestFace(1, true);
         //
         c->lightFace(brightestFace, &yellow);
-        delay(500);
+        delay(400);
         c->lightFace(nextBrightestFace, &red);
-        delay(500);
+        delay(400);
         c->lightCube(&off);
         delay(100);
         // Figure out which way we should try to move
@@ -484,7 +483,7 @@ Behavior duoSeekLight(Cube* c, SerialDecoderBuffer* buf)
           }
           if(c->returnForwardFace() == -1) // this is a proxy for plane being parallel to ground... or an error
           {
-            c->moveIASimple(&traverse_F);
+            c->moveIASimple(&explode_F);
             delay(1500);
           }
         }    
@@ -507,6 +506,8 @@ Behavior duoSeekLight(Cube* c, SerialDecoderBuffer* buf)
     // steering mode is when 
     else if(whichMode == "steeringMode")
     {
+      if(loopCounter > 10)
+        whichMode = "drivingMode";
       int brightestFace = c->returnXthBrightestFace(0, true);
       int nextBrightestFace = c->returnXthBrightestFace(1, true);
       //
@@ -528,12 +529,12 @@ Behavior duoSeekLight(Cube* c, SerialDecoderBuffer* buf)
              c->blinkRingAll();
              if(faceClockiness(nextBrightestFace, connectedFace) == 1)
              {
-              Serial.println("bldcaccel f 5500 600");
+              Serial.println("bldcaccel f 5000 600");
               delay(1000);
              }
              else if(faceClockiness(nextBrightestFace, connectedFace) == -1)
              {
-              Serial.println("bldcaccel r 5500 600");
+              Serial.println("bldcaccel r 5000 600");
               delay(1000);
              }
           }
@@ -548,12 +549,10 @@ Behavior duoSeekLight(Cube* c, SerialDecoderBuffer* buf)
         c->blockingBlink(&yellow, 12, 50);
       }
     }
-    // try to get into the correct plane...
-    
-      //if(loopCounter
+
 //************** End if else if chain **************************
     loopCounter++;
-    nextBehavior = basicUpkeep(c, nextBehavior, buf, lightDigit, true, true, 3000);  // check for neighbors, etc...
+    nextBehavior = basicUpkeep(c, nextBehavior, buf, lightDigit, true, true, 2000);  // check for neighbors, etc...
     c->superSpecialBlink(&teal, 50);
     c->superSpecialBlink(&white, 100);
     c->superSpecialBlink(&teal, 50);
@@ -752,16 +751,18 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
       // If we are connected to another active cube...
       if((c->faces[i].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) &&
          (c->faces[i].returnNeighborType(1) == TAGTYPE_REGULAR_CUBE) &&
-         (c->faces[i].returnNeighborType(2) == TAGTYPE_REGULAR_CUBE) &&
          (currentBehavior != DUO_LIGHT_TRACK))  
       {
         if(MAGIC_DEBUG)
-          Serial.println("GOING INTO CLIMB FROM MAGNETIC TAGS CHECKING");
         if(c->returnBottomFace() == i)
           resultBehavior = FOLLOW_ARROWS;
-        else if(c->isFaceNeitherTopNorBottom(i)) // check the light digit...
+        else if(c->isFaceNeitherTopNorBottom(i) && c->faces[i].returnNeighborLightDigit(0) > 9) // check the light digit...
           {      
             resultBehavior = CLIMB;
+          }
+        else
+          {
+            resultBehavior = DUO_LIGHT_TRACK;
           }
       }
 
