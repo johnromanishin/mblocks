@@ -18,18 +18,18 @@
  * ** PEI PURPLE  **              *               *             *                *                 *               *    X         *              *               *                                                                                                                 
  * ** PEI RED     **              *               *             *                *                 *               *              *              *               *
  * ** PEI YELLOW  **              *               *    X        *                *                 *               *              *     X        *               *                
- * ** PEI BROWN   **              *               *             *                *                 *               *              *              *     X         *
+ * ** PEI BROWN   **              *               *    X        *                *                 *               *              *              *     X         *
  * ** PEI BLUE    **              *               *    X        *                *                 *               *              *              *               *
  * 
  * ** PC BLACK    **              *               *             *                *                 *               *              *              *               *
- * ** PC BLUE     **              *               *    X        *                *                 *               *              *              *               *                    
+ * ** PC BLUE     **              *               *    X        *   X            *                 *               *              *              *               *                    
  * ** PC PURPLE   **              *               *             *                *                 *               *              *              *               *      
- * ** PC GREEN    **              *               *             *                *                 *               *              *              *               * 
+ * ** PC GREEN    **              *               *    X        *                *                 *               *              *              *               * 
  * ** PC BROWN    **              *               *             *                *                 *               *              *              *               *
  * ** PC YELLOW   **              *               *    X        *                *                 *               *              *              *               *
  * ** PC ORANGE   **              *               *             *                *                 *               *              *              *               *
  * 
- * ** ORANGEPC RED**              *               *             *                *                 *               *              *              *               *
+ * ** ORANGEPC RED**              *               *    X        *                *                 *               *              *              *               *
  */
 void initializeCube()
 {

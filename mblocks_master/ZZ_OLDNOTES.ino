@@ -915,3 +915,24 @@
 //   */
 //  return(false);
 //}
+
+//
+//void Cube::blinkRainbow(int delayTime)
+//{
+//  this->lightCube(&purple);
+//  delay(delayTime);
+//  this->lightCube(&red);
+//  delay(delayTime);
+//  this->lightCube(&yellow);
+//  
+//  delay(delayTime);
+//  this->lightCube(&green);
+//  delay(delayTime);
+//  this->lightCube(&teal);
+//  delay(delayTime);
+//  this->lightCube(&blue);
+//  delay(delayTime);
+//  this->lightCube(&white);
+//  delay(delayTime);
+//  this->lightCube(&off);
+//}

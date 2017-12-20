@@ -30,10 +30,6 @@ Cube::Cube()
     gxCoreBuffer(ARRAY_SIZEOF(this->gxCoreData), this->gxCoreData),
     gyCoreBuffer(ARRAY_SIZEOF(this->gyCoreData), this->gyCoreData),
     gzCoreBuffer(ARRAY_SIZEOF(this->gzCoreData), this->gzCoreData)
-
-//    coreMagnetAngleBuffer(ARRAY_SIZEOF(this->coreMagnetAngleData), this->coreMagnetAngleData),
-//    coreMagnetStrengthBuffer(ARRAY_SIZEOF(this->coreMagnetStrengthData), this->coreMagnetStrengthData)
-    
 { 
   for(int i = 0; i < ARRAY_SIZEOF(this->faces); i++)
   {
@@ -130,19 +126,15 @@ bool Cube::roll(bool forwardReverse, SerialDecoderBuffer* buf, int rpm, String A
 //PLANE0123, PLANE0425, PLANE1453,
 bool Cube::moveIASimple(Motion* motion)
 {
-  PlaneEnum currentPlane = findPlaneStatus(true);
-  if((currentPlane == PLANE0123) ||
-     (currentPlane == PLANE0425) || 
-     (currentPlane == PLANE1453)) //  This makes sure we don't move when we shouldn't
+
+  this->processState(); // update IMU's and "topFace" 
+  if((this->currentPlaneBuffer.access(0) == PLANE0123) ||
+     (this->currentPlaneBuffer.access(0) == PLANE0425) || 
+     (this->currentPlaneBuffer.access(0) == PLANE1453)) //  This makes sure we don't move when we shouldn't
   {
     // Figure out our current state...
-    this->processState(); // update IMU's and "topFace" 
     int faceUpBeginning = this->returnTopFace();
     bool succeed = false;
-    
-    // do some blinky light work...
-    this->lightsOff();
-    delay(500);
   
     // Actually send the action to Kyles Board...
     String iaString = "ia " + String(motion->for_rev)+ " " + String(motion->rpm) + " " + String(motion->current) + " " + String(motion->brakeTime) + " e 15";
@@ -154,8 +146,7 @@ bool Cube::moveIASimple(Motion* motion)
   
     // Check to see our NEW state...
     this->processState();
-    delay(100);
-  
+    delay(100);  
     // If UP face is the same... we say we failed =(
     if(this->returnTopFace() == faceUpBeginning)
     {
@@ -201,6 +192,7 @@ void Cube::blinkParasiteLED(int blinkTime)
   wifiDelay(blinkTime);
   digitalWrite(LED, LOW);
 }
+
 bool Cube::updateSensors(int lightDigit, bool ShouldIcheckForLightMessages, bool blinkLEDs, int timeToCheck)
 {
   /*
@@ -236,15 +228,9 @@ bool Cube::processState()
          {
             succeed = true;
          }
-         else
-         {
-            this->blockingBlink(&red,10);
-            this->blockingBlink(&yellow,10);
-            this->blockingBlink(&red,10);
-         }
        }
     }
-  }
+  }  
   
   this->determineTopFace();
   this->determineForwardFace();
@@ -290,15 +276,6 @@ int Cube::returnTopFace(int index)
 int Cube::returnBottomFace()
 {
   return(oppositeFace(this->topFace));
-}
-
-PlaneEnum Cube::returnCurrentPlane()
-{
-  /*
-   * Current plane is the orientation of the cube with respect to the frame
-   * Either 0123, 1435
-   */
-  return(this->currentPlane);
 }
 
 int Cube::returnForwardFace()
@@ -380,7 +357,7 @@ bool Cube::goToPlaneIncludingFaces(int face1, int face2, SerialDecoderBuffer* bu
   {
     if((face2 > -1) && (face2 < 6))
     {
-        result = this->setCorePlaneSimple(returnPlane(face1, face2));
+      result = this->setCorePlaneSimple(returnPlane(face1, face2));
     }
   }
   return(result);
@@ -433,10 +410,6 @@ bool Cube::isPlaneInOneOfTheOtherValidPlanes(int faceExclude)
       result = true;
 
   }
-if(MAGIC_DEBUG && result)
-  Serial.println("Cube::isPlaneInOneOfTheOtherValidPlanes(int faceExclude) == TRUE!!!");
-else if(MAGIC_DEBUG)
-  Serial.println("Cube::isPlaneInOneOfTheOtherValidPlanes(int faceExclude) == FALSE!!!");
 return(result);
 }
 
@@ -455,58 +428,43 @@ bool Cube::goToPlaneParallel(int faceExclude)
   {
     result = this->setCorePlaneSimple(PLANE1453);
   }
-  else
-  {
-    this->blinkSpecial();
-  }
   return(result);
 }
 
 bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
 {   
-  this->superSpecialBlink(&purple, 50);
-  this->superSpecialBlink(&red, 50);
-  this->superSpecialBlink(&yellow, 50);
-  this->superSpecialBlink(&green, 50);
-  this->lightsOff();
   if((targetCorePlane == PLANENONE)  ||
      (targetCorePlane == PLANEERROR) || 
      (targetCorePlane == PLANEMOVING)) // this protects the inputs
   {
-    this->superSpecialBlink(&red,200);
-    this->superSpecialBlink(&red,150);
-    this->superSpecialBlink(&red,100);
-    this->superSpecialBlink(&red,66);
-    this->superSpecialBlink(&red,33);
     return(false);
   }
   if(this->findPlaneStatus(false) == targetCorePlane)
   {
-    this->superSpecialBlink(&green,100);
+    this->superSpecialBlink(&green,50);
     return(true);
   }
   delay(200);
   Serial.println("sma retractcurrent 1050");
-  delay(1500);
+  delay(500);
   bool succeed = false;
   Serial.println("sma retract 7500");
-  delay(100);
   int beginTime = millis();
   delay(700);
-  while((this->findPlaneStatus(false) != targetCorePlane) && ((millis()-beginTime) < 8000))
+  while((this->findPlaneStatus(false) != targetCorePlane) && ((millis()-beginTime) < 8300))
   {
     PlaneEnum likelyStatus = this->currentPlaneBuffer.access(0);
     if(likelyStatus == PLANEMOVING)
-    {
-      delay(250);
-    }
+      delay(300);
+      
     String bldcaccelString = "bldcaccel f " + String(GlobalPlaneAccel) + " 800";
+    
     if(likelyStatus == PLANENONE)
-    {
-       bldcaccelString = "bldcaccel f " + String(GlobalPlaneAccel) + " 400";
-    }
+       bldcaccelString = "bldcaccel f " + String(GlobalPlaneAccel) + " 500";
+       
     Serial.println(bldcaccelString);
-    delay(900);
+    delay(1000);
+    
     if(this->findPlaneStatus(false) == targetCorePlane)
     {
       Serial.println("bldcstop");
@@ -516,7 +474,7 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
     {
       Serial.println("bldcstop b");
     }
-    delay(1700);
+    delay(1800);
   }
   
   while((millis()-beginTime) < 8000)
@@ -594,6 +552,7 @@ PlaneEnum Cube::findPlaneStatus(bool reset)
     this->currentPlaneBuffer.push(PLANE0123);
     return(PLANE0123);
   }
+  
   PlaneEnum likelyStatus = PLANEERROR; 
   if(this->updateBothIMUs()) // try to update IMU...
   {
@@ -659,23 +618,19 @@ PlaneEnum Cube::findPlaneStatus(bool reset)
     // and we know the one with the lowest value: minidx
     if(sumOfGyros > gyroMovingThreshold)
     {
-      this->currentPlane = PLANEMOVING;
       likelyStatus = PLANEMOVING;
     }
     else if((distance[minidx] < validPlaneThreshold) && 
             (sumOfGyros < gyroMovingThreshold))
     {
-      this->currentPlane = planeEnumMap[minidx];
       likelyStatus = planeEnumMap[minidx];
     }
     else if((distance[minidx] > validPlaneThreshold))
     { 
-      this->currentPlane = PLANENONE;
       likelyStatus = PLANENONE;
     }  
     else
     {
-      this->currentPlane = PLANEERROR;
       likelyStatus = PLANEERROR;
     }
   this->currentPlaneBuffer.push(likelyStatus);
@@ -704,9 +659,6 @@ static int32_t vector_distance_squared(const int32_t* a, const int32_t* b)
 
     return accum;
 }
-////////////////////////////////////////////////////////////////////////////////////
-//////////////////////REGARDING MAGNETIC TAGS///////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
 
 /**
  * Given a primary face and a secondary face, this array gives led settings such that if the 
@@ -778,11 +730,10 @@ int Cube::whichFaceHasNeighborCheckNow()
       facesCount++;
     }
   }
-//if(facesCount > 1)
-//  faceToReturn = 9;
 return(faceToReturn); 
 }
 
+////////
 int Cube::numberOfNeighborsCheckNow()
 {
   int neighbors = 0;
@@ -796,6 +747,8 @@ int Cube::numberOfNeighborsCheckNow()
 return(neighbors);
 }
 
+
+//////////////
 int Cube::numberOfCubeNeighbors(int index)
 {
   int neighbors = 0;
@@ -1164,7 +1117,7 @@ bool Cube::determineForwardFace() // FUN3 // plane should be either int 1234, 15
    * plane PLANE_1534 /4
    */
   int topFace = this->returnTopFace(); // 
-  PlaneEnum plane = this->findPlaneStatus(false);//this->returnCurrentPlane();
+  PlaneEnum plane = this->findPlaneStatus(false);
   
        if( (topFace == 1 && plane == PLANE0123)  ||  (topFace == 5 && plane == PLANE0425) )   
         {
@@ -1209,29 +1162,6 @@ bool Cube::determineForwardFace() // FUN3 // plane should be either int 1234, 15
         }
   return(true);
 }
-void Cube::blinkOutMessageWholeCube(int lightDigit, int numberOfBlinks)
-{
-  for(int i = 0; i < numberOfBlinks; i++)
-  {
-    delay(300);
-    int startTime = millis();
-    if(lightDigit > 0)
-    {
-      for(int face = 0; face < 6; face++)
-      {
-        this->faces[face].turnOnFaceLEDs(1, 1, 1, 1);
-      }
-    }
-    while((millis()-startTime) < lightDigit*100) // while the timer is still going
-    {
-      delay(5);
-    }
-    for(int face = 0; face < 6; face++)
-      {
-        this->faces[face].turnOffFaceLEDs();
-      }
-  }
-}
 
 bool Cube::updateBothIMUs()
 {
@@ -1255,15 +1185,6 @@ for(int i = 0; i< 4; i++)
     this->faces[i].setPinHigh(this->faces[0].g_1);
     this->faces[i].setPinHigh(this->faces[0].b_0);
     this->faces[i].setPinHigh(this->faces[0].b_1);
-  }
-}
-
-void Cube::lightsOff()
-{
-   this->clearRGB();
-   for(int i = 0; i < 4; i++)
-  {
-    this->faces[i].updateIOExpander();
   }
 }
 
@@ -1336,74 +1257,14 @@ bool waitForSerialResponse(SerialResponse response, int timeOutTime, SerialDecod
    {
     delay(2);
     SerialResponse resp = pushNewChar(buf);
-    mesh.update();
+    //mesh.update();
     if(resp == response)
-        { 
-          result = true;
-          break;
-        }
+      { 
+        result = true;
+        break;
+      }
    }
    return(result);
-}
-
-void Cube::printOutDebugInformation()
-{
-      Serial.print("Top Face: ");Serial.println(this->returnTopFace());
-      Serial.print("Forward Face: ");Serial.println(this->returnForwardFace());
-      Serial.print("Brightest Face: ");Serial.println(this->returnXthBrightestFace(0, true));
-      Serial.println("2nd Brightest Face: ");Serial.println(this->returnXthBrightestFace(1, true));
-}
-
-void Cube::blinkAmerica(int delayTime)
-{
-  this->lightCube(&red);
-  delay(delayTime);
-  this->lightCube(&white);
-  delay(delayTime);
-  this->lightCube(&blue);
-  delay(delayTime);
-  this->lightCube(&off);
-}
-
-void Cube::blinkSpecial(int delayTime)
-{
-  this->lightCube(&purple);
-  delay(delayTime);
-  this->lightCube(&red);
-  delay(delayTime);
-  this->lightCube(&purple);
-  delay(delayTime);
-  this->lightCube(&red);
-  delay(delayTime);
-  this->lightCube(&purple);
-  delay(delayTime);
-  this->lightCube(&red);
-  delay(delayTime);
-  this->lightCube(&purple);
-  delay(delayTime);
-  this->lightCube(&red);
-  delay(delayTime);
-  this->lightCube(&off);
-  
-}
-void Cube::blinkRainbow(int delayTime)
-{
-  this->lightCube(&purple);
-  delay(delayTime);
-  this->lightCube(&red);
-  delay(delayTime);
-  this->lightCube(&yellow);
-  
-  delay(delayTime);
-  this->lightCube(&green);
-  delay(delayTime);
-  this->lightCube(&teal);
-  delay(delayTime);
-  this->lightCube(&blue);
-  delay(delayTime);
-  this->lightCube(&white);
-  delay(delayTime);
-  this->lightCube(&off);
 }
 
 void Cube::superSpecialBlink(Color* inputColor, int delayTime)
@@ -1413,7 +1274,7 @@ void Cube::superSpecialBlink(Color* inputColor, int delayTime)
     this->lightCorner(corner, inputColor);
     delay(delayTime);
   }
-  this->lightsOff();
+  this->lightCube(&off);
 }
 
 void Cube::blinkRingAll(int delayLength, int numberOfTimes)
@@ -1423,6 +1284,7 @@ void Cube::blinkRingAll(int delayLength, int numberOfTimes)
     this->faces[face].blinkRing(delayLength, numberOfTimes);
   }
 }
+
 void Cube::updateCubeID(int idNUM)
 {
   this->cubeID = idNUM;
@@ -1437,7 +1299,7 @@ String Cube::returnCurrentPlane_STRING()
  // typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING, PLANEERROR} PlaneEnum;
  
   String ResultString;
-  PlaneEnum thePlaneNow = this->returnCurrentPlane();
+  PlaneEnum thePlaneNow = this->currentPlaneBuffer.access(0);
   if(       thePlaneNow == PLANE0123)   {ResultString = "PLANE0123";}
   else if ( thePlaneNow == PLANE0425)   {ResultString = "PLANE0425";}
   else if ( thePlaneNow == PLANE1453)   {ResultString = "PLANE1453";}
@@ -1507,31 +1369,22 @@ String Cube::debugAccelerometers()
   // and we know the one with the lowest value: minidx
   if(sumOfGyros > gyroMovingThreshold)
   {
-    //this->currentPlane = PLANEMOVING;
-    //likelyStatus = PLANEMOVING;
     Serial.println("RESULT IS PLANE MOVING");
   }
   else if((distance[minidx] < validPlaneThreshold) && 
           (sumOfGyros < gyroMovingThreshold))
   {
-    //this->currentPlane = planeEnumMap[minidx];
-   // likelyStatus = planeEnumMap[minidx];
     Serial.println("RESULT IS A VALID PLANE... Figure out from indexes...");
   }
   else if((distance[minidx] > validPlaneThreshold))
   { 
-    //this->currentPlane = PLANENONE;
-    //likelyStatus = PLANENONE;
     Serial.println("RESULT IS: PLANENONE");
   }  
   else
   {
-    //this->currentPlane = PLANEERROR;
-    //likelyStatus = PLANEERROR;
     Serial.println("RESULT IS: PLANE ERROR");
   }
   return("bro");
-  //this->currentPlaneBuffer.push(likelyStatus);
   //**************************************************************************************                
 }
 

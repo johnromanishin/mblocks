@@ -18,7 +18,6 @@ class Cube
   private:
     // General information
     int batteryVoltage = 0;
-    PlaneEnum currentPlane; // The plane (out of three) that the central actuator is in - 0
     int topFace;      // face this is point upwards, as determined by the accelerometer
     int forwardFace;  // face that is pointing forwards
     int reverseFace;  // face that is pointing backwards
@@ -31,25 +30,25 @@ class Cube
       // Data storage spaces
 
     long faceSensorUpdateTimeData[10]; // This buffer stores millis() for when c->updateSensors is called
-    Behavior behaviorBufferData[32];   // This buffer stores the history of the behaviors
-    PlaneEnum currentPlaneBufferData[20]; // this buffer stores the history of which plane we are in
-    bool moveSuccessBufferData[20];       // this buffer stores a history of moves and if they worked or not
-    int moveShakingBufferData[20];          // this buffer stores the sum of the IMU for recent moves.
+    Behavior behaviorBufferData[10];   // This buffer stores the history of the behaviors
+    PlaneEnum currentPlaneBufferData[10]; // this buffer stores the history of which plane we are in
+    bool moveSuccessBufferData[10];       // this buffer stores a history of moves and if they worked or not
+    int moveShakingBufferData[10];          // this buffer stores the sum of the IMU for recent moves.
     int topFaceBufferData[10];
 
-    int axCoreData[32];
-    int ayCoreData[32];
-    int azCoreData[32];
-    int gxCoreData[32];
-    int gyCoreData[32];
-    int gzCoreData[32];
+    int axCoreData[20];
+    int ayCoreData[20];
+    int azCoreData[20];
+    int gxCoreData[20];
+    int gyCoreData[20];
+    int gzCoreData[20];
 
-    int axFrameData[32];
-    int ayFrameData[32];
-    int azFrameData[32];
-    int gxFrameData[32];
-    int gyFrameData[32];
-    int gzFrameData[32];
+    int axFrameData[20];
+    int ayFrameData[20];
+    int azFrameData[20];
+    int gxFrameData[20];
+    int gyFrameData[20];
+    int gzFrameData[20];
 
       // Internal functions
     //bool CornerRGB(int face, bool top, bool r, bool g, bool b); // Only for Version 0;
@@ -58,7 +57,7 @@ class Cube
 
   public:
       // Public Variables
-    int cubeID = 1;
+    int cubeID = 0;
 
     // Functions
     void updateCubeID(int idNUM);
@@ -67,17 +66,19 @@ class Cube
     void resetI2C();
     void blinkParasiteLED(int blinkTime = 100);
     int wifiDelayWithMotionDetection(int delayTime);
-    int shutDownTime = (60000*12); // time until board goes to sleep
+    int shutDownTime = (60000*10); // time until board goes to sleep
 
       // Update Functions involving SENSORS
-    bool updateSensors(int lightDigit = 0, bool ShouldIcheckForLightMessages = false, bool blinkLEDs = false, int timeToCheck = 10000); // Updates almost everything on the cube...
+//************* MOST IMPORTANT FUNCTION ****************************
+    bool updateSensors(int lightDigit = 0, bool ShouldIcheckForLightMessages = false, bool blinkLEDs = false, int timeToCheck = 0); // Updates almost everything on the cube...
+//*******************************************************************
     int numberOfNeighbors(int index = 0, bool lightFace = true);
     int whichFaceHasNeighbor();
     int whichFaceHasNeighborCheckNow();
     int numberOfCubeNeighbors(int index = 0);
     int numberOfNeighborsCheckNow(); //quickly checks the magnetic field sensors to see if tehre are neighbors
     
-    bool updateFaces(int lightDigit = 0, bool checkForLight = true, bool blinkLEDs = true, int timeToCheck = 5000); // Updates all of the face sensors on all faces
+    bool updateFaces(int lightDigit = 0, bool checkForLight = false, bool blinkLEDs = false, int timeToCheck = 0); // Updates all of the face sensors on all faces
     bool updateBothIMUs(); // updates BOTH IMU's
     bool updateFrameIMU();
     bool updateCoreIMU();
@@ -91,7 +92,6 @@ class Cube
 
         // Related to the state itself
     bool processState();
-    PlaneEnum returnCurrentPlane();
     String returnCurrentPlane_STRING();
     int returnForwardFace();
     int returnReverseFace();
@@ -103,7 +103,6 @@ class Cube
     // Functions involving PLane Changing
     PlaneEnum findPlaneStatus(bool reset = true);
     bool setCorePlaneSimple(PlaneEnum targetCorePlane);
-    //bool setCorePlane(PlaneEnum targetCorePlane, SerialDecoderBuffer* buf, int attemptTime = 6000); 
     bool goToPlaneParallel(int faceExclude);
     bool goToPlaneIncludingFaces(int face1, int face2, SerialDecoderBuffer* buf);
     bool isPlaneParallel(int faceExclude);
@@ -112,23 +111,16 @@ class Cube
 
       // Functions involving LED's
     bool clearRGB(); // Turns off all LED's on the cube DUAL VERSIONS
-    void lightsOff();
     bool lightCorner(int corner, Color* inputColor);
     bool lightFace(int face, Color* inputColor); //DUAL VERSIONS
-    bool lightCube(Color* inputColor); // lights entire cube, defaults to yellow
+    bool lightCube(Color* inputColor); // lights entire cube
     bool blockingBlink(Color* inputColor, int howManyTimes = 6, int waitTime = 100);
     void setFaceLEDsAtEdge(int, int); // 
-    void blinkRainbow(int delayTime = 250);
-    void blinkSpecial(int delayTime = 250);
-    void blinkAmerica(int delayTime = 250);
     void superSpecialBlink(Color* inputColor, int delayTime);
-    // Misc. Useful Functions
-    bool determineIfLatticeConnected();
-    void printOutDebugInformation();
-    void shutDown();                   // Turns off the entire cub
-    void blinkOutMessageWholeCube(int lightDigit, int numberOfBlinks);
     void blinkRingAll(int delayLength = 50, int numberOfTimes = 2);
     
+    // Misc. Useful Functions
+    void shutDown();                   // Turns off the entire cub
     long cubeMAC = ESP.getChipId();
     //
     CircularBuffer<long> faceSensorUpdateTimeBuffer;

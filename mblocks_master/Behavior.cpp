@@ -602,7 +602,8 @@ Behavior basicUpkeep(Cube* c, Behavior currentBehaviorNew, SerialDecoderBuffer* 
   delay(100);
   int neighborFace = c->whichFaceHasNeighborCheckNow();
   // This means we are looking to see if we should go to DUO light Tracking...
-  // at this point we know what plane we are in, and we know the neighbor face...
+  // at this point we know what plane we are
+  // in, and we know the neighbor face...
   // if the plane is parallel to connection we send out "6" as a light digit
   // if the plane is NOT parallel to the connection we send out a "7"
   if(((lightDigit == 7) || (lightDigit == 6)) && (neighborFace > -1)) // we have a neighbor...
@@ -662,7 +663,7 @@ Behavior basicUpkeep(Cube* c, Behavior currentBehaviorNew, SerialDecoderBuffer* 
     Serial.println("-------------------------------------------");
     Serial.println("Ending Basic Upkeep, here is what we found:");
     Serial.print("Top face: ");           Serial.println(c->returnTopFace());
-    Serial.print("Current Plane: ");      Serial.println(c->returnCurrentPlane_STRING());
+    Serial.print("Current Plane: ");      
     Serial.print("forward Face ");        Serial.println(c->returnForwardFace());
     Serial.print("# of Neighbors: ");     Serial.println(c->numberOfNeighbors(0,0));
     Serial.print("Resultalt Behavior: "); Serial.println(behaviorsToCmd(behaviorToReturnFinal));
@@ -724,12 +725,12 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
        * If we are attached to an "arrow" 
        * we breifly blink the direction... no state change
        */
-      if(c->faces[i].returnNeighborAngle(0) != -1) // This means we are seeing some "arrow"
-      {
-        c->lightFace(faceArrowPointsTo(i, c->faces[i].returnNeighborAngle(0)),&white);
-        delay(100);
-        c->lightsOff();
-      }
+//      if(c->faces[i].returnNeighborAngle(0) != -1) // This means we are seeing some "arrow"
+//      {
+//        c->lightFace(faceArrowPointsTo(i, c->faces[i].returnNeighborAngle(0)),&white);
+//        delay(100);
+//        c->lightCube(&off);
+//      }
 
       /* This gets activated if we are attached to an actual cube or passive cube
        * for at least two time steps...
@@ -776,6 +777,7 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
         c->blockingBlink(&red,10);
         resultBehavior = relayBehavior(c, SLEEP);
       }
+      
       if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_PURPLE ||
         (magicVariable == 1))
       {
@@ -786,14 +788,9 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
           magicFace = 0;
         }
         magicVariable = 0;
-        
-        //c->lightCube(&purple);
-        //====================SEND DEBUG =====================    
-        if(MAGIC_DEBUG){Serial.println("Starting to try to change planes...");}
         c->goToPlaneParallel(z);
-        //mesh.sendBroadcast(Str);
-        //==================END SEND DEBUG ===================  
       }
+      
       if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_27)
       {
         resultBehavior = SOLO_LIGHT_TRACK;
@@ -852,25 +849,6 @@ Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialD
         //====================END SEND DEBUG ===================       
       }
    }
-   /*
-    * Logic Involving more than one cube...
-    */    
-  if(MAGIC_DEBUG) {Serial.print("Starting Multi Cube Logic...");}
-  if((c->numberOfNeighbors(0,0) >= 2) && (resultBehavior != SLEEP)  && (resultBehavior != CHILLING))
-  {  
-     bool areAnyTagsCommands = false;
-     for(int i = 0; i < 6; i++)
-     {
-        if(c->faces[i].returnNeighborType(0) == TAGTYPE_COMMAND)
-        {
-          areAnyTagsCommands = true;
-        }
-     }
-     if(areAnyTagsCommands == false)
-     {
-        resultBehavior = ATTRACTIVE;
-     }
-  }
   if(MAGIC_DEBUG) {Serial.print("Result behavior is: ");Serial.println(behaviorsToCmd(resultBehavior));}
   return(resultBehavior);
 }
