@@ -385,35 +385,6 @@ bool Cube::isPlaneParallel(int faceExclude)
   }
 return(result);
 }
-//
-//bool Cube::isPlaneInOneOfTheOtherValidPlanes(int faceExclude)
-//{
-//  bool result = false;
-//  if((faceExclude == 4 )|| (faceExclude == 5))
-//  {
-//    if(this->currentPlaneBuffer.access(0) == PLANE0425)
-//      result = true;
-//    else if(this->currentPlaneBuffer.access(0) == PLANE1453)
-//      result = true;
-//  }
-//  else if((faceExclude == 1) ||( faceExclude == 3))
-//  {
-//    if(this->currentPlaneBuffer.access(0) == PLANE0123)
-//      result = true;
-//    else if(this->currentPlaneBuffer.access(0) == PLANE1453)
-//      result = true;
-//
-//  }
-//  else if((faceExclude == 0) || (faceExclude == 2))
-//  {
-//    if(this->currentPlaneBuffer.access(0) == PLANE0123)
-//      result = true;
-//    else if(this->currentPlaneBuffer.access(0) == PLANE0425)
-//      result = true;
-//
-//  }
-//return(result);
-//}
 
 bool Cube::goToPlaneParallel(int faceExclude)
 {

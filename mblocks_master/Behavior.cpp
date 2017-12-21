@@ -73,7 +73,8 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior, SerialDecoderBuffer* buf, 
       if(MAGIC_DEBUG){Serial.println(" I SEE THE LIGHT - Don't do the next part...");}
       newBehavior = ATTRACTIVE;
     }
-    else if(c->numberOfNeighbors(4) == 2) // if we have been connected for a while to two cubes, and haven't seen the light... we BOUNCE... disconnect
+    else if((c->numberOfNeighbors(3) == 2) &&
+            (c->numberOfNeighbors(0) == 2)) // if we have been connected for a while to two cubes, and haven't seen the light... we BOUNCE... disconnect
     {
       if(MAGIC_DEBUG){Serial.println(" SO IT HAS COME TO THIS.... PEACE OUT BROTHERS...");}
       c->blockingBlink(&red, 50, 50);
@@ -189,7 +190,7 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf) // green
   if(MAGIC_DEBUG) {Serial.println("***soloSeekLight***");}
   Behavior nextBehavior = SOLO_LIGHT_TRACK;
   int loopCounter = 0;
-  bool iMightBeStuck  = false;
+  bool iMightBeStuck  = true;
   bool iAmStuck  = false;
   nextBehavior = basicUpkeep(c, nextBehavior, buf);  // check for neighbors, etc...
   
@@ -298,9 +299,22 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf) // green
       
       if(c->returnForwardFace() == -1)
       {
-        if(c->roll(1,buf,2000,"bldcaccel f 6000 1700") == false)
-          iAmStuck = true;
-          iMightBeStuck = true;
+        if(millis() % 3 != 0)
+        {
+          if(c->roll(1,buf,2000,"bldcaccel f 6000 1700") == false)
+          {
+            iAmStuck = true;
+            iMightBeStuck = true;
+          }
+        }
+        else
+        {
+          if(c->moveIASimple(&traverse_F) == false)
+          {
+            iAmStuck = true;
+            iMightBeStuck = true;
+          }
+        }
       }
       else // try to roll... if we fail... advance to plane changing, etc...
       {
@@ -316,7 +330,7 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf) // green
     else if(c->returnForwardFace() == -1)
     {
       if(c->roll(1,buf,1900,"bldcaccel f 6000 1600") == false)
-        iMightBeStuck = true;
+          iMightBeStuck = true;
       delay(100);
     }
     //**************************** this is regular light tracking...
@@ -482,31 +496,34 @@ Behavior duoSeekLight(Cube* c, SerialDecoderBuffer* buf)
   // perform basic upkeep... this involves updating sensors...
   nextBehavior = basicUpkeep(c, nextBehavior, buf, true);
 
-  if(c->returnForwardFace() == -1)
+  if(c->returnForwardFace() == -1) // we try to nudge ourself into the correct orientation in the case that we are wrong...
   {
-    if(MAGIC_DEBUG){Serial.println("TRYING ALTERNATE");}
-    int brightestFace = c->returnXthBrightestFace(0, true);
-    int nextBrightestFace = c->returnXthBrightestFace(1, true);
-    //
-    c->lightFace(brightestFace, &white);
-    delay(500);
-    c->lightFace(nextBrightestFace, &purple);
-    delay(500);
-    c->lightCube(&off);
-    // Figure out which way we should try to move
-    //bool direct = false; // false = reverse...
-    if(brightestFace == oppositeFace(connectedFace))
+    for(int i = 0; i++; i < 2)
     {
-      c->blinkRingAll();
-      if(faceClockiness(nextBrightestFace, connectedFace) == 1)
+      if(MAGIC_DEBUG){Serial.println("TRYING ALTERNATE");}
+      int brightestFace = c->returnXthBrightestFace(0, true);
+      int nextBrightestFace = c->returnXthBrightestFace(1, true);
+      //
+      c->lightFace(brightestFace, &white);
+      delay(500);
+      c->lightFace(nextBrightestFace, &purple);
+      delay(500);
+      c->lightCube(&off);
+      // Figure out which way we should try to move
+      //bool direct = false; // false = reverse...
+      if(brightestFace == oppositeFace(connectedFace))
       {
-      Serial.println("bldcaccel f 5000 600");
-      delay(1000);
-      }
-      else if(faceClockiness(nextBrightestFace, connectedFace) == -1)
-      {
-      Serial.println("bldcaccel r 5000 600");
-      delay(1000);
+        c->blinkRingAll();
+        if(faceClockiness(nextBrightestFace, connectedFace) == 1)
+        {
+        Serial.println("bldcaccel f 5400 800");
+        delay(1000);
+        }
+        else if(faceClockiness(nextBrightestFace, connectedFace) == -1)
+        {
+        Serial.println("bldcaccel r 5400 800");
+        delay(1000);
+        }
       }
     }
   }
@@ -575,14 +592,20 @@ Behavior duoSeekLight(Cube* c, SerialDecoderBuffer* buf)
       else if(direct == true)
       {
         if(c->moveIASimple(&rollDouble_F) == true)
+        {
+          c->superSpecialBlink(&teal, 40);
           failedMoveCounter = 0;
+        }
         else
           failedMoveCounter++;
       }
       else if(direct == false)
       {
         if(c->moveIASimple(&rollDouble_R) == true)
+        {
+          c->superSpecialBlink(&teal, 40);
           failedMoveCounter = 0;
+        }
         else
           failedMoveCounter++;
       }      
@@ -590,9 +613,6 @@ Behavior duoSeekLight(Cube* c, SerialDecoderBuffer* buf)
 //************** End if else if chain **************************
     loopCounter++;
     nextBehavior = basicUpkeep(c, nextBehavior, buf, true);  // check for neighbors, etc...
-    c->superSpecialBlink(&teal, 50);
-    c->superSpecialBlink(&white, 100);
-    c->superSpecialBlink(&teal, 50);
   }
   return(nextBehavior);
 }

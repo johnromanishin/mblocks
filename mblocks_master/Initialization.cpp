@@ -381,6 +381,7 @@ void lookUpCalibrationValues()
       
      case 10229112: // PC PURPLE  - DF:DF:3C:A0:F1:77
       GlobalCubeID = 2;
+      GlobalPlaneAccel = 3000;
       
       TRAVERSE_RPM_F = 7000;
       TRAVERSE_RPM_R = 7000;
