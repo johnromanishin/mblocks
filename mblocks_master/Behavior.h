@@ -111,13 +111,15 @@ Behavior climb(Cube* c, SerialDecoderBuffer* buf);
 
  //==================Utilities===============================
 void wifiDelay(int delayTime);
-Behavior checkForMagneticTagsStandard(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf);
+int checkForMagneticTagsStandard(Cube* c);
 Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf);
 Behavior relayBehavior(Cube* c, Behavior behaviorToRelay, int cubeToRelayTo = -1, int timesToRelay = 4);
 Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior);
 Behavior checkForBehaviors(Cube* c, SerialDecoderBuffer* buf, Behavior behavior);
 
-Behavior basicUpkeep(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf, int lightDigit = 7, bool checkForLightMessages = true, bool blinkLEDs = true, int timeToCheck = 10000);
+Behavior basicUpkeep(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf, bool updateFaceLEDs = true);
 
+int checkLightDigits(Cube* c);
 String behaviorsToCmd(Behavior inputBehavior);
+void printDebugThings(Cube* c, Behavior behaviorToReturnFinal);
 #endif

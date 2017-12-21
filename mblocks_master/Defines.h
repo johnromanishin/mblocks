@@ -117,6 +117,7 @@ typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING,
 extern int faceVersion;
 extern int GlobalCubeID;
 extern int GlobalPlaneAccel;
+extern bool magicTheLight;
 
 extern int GlobalplaneChangeTime;
 extern int GlobalplaneChangeRPM;

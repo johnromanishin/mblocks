@@ -40,62 +40,37 @@ Face::Face()
 //  this->IOExpanderState[0] = (this->IOExpanderState[1] = byte(0xff));
 //}
 
-bool Face::updateFace(int blinkOutDigit, bool checkForLightYo, bool blinkLEDs, int timeToCheck)
+bool Face::updateFace(bool blinkLEDs)
 {
   bool updateSuccess = false;
-  if(blinkLEDs)
+  if(blinkLEDs == true)
   {
-    updateSuccess = 
-        (this->enableSensors() 
-      && this->updateAmbient()
-      && this->turnOnFaceLEDs(0,0,1,0)
-    //&& this->updateReflectivity()       
-      && this->updateMagneticBarcode() // actually reads magnetic valuess
-      && this->turnOffFaceLEDs());
+  updateSuccess = (this->enableSensors() &&
+                   this->updateAmbient(true) &&
+                   this->turnOnFaceLEDs(0,0,1,0) &&
+                   this->updateMagneticBarcode() && // actually reads magnetic valuess
+                   this->turnOffFaceLEDs());
   }
   else
   {
-    updateSuccess = 
-        (this->enableSensors() 
-      && this->updateAmbient()
-      && this->updateMagneticBarcode()); // actually reads magnetic valuess
+  updateSuccess = (this->enableSensors() &&
+                   this->updateAmbient(true) &&
+                   this->updateMagneticBarcode()); // actually reads magnetic valuess
   }
-  
   this->neighborPresenceBuffer.push(this->processTag()); // actually processes Tag... adds 
-  delay(10);
-  // if we are connected... and we are supposed to check for light, wait 15 seconds to try to find a message
-  if((this->returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) && checkForLightYo) // checks for lightdigits...
+  
+  // if we are connected... and we are supposed to check for light, wait 2 seconds to try to find a message
+  if((this->returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) && blinkLEDs) // checks for lightdigits...
   {
-    if(MAGIC_DEBUG){Serial.print("Beginning Light Digit Listening Period...");}
-    this->blinkOutMessage(blinkOutDigit);
-    int lightDigit = this->checkForMessage(blinkOutDigit, timeToCheck); // this samples light sensor at rate of 50 hz...
-    if(this->isThereNeighbor()) // if we are still connected to a cube on this face...
-    {
-      if(MAGIC_DEBUG){Serial.print("PUSHING LIGHT DIGIT TO THE QUE!!");}
-      this->neighborLightDigitBuffer.push(lightDigit); // add the lightDigit to the buffer
-    }   
-    else
-    {
-      this->neighborLightDigitBuffer.push(-1);         // if we were initially connected, but then disconnected, FAIL!
-    }
-  }
-  // if we are connected, but we AREN't Supposed to check for light, we do it anyway assuming we see a light, but we do it for less time
-  else if((this->returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) && (this->returnAmbientValue(0) > 4000))
-  {
-    int lightDigit = this->checkForMessage(blinkOutDigit, 5000); // this samples light sensor at rate of 50 hz...
-    if(this->isThereNeighbor()) // if we are still connected to a cube on this face...
-    {
-      if(MAGIC_DEBUG){Serial.print("PUSHING LIGHT DIGIT TO THE QUE!!");}
-      this->neighborLightDigitBuffer.push(lightDigit); // add the lightDigit to the buffer
-    }   
-    else
-    {
-      this->neighborLightDigitBuffer.push(-1);         // if we were initially connected, but then disconnected, FAIL!
-    }
+    for(int i = 0; i < 121; i++) // take 120 light samples
+      this->updateAmbient(false);
+    this->neighborLightDigitBuffer.push(this->processLightData()); // add the lightDigit to the buffer
+    if(magicTheLight)
+        this->turnOnFaceLEDs(1,1,1,1);
   }
   else
   {
-     this->neighborLightDigitBuffer.push(-1); 
+    this->neighborLightDigitBuffer.push(-2);
   }
   this->disableSensors(); // turn off sensors...
   return(updateSuccess);
@@ -263,124 +238,71 @@ this->readAmbient(activate);
 return(true);
 }
 
-int Face::checkForMessage(int blinkOutDigit, int waitTime)
-/*  This code is blocking, and is intended to ONLY run
- *  on a face that is magnetically connected to a different 
- *  Cube.
+int Face::processLightData()
+/*  This code will process 60, or possibly... 100 samples of light data, 
  *  
- *  The goal of the code is to "listen" to the ambient light sensor
- *  and try to determine if it sees any valid "digits"
- *  A digit is as follows:
- *  blink for 100ms == "1"
- *  blink for 200ms == "2"
- *  blink for 300ms == "3"
- *  blink for 400ms == "4"
- *  blink for 500ms == "5"
- *  blink for 600ms == "6"
- *  blink for 700ms == "7"
- *  blink for 800ms == "8"
- *  blink for 900ms == "9"
- *  blink for 1000+ms== "10"
- *  
- *  It will also blink out a digit (int blinkOutDigit) every 1 second.
+ *        for each sample, it will break it up into sections of 20 samples so...
+ *        0.... 23 | 24.... 47 | 48 ... 71 | 72... 95 | 96 ... 119 
+ *index       0         1            2          3         4
+ *
+ *for each of these sections it will count total duty cycle...
+ *or absolute number of # High
+ *
+ *and map them to the following bins
+ *0-3   Periods High = 0
+ *4-7   periods High = 1
+ *8-11  periods High = 2
+ *12-15 periods High = 3
+ *16-19 Periods High = 4
+ *20-23 Periods High = 5
  */
 {
-  if(MAGIC_DEBUG)
-  {
-    Serial.print("Starting CHECK4MESSAGE blink out digit: ");Serial.println(blinkOutDigit);
-  }
-  int cycles = waitTime/20;
-  int result = 0;
-  int counter = 0;
-  int lightsOnCounter = 0;
-  bool lightsOn = false;
-  int lengthOn = 0;
-  int highLightThreshold = 4000;
-  bool wasLastValueHigh = false;
-  if(blinkOutDigit == 10)
-  {
-    this->turnOnFaceLEDs(1,1,1,1);
-  }
-  this->updateAmbient(); // get initial reading
-  while(this->returnAmbientValue(0) > highLightThreshold) // wait for it to go low...
-  {
-    this->updateAmbient(false);
-    counter++;
-    if(counter > 40) // if it never goes low... we return that we saw 10...
+int results[6] = {0,0,0,0,0,0};
+int endResult = -1;
+int index = 0;
+int tempResult = 0;
+int thresholdValue = 4000;
+
+for(int binIndex = 0; binIndex < 5; binIndex++)
+{
+  tempResult = 0;
+  for(int sample = 0; sample < 24; sample++)
     {
-      this->turnOffFaceLEDs();
-      return(10);
+      if(this->returnAmbientValue(index) > thresholdValue)
+        tempResult++;
+      index++;
+//      Serial.print(index);
+//      Serial.print(" : ");
+//      Serial.print(this->returnAmbientValue(index));
+//      Serial.print(" || ");
     }
-  }
-  counter = 0;
-  // we will get to this point once we see a low value so we know wasLastValueHigh == false;
-  int i = 0; // begin checking for messages... we gaurentee we have seen a low value as the first value
-  while((lightsOn == true) || (cycles > 0))
-  {
-    //// THIS SECTION DEALS WITH SENDING OUT THE BLINK MESSAGE
-    if(((i % 50) == 0) && (blinkOutDigit < 10) && (blinkOutDigit > 0))
-    {
-      lightsOn = true;
-      this->turnOnFaceLEDs(1,1,1,1);
-    }
-    if(lightsOn)
-    {
-      lightsOnCounter++;
-      if(lightsOnCounter > blinkOutDigit*5)
-      {
-        lightsOn = false;
-        this->turnOffFaceLEDs();
-        lightsOnCounter = 0;
-      }
-    }
-    //// THIS SECTION DEALS WITH READING INCOMMING MESSAGE
-    this->updateAmbient(false);
-    if(this->returnAmbientValue(0) > highLightThreshold) // if we see a high value...
-    {
-      if(wasLastValueHigh == true)                       // if the last one was also high...
-        {
-          counter++;                                     // increment a counter
-        }
-      wasLastValueHigh = true;                           // and set flag waslastvalue to true;
-    }
-    else                                            // if the light value is low...
-    {
-      if((wasLastValueHigh == true) && (cycles > 0))  // if the previous one is HIGH, we just ended reading a message
-        {
-          if(counter > 4)                           // if the message lasted at least 100ms... then we have a valid message!
-          {
-            result = ((counter+3)/5);               // take the length of the message, and turn it into a digit...
-            cycles = (cycles - 100);                            // stop collecting data... but we will wait for the current blinking to be done...
-            if(MAGIC_DEBUG)
-            {
-              Serial.print("FOUND A MESSAGE: ");
-              Serial.println(result);
-              Serial.print("CYCLES REMAINING");
-              Serial.println(cycles);
-            }
-          }
-          counter = 0;
-        }
-      wasLastValueHigh = false;
-    }
-    cycles--;
-    i++;
-    delay(1);
-  }
-  if(MAGIC_DEBUG)
-  {
-    Serial.print("Exiting check for light digits after: ");
-    Serial.print(i);
-    Serial.print(" cycles, and the final result is: ");
-    Serial.println(result);
-  }
-  delay(100);
-  this->blinkOutMessage(blinkOutDigit);
-  delay(20);
-  this->turnOffFaceLEDs();
-  if(result > 10) // 10 is the maximum value we can report... just because
-  result = 10;
-  return(result);
+  if(tempResult < 4)
+    results[0]++;
+  else if((tempResult > 3)  && (tempResult < 8))
+    results[1]++;
+  else if((tempResult > 7)  && (tempResult < 12))
+    results[2]++;
+  else if((tempResult > 11) && (tempResult < 16))
+    results[3]++;
+  else if((tempResult > 15) && (tempResult < 20))
+    results[4]++;
+  else if(tempResult > 19)
+    results[5]++;
+}
+
+//Serial.println("and... Parsing...");
+for(int tempIndex = 0; tempIndex < 6; tempIndex++) // go through the six bins from results[6]
+{
+//  Serial.print("for index value: ");
+//  Serial.print(tempIndex);
+//  Serial.print(" A count of: ");
+//  Serial.println(results[tempIndex]);
+  if(results[tempIndex] > 2) // if we see 3 of the same number... we consider it a success... Voting based...
+    endResult = tempIndex;
+}
+//Serial.print("We Found the Following Result... from the LIGHT DIGIT CHECK: ");
+//Serial.println(endResult);
+return(endResult);
 }
 
 void Face::blinkOutMessage(int digit)
@@ -407,6 +329,78 @@ void Face::blinkOutMessage(int digit)
   return;
 }
 
+void Face::blinkRingDigit(int digit, int numberOfTimes)
+{
+  int delayTime = 50;
+  if(digit == 1) // 1/5
+  {
+    for(int i = 0; i < numberOfTimes; i++)
+    {
+      this->turnOnFaceLEDs(1, 0, 0, 0);
+      delay(delayTime);
+      this->turnOnFaceLEDs(0, 1, 0, 0);
+      delay(delayTime);
+      this->turnOnFaceLEDs(0, 0, 1, 0);
+      delay(delayTime);
+      this->turnOnFaceLEDs(0, 0, 0, 1);
+      delay(delayTime);
+      this->turnOffFaceLEDs();
+      delay(delayTime);
+    }
+  }
+  else if(digit == 2) //2/5
+  {
+    for(int i = 0; i < numberOfTimes; i++)
+      {
+        this->turnOnFaceLEDs(1, 1, 0, 0);
+        delay(delayTime);
+        this->turnOnFaceLEDs(0, 1, 1, 0);
+        delay(delayTime);
+        this->turnOnFaceLEDs(0, 0, 1, 1);
+        delay(delayTime);
+        this->turnOnFaceLEDs(1, 0, 0, 1);
+        delay(delayTime);
+        this->turnOffFaceLEDs();
+        delay(delayTime);
+      }
+  }
+  else if(digit == 3) //2/5
+  {
+    for(int i = 0; i < numberOfTimes; i++)
+      {
+        this->turnOnFaceLEDs(1, 1, 1, 0);
+        delay(delayTime);
+        this->turnOnFaceLEDs(0, 1, 1, 1);
+        delay(delayTime);
+        this->turnOnFaceLEDs(1, 0, 1, 1);
+        delay(delayTime);
+        this->turnOnFaceLEDs(1, 1, 0, 1);
+        delay(delayTime);
+        this->turnOffFaceLEDs();
+        delay(delayTime);
+      }
+  }
+  else if(digit == 4) //2/5
+  {
+    for(int i = 0; i < numberOfTimes; i++)
+      {
+        this->turnOnFaceLEDs(1, 1, 1, 1);
+        delay(delayTime*4);
+        this->turnOffFaceLEDs();
+        delay(delayTime);
+      }
+  }
+  else if(digit == 5) //2/5
+  {
+    for(int i = 0; i < numberOfTimes; i++)
+      {
+        this->turnOnFaceLEDs(1, 1, 1, 1);
+        delay(delayTime*5);
+      }
+  }
+this->turnOffFaceLEDs();
+}
+
 void Face::blinkRing(int delayLength, int numberOfTimes)
 {
   for(int i = 0; i < numberOfTimes; i++)
@@ -422,6 +416,7 @@ void Face::blinkRing(int delayLength, int numberOfTimes)
   }
   this->turnOffFaceLEDs();
 }
+
 //bool Face::updateReflectivity()
 ///*
 // * 

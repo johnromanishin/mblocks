@@ -104,7 +104,8 @@ bool Cube::roll(bool forwardReverse, SerialDecoderBuffer* buf, int rpm, String A
     }
     else
     {
-      this->blockingBlink(&red);
+      this->superSpecialBlink(&red, 40);
+      this->superSpecialBlink(&red, 40);
     }
     /*
      * this means the move failed...
@@ -115,7 +116,8 @@ bool Cube::roll(bool forwardReverse, SerialDecoderBuffer* buf, int rpm, String A
   }
   else
   {
-    this->blockingBlink(&green);
+    this->superSpecialBlink(&green, 40);
+    this->superSpecialBlink(&green, 40);
     succeed = true;
   }
   
@@ -126,11 +128,10 @@ bool Cube::roll(bool forwardReverse, SerialDecoderBuffer* buf, int rpm, String A
 //PLANE0123, PLANE0425, PLANE1453,
 bool Cube::moveIASimple(Motion* motion)
 {
-
+  if(MAGIC_DEBUG){Serial.println("moveIASimple(Motion* motion)");}
+  
   this->processState(); // update IMU's and "topFace" 
-  if((this->currentPlaneBuffer.access(0) == PLANE0123) ||
-     (this->currentPlaneBuffer.access(0) == PLANE0425) || 
-     (this->currentPlaneBuffer.access(0) == PLANE1453)) //  This makes sure we don't move when we shouldn't
+  if(this->isValidPlane() == true)
   {
     // Figure out our current state...
     int faceUpBeginning = this->returnTopFace();
@@ -150,13 +151,15 @@ bool Cube::moveIASimple(Motion* motion)
     // If UP face is the same... we say we failed =(
     if(this->returnTopFace() == faceUpBeginning)
     {
-      this->blockingBlink(&red);
+      this->superSpecialBlink(&red, 40);
+      this->superSpecialBlink(&red, 40);
     }
     
     //if up face is different we say we succeeded!!!
     else
     {
-      this->blockingBlink(&green);
+      this->superSpecialBlink(&green, 40);
+      this->superSpecialBlink(&green, 40);
       succeed = true;
     }
     
@@ -180,7 +183,6 @@ void Cube::reconnectI2C()
 
 void Cube::resetI2C()
 {
-  //this->blockingBlink(&red, 2);
   this->disconnectI2C();
   wifiDelay(300);
   this->reconnectI2C();
@@ -193,14 +195,14 @@ void Cube::blinkParasiteLED(int blinkTime)
   digitalWrite(LED, LOW);
 }
 
-bool Cube::updateSensors(int lightDigit, bool ShouldIcheckForLightMessages, bool blinkLEDs, int timeToCheck)
+bool Cube::updateSensors(bool blinkLEDs)
 {
   /*
    * This functions updates all of the sensor buffers on each cube
    * It also refreshes variables like this->topFace/ forwardFace/ ...
    */
   this->processState();// -- this deals with anything involving IMUs 
-  this->updateFaces(lightDigit, ShouldIcheckForLightMessages, blinkLEDs, timeToCheck); // -- this checks all of the specific sensors on each face
+  this->updateFaces(blinkLEDs); // -- this checks all of the specific sensors on each face
   return(true);
 }
 
@@ -222,16 +224,16 @@ bool Cube::processState()
     else
     {
        {
-         wifiDelay(500);
+         wifiDelay(300);
          this->resetI2C();
+         wifiDelay(300);
          if(this->updateBothIMUs() == true)
          {
             succeed = true;
          }
        }
     }
-  }  
-  
+  }    
   this->determineTopFace();
   this->determineForwardFace();
   return(succeed);
@@ -249,12 +251,12 @@ bool Cube::blockingBlink(Color* inputColor, int howManyTimes, int waitTime)
   }
 }
 
-bool Cube::updateFaces(int lightDigit, bool checkForLight, bool blinkLEDs, int timeToCheck)
+bool Cube::updateFaces(bool blinkLEDs)
 {
 for(int i = 0; i< FACES; i++)
     {
       delay(3);
-      this->faces[i].updateFace(lightDigit, checkForLight, blinkLEDs, timeToCheck);  // updateFace updates light and Magnetic sensors  
+      this->faces[i].updateFace(blinkLEDs);  // updateFace updates light and Magnetic sensors  
       delay(3);
     }
 }
@@ -383,35 +385,35 @@ bool Cube::isPlaneParallel(int faceExclude)
   }
 return(result);
 }
-
-bool Cube::isPlaneInOneOfTheOtherValidPlanes(int faceExclude)
-{
-  bool result = false;
-  if((faceExclude == 4 )|| (faceExclude == 5))
-  {
-    if(this->currentPlaneBuffer.access(0) == PLANE0425)
-      result = true;
-    else if(this->currentPlaneBuffer.access(0) == PLANE1453)
-      result = true;
-  }
-  else if((faceExclude == 1) ||( faceExclude == 3))
-  {
-    if(this->currentPlaneBuffer.access(0) == PLANE0123)
-      result = true;
-    else if(this->currentPlaneBuffer.access(0) == PLANE1453)
-      result = true;
-
-  }
-  else if((faceExclude == 0) || (faceExclude == 2))
-  {
-    if(this->currentPlaneBuffer.access(0) == PLANE0123)
-      result = true;
-    else if(this->currentPlaneBuffer.access(0) == PLANE0425)
-      result = true;
-
-  }
-return(result);
-}
+//
+//bool Cube::isPlaneInOneOfTheOtherValidPlanes(int faceExclude)
+//{
+//  bool result = false;
+//  if((faceExclude == 4 )|| (faceExclude == 5))
+//  {
+//    if(this->currentPlaneBuffer.access(0) == PLANE0425)
+//      result = true;
+//    else if(this->currentPlaneBuffer.access(0) == PLANE1453)
+//      result = true;
+//  }
+//  else if((faceExclude == 1) ||( faceExclude == 3))
+//  {
+//    if(this->currentPlaneBuffer.access(0) == PLANE0123)
+//      result = true;
+//    else if(this->currentPlaneBuffer.access(0) == PLANE1453)
+//      result = true;
+//
+//  }
+//  else if((faceExclude == 0) || (faceExclude == 2))
+//  {
+//    if(this->currentPlaneBuffer.access(0) == PLANE0123)
+//      result = true;
+//    else if(this->currentPlaneBuffer.access(0) == PLANE0425)
+//      result = true;
+//
+//  }
+//return(result);
+//}
 
 bool Cube::goToPlaneParallel(int faceExclude)
 {
@@ -522,7 +524,17 @@ static const int32_t rotationMatricies[3][3][3] =
  * We expect raw, signed 14-bit accelerometer readings
  */
 
-
+bool Cube::isValidPlane()
+{
+  if((this->currentPlaneBuffer.access(0) == PLANE0123) ||
+     (this->currentPlaneBuffer.access(0) == PLANE0425) || 
+     (this->currentPlaneBuffer.access(0) == PLANE1453)) //  This makes sure we don't move when we shouldn't
+  {
+    return(true);
+  }
+  else
+    return(false);
+}
 bool Cube::isFaceNeitherTopNorBottom(int face)
 /*
  * Returns "true" if face arguement "face"
@@ -688,7 +700,8 @@ int Cube::numberOfNeighbors(int index, bool doIlightFace)
   int neighbors = 0;
   for(int face = 0; face < 6; face++)
     {
-    if(this->faces[face].returnNeighborPresence(index) == true)
+    if((this->faces[face].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) ||
+       (this->faces[face].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE))
     {
       neighbors++;
       if(doIlightFace) 
@@ -707,7 +720,8 @@ int Cube::whichFaceHasNeighbor()
   int facesCount = 0;
   for(int face = 0; face < 6; face++)
   {
-    if(this->faces[face].returnNeighborPresence(0) == true)
+    if((this->faces[face].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) ||
+       (this->faces[face].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE))
     {
       faceToReturn = face;
       facesCount++;
@@ -746,22 +760,22 @@ int Cube::numberOfNeighborsCheckNow()
   }
 return(neighbors);
 }
-
-
-//////////////
-int Cube::numberOfCubeNeighbors(int index)
-{
-  int neighbors = 0;
-  for(int face = 0; face < 6; face++)
-  {
-    if((this->faces[face].returnNeighborType(index) == TAGTYPE_REGULAR_CUBE) ||
-       (this->faces[face].returnNeighborType(index) == TAGTYPE_PASSIVE_CUBE)) 
-    {
-      neighbors++;
-    }
-  }
-return(neighbors);
-}
+//
+//
+////////////////
+//int Cube::numberOfCubeNeighbors(int index)
+//{
+//  int neighbors = 0;
+//  for(int face = 0; face < 6; face++)
+//  {
+//    if((this->faces[face].returnNeighborType(index) == TAGTYPE_REGULAR_CUBE) ||
+//       (this->faces[face].returnNeighborType(index) == TAGTYPE_PASSIVE_CUBE)) 
+//    {
+//      neighbors++;
+//    }
+//  }
+//return(neighbors);
+//}
 
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////

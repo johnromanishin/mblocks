@@ -47,10 +47,22 @@ void setup() // Actually the main loop...
   //if(c.cubeID != 12)
   //c.blinkOutMessageWholeCube(3, 2);
   c.lightCube(&off);
-//  for(int i = 0; i < 10; i++)
+//  if(c.cubeID > 30)
 //  {
-//    c.debugAccelerometers();
-//    delay(500);
+//    for(int i = 0; i < 20; i++)
+//    {
+//      c.updateSensors();
+//      delay(300);
+//    }
+//  }
+//  else
+//  {
+//    for(int i = 0; i < 50; i ++)
+//    {
+//      c.faces[2].blinkRingDigit(3, 20);
+//      c.faces[2].blinkRingDigit(2, 20);
+//      c.faces[2].blinkRingDigit(1, 20);
+//    }
 //  }
   ///////////////////ACTUAL LOOP////////////////////
   while((millis() < c.shutDownTime) && (!shutDown))

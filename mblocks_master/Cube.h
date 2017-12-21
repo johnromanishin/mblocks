@@ -70,15 +70,14 @@ class Cube
 
       // Update Functions involving SENSORS
 //************* MOST IMPORTANT FUNCTION ****************************
-    bool updateSensors(int lightDigit = 0, bool ShouldIcheckForLightMessages = false, bool blinkLEDs = false, int timeToCheck = 0); // Updates almost everything on the cube...
+    bool updateSensors(bool updateLEDs = true); // Updates almost everything on the cube...
 //*******************************************************************
     int numberOfNeighbors(int index = 0, bool lightFace = true);
     int whichFaceHasNeighbor();
     int whichFaceHasNeighborCheckNow();
-    int numberOfCubeNeighbors(int index = 0);
     int numberOfNeighborsCheckNow(); //quickly checks the magnetic field sensors to see if tehre are neighbors
     
-    bool updateFaces(int lightDigit = 0, bool checkForLight = false, bool blinkLEDs = false, int timeToCheck = 0); // Updates all of the face sensors on all faces
+    bool updateFaces(bool blinkLEDs); // Updates all of the face sensors on all faces
     bool updateBothIMUs(); // updates BOTH IMU's
     bool updateFrameIMU();
     bool updateCoreIMU();
@@ -99,6 +98,7 @@ class Cube
     int returnBottomFace();
     bool isFaceNeitherTopNorBottom(int face);
     String debugAccelerometers();
+    bool isValidPlane();
     
     // Functions involving PLane Changing
     PlaneEnum findPlaneStatus(bool reset = true);
@@ -106,7 +106,7 @@ class Cube
     bool goToPlaneParallel(int faceExclude);
     bool goToPlaneIncludingFaces(int face1, int face2, SerialDecoderBuffer* buf);
     bool isPlaneParallel(int faceExclude);
-    bool isPlaneInOneOfTheOtherValidPlanes(int faceExclude);
+ //   bool isPlaneInOneOfTheOtherValidPlanes(int faceExclude);
     
 
       // Functions involving LED's
@@ -117,7 +117,7 @@ class Cube
     bool blockingBlink(Color* inputColor, int howManyTimes = 6, int waitTime = 100);
     void setFaceLEDsAtEdge(int, int); // 
     void superSpecialBlink(Color* inputColor, int delayTime);
-    void blinkRingAll(int delayLength = 50, int numberOfTimes = 2);
+    void blinkRingAll(int delayLength = 50, int numberOfTimes = 1);
     
     // Misc. Useful Functions
     void shutDown();                   // Turns off the entire cub

@@ -61,7 +61,7 @@ class Face
     }
     
       // Data storage spaces
-    int ambientData[64];
+    int ambientData[128];
     int reflectivityData[8];
     CircularBuffer<int> ambientBuffer;
     CircularBuffer<int> reflectivityBuffer;
@@ -100,7 +100,10 @@ class Face
       // Constructors
     Face();   
     Face(int expanderAddress);
-    
+//*******************************************************************************************************************
+    bool updateFace(bool blinkLEDs = true); // Enables sensors, Updates ambient values, updates magnetic sensors, neighbors...
+//*******************************************************************************************************************
+
       // Public Variables
     const int r_0 = 13; // Pins on PCF7585 IO expander on each face.
     const int g_0 = 11; //...
@@ -136,10 +139,9 @@ class Face
     //bool updateReflectivity();
     bool updateMagneticBarcode(); // Reads both magnet sensors,
     bool isThereNeighbor(); // true == yes! // false == NO
-    bool updateFace(int lightDigit, bool checkForLightYo, bool blinkLEDs = true, int timeToCheck = 5000); // Enables sensors, Updates ambient values, updates magnetic sensors, neighbors...
-      // Sending simple messages - length of blink = digit... 100ms == "1" 200ms == "2" ... etc.
-    int checkForMessage(int lightDigit, int waitTime);
+    int processLightData();
     void blinkOutMessage(int digit); 
+    void blinkRingDigit(int digit, int numberOfTimes);
 
       // Magnetic Tag Related Commands
     bool processTag();

@@ -52,6 +52,7 @@ int GlobalCubeID = 0;
 extern int GlobalplaneChangeTime;
 extern int GlobalplaneChangeRPM;
 extern int GlobalPlaneAccel = 2100;
+extern bool magicTheLight = false;
 extern int magicVariable = 0;
 extern int MAGIC_DEBUG = 0;
 extern int magicFace = 0;
