@@ -62,7 +62,7 @@ extern int magicVariable_2 = 0;
 extern int magicVariable_3 = 0;
 extern int magicVariable_4 = 0;
 extern int magicVariable_5 = 0;
-
+extern int GlobalMaxAccel = 6000;
 
 
 extern int TRAVERSE_RPM_F = 6500;

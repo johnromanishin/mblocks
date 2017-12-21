@@ -88,7 +88,8 @@ class Cube
         // Functions involving motion
     bool moveIASimple(Motion* motion);
     bool roll(bool forwardReverse, SerialDecoderBuffer* buf, int rpm = 6000, String ALTERNATE = "nothing");
-
+    bool moveBLDCACCEL(bool forwardReverse, int current, int lengthOfTime);
+    
         // Related to the state itself
     bool processState();
     String returnCurrentPlane_STRING();

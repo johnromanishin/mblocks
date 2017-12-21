@@ -125,6 +125,67 @@ bool Cube::roll(bool forwardReverse, SerialDecoderBuffer* buf, int rpm, String A
   return(succeed);
 }
 
+bool Cube::moveBLDCACCEL(bool forwardReverse, int current, int lengthOfTime)
+{
+  this->processState(); // update IMU's and "topFace" 
+  delay(200);
+  int faceUpBeginning = this->returnTopFace();
+  bool succeed = false;
+  int shakingThreshold = 10000;
+  String CW_CCW;
+  String stringToPrint = "ver";
+  String singleSpace = " ";
+  if(forwardReverse == false)
+  {
+    this->blockingBlink(&yellow);
+    CW_CCW = " r "; // set the direction to "reverse" if forwardReverse is negatuve
+  }
+  else
+  {
+    this->blockingBlink(&teal);
+    CW_CCW = " f ";
+  }
+  delay(20);
+  stringToPrint = "bldcaccel" + CW_CCW + String(current) + singleSpace + String(lengthOfTime); // generate String for motor
+  Serial.println(stringToPrint); // this actually tells the thing to move.
+  delay(200+lengthOfTime);
+  Serial.println("bldcstop b"); // this actually tells the Cube to start rolling
+  int shakingAmmount = wifiDelayWithMotionDetection(3000);
+  Serial.println("bldcstop");
+  delay(100);
+  this->moveShakingBuffer.push(shakingAmmount); // delays 2500 ms
+  if(MAGIC_DEBUG) {Serial.print("We detected this ammount of Shaking: ");Serial.println(shakingAmmount);}
+  this->processState();
+  delay(100);
+  if((this->returnTopFace() == faceUpBeginning) || (this->returnTopFace() == -1)) // If the same face is pointing up... or it failed
+  {
+    if(shakingAmmount > shakingThreshold) // if we shook a bunch... but same face is up...
+    {
+      succeed = true;                   // consider it a success!
+    }
+    else
+    {
+      this->superSpecialBlink(&red, 40);
+      this->superSpecialBlink(&red, 40);
+    }
+    /*
+     * this means the move failed...
+     * If we roll a lot, and end up with the same face as we started, the shakingAmmount
+     * should be quite high, above the threshold, so we will say we succeeded if we shake a ton, or if
+     * the face that is up is different than the face that was up before we started...
+     */
+  }
+  else
+  {
+    this->superSpecialBlink(&green, 40);
+    this->superSpecialBlink(&green, 40);
+    succeed = true;
+  }
+  
+  this->moveSuccessBuffer.push(succeed);
+  return(succeed);
+}
+
 //PLANE0123, PLANE0425, PLANE1453,
 bool Cube::moveIASimple(Motion* motion)
 {

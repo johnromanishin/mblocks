@@ -118,6 +118,7 @@ extern int faceVersion;
 extern int GlobalCubeID;
 extern int GlobalPlaneAccel;
 extern bool magicTheLight;
+extern int GlobalMaxAccel;
 
 extern int GlobalplaneChangeTime;
 extern int GlobalplaneChangeRPM;

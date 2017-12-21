@@ -12,24 +12,24 @@
  * *************************************************************************************************************************************************************************************
  * ** Cube Name   ** Version      * Plane Ch      * BAD Red     * Bad White      * i2c Busted      * Mech. Rubbing *  Drains Bat  * Acceler Issue*  6000ma Kills * batteries Replaced                    
  * *************************************************************************************************************************************************************************************
- * ** PEI BLACK   **              *               *             *                *                 *               *              *              *     X         *                   
- * ** PEI GREEN   **              *               *             *                *                 *               *              *              *               *    2017-12-17                                             
- * ** PEI ORANGE  **              *               *    X        *  X             *                 *               *              *              *               *                                                                    
- * ** PEI PURPLE  **              *               *             *                *                 *               *    X         *              *               *                                                                                                                 
- * ** PEI RED     **              *               *             *                *                 *               *              *              *               *
- * ** PEI YELLOW  **              *               *    X        *                *                 *               *              *     X        *               *                
- * ** PEI BROWN   **              *               *    X        *                *                 *               *              *              *     X         *
- * ** PEI BLUE    **              *               *    X        *                *                 *               *              *              *               *
+ * ** PEI BLACK   **              *               *             *                *                 *               *              *              *     XX        *                    *
+ * ** PEI GREEN   **              *               *             *                *                 *               *              *              *               *    2017-12-17      *                                      
+ * ** PEI ORANGE  **              *               *    XX       *  X             *                 *               *              *              *               *                    *                                              
+ * ** PEI PURPLE  **              *               *             *                *                 *               *    X         *              *               *                    *                                                                                          
+ * ** PEI RED     **              *               *             *                *                 *               *              *              *               *                    *
+ * ** PEI YELLOW  **              *               *    X        *                *                 *               *              *     X        *               *                    *                
+ * ** PEI BROWN   **              *               *    X        *                *                 *               *              *              *     X         *                    *
+ * ** PEI BLUE    **              *               *    X        *                *                 *               *              *              *               *                    *
  * 
- * ** PC BLACK    **              *               *             *                *                 *               *              *              *               *
- * ** PC BLUE     **              *               *    X        *   X            *                 *               *              *              *               *                    
- * ** PC PURPLE   **              *               *             *                *                 *               *              *              *               *      
- * ** PC GREEN    **              *               *    X        *                *                 *               *              *              *               * 
- * ** PC BROWN    **              *               *             *                *                 *               *              *              *               *
- * ** PC YELLOW   **              *               *    X        *                *                 *               *              *              *               *
- * ** PC ORANGE   **              *               *             *                *                 *               *              *              *               *
+ * ** PC BLACK    **              *               *             *                *                 *               *              *              *               *                    *
+ * ** PC BLUE     **              *               *    X        *   X            *                 *               *              *              *               *                    *                    
+ * ** PC PURPLE   **              *               *             *                *                 *               *              *              *               *                    *      
+ * ** PC GREEN    **              *               *    XX       *                *                 *               *              *              *               *                    * 
+ * ** PC BROWN    **              *               *             *                *                 *               *              *              *               *                    * X          
+ * ** PC YELLOW   **              *               *    X        *                *                 *               *              *              *               *                    *
+ * ** PC ORANGE   **              *               *             *                *                 *               *              *              *               *                    *
  * 
- * ** ORANGEPC RED**              *               *    X        *                *                 *               *              *              *               *
+ * ** ORANGEPC RED**              *               *    XX       *                *                 *               *              *              *               *                    *
  */
 void initializeCube()
 {
@@ -235,7 +235,8 @@ void lookUpCalibrationValues()
       TRAVERSE_RPM_R = 69696;
       TRAVERSE_CURRENT_F = 69696;
       TRAVERSE_CURRENT_R = 6969;
-
+      GlobalMaxAccel = 123456789;    // ** FIX BAT 
+      
       CC_RPM_F = 999999;
       CC_RPM_R = 999999;
       CC_CURRENT_F = 999999;
@@ -272,7 +273,8 @@ void lookUpCalibrationValues()
       TRAVERSE_RPM_R = 6000;
       TRAVERSE_CURRENT_F = 2500;
       TRAVERSE_CURRENT_R = 2500;
-
+      GlobalMaxAccel = 5000;    // ** FIX BAT
+      
       CC_RPM_F = 16000;
       CC_RPM_R = 15500;
       CC_CURRENT_F = 3100;
@@ -354,7 +356,8 @@ void lookUpCalibrationValues()
       TRAVERSE_RPM_R = 7000;
       TRAVERSE_CURRENT_F = 3000;
       TRAVERSE_CURRENT_R = 3300;
-
+      GlobalPlaneAccel = 3000;
+      
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
       CC_CURRENT_F = 3100;
@@ -365,6 +368,7 @@ void lookUpCalibrationValues()
 
      case 8577103: // PC ORANGE  - E6:E5:82:26:C7:8B
       GlobalCubeID = 11;
+      GlobalPlaneAccel = 3000;
       
       TRAVERSE_RPM_F = 6500;
       TRAVERSE_RPM_R = 7000;
@@ -403,7 +407,8 @@ void lookUpCalibrationValues()
       TRAVERSE_RPM_R = 7000;
       TRAVERSE_CURRENT_F = 2500;
       TRAVERSE_CURRENT_R = 4500;
-
+      GlobalMaxAccel = 5000;    // ** FIX BAT
+      
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
       CC_CURRENT_F = 3100;
@@ -544,8 +549,8 @@ void actuallyLoadMotionData()
   loadMotionData(&cornerClimb_R, CC_RPM_R, CC_CURRENT_R, CC_BRAKETIME_R);
   loadMotionData(&roll_F, 7, 7, 7);
   loadMotionData(&roll_R, 7, 7, 7);
-  loadMotionData(&rollDouble_F, (CC_RPM_F-500), (CC_CURRENT_F-500), (CC_BRAKETIME_F/2));
-  loadMotionData(&rollDouble_R, (CC_RPM_R-500), (CC_CURRENT_R-500), (CC_BRAKETIME_R/2));
+  loadMotionData(&rollDouble_F, (CC_RPM_F-1000), (CC_CURRENT_F-300), ((CC_BRAKETIME_F/2)+2));
+  loadMotionData(&rollDouble_R, (CC_RPM_R-1000), (CC_CURRENT_R-300), ((CC_BRAKETIME_R/2)+2));
 }
 
 

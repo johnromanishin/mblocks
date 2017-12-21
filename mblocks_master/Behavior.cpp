@@ -21,7 +21,7 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior, SerialDecoderBuffer* buf, 
   // update sensors, numberOfNeighbors, and check wifi commands...
   c->updateSensors(updateFaceLEDs); // actually read all of the sensors
   Behavior newBehavior = checkForBasicWifiCommands(c, inputBehavior, buf);
-  int numberOfNeighbors = checkForMagneticTagsStandard(c);
+  int numberOfNeighborz = checkForMagneticTagsStandard(c);
 
   // Check for Light Digits
   int lightDigit = checkLightDigits(c);
@@ -29,14 +29,14 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior, SerialDecoderBuffer* buf, 
 //************************************
 //NEIGHBORS == __ 0 __
 //************************************
-  if(numberOfNeighbors == 0)
+  if(numberOfNeighborz == 0)
   {
     newBehavior = SOLO_LIGHT_TRACK;
   }
 //************************************
 //NEIGHBORS == __ 1 __
 //************************************
-  else if(numberOfNeighbors == 1)
+  else if(numberOfNeighborz == 1)
   {
     if(MAGIC_DEBUG){Serial.println("***NEIGHBORS == 1");}
     int neighborFace = c->whichFaceHasNeighbor();  
@@ -44,7 +44,7 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior, SerialDecoderBuffer* buf, 
     {
       if(magicTheLight == true)
         newBehavior = CLIMB;
-      else if(c->numberOfNeighbors(1) == 1)
+      else if(c->numberOfNeighbors(1, 0) == 1)
         newBehavior = DUO_LIGHT_TRACK;
     }
     else if(c->faces[neighborFace].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE)
@@ -64,7 +64,7 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior, SerialDecoderBuffer* buf, 
 //************************************
 //NEIGHBORS == __ 2 __
 //************************************
-  else if(numberOfNeighbors == 2)
+  else if(numberOfNeighborz == 2)
   {
     if(MAGIC_DEBUG){Serial.println("***NEIGHBORS == 2");}
     
@@ -73,8 +73,8 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior, SerialDecoderBuffer* buf, 
       if(MAGIC_DEBUG){Serial.println(" I SEE THE LIGHT - Don't do the next part...");}
       newBehavior = ATTRACTIVE;
     }
-    else if((c->numberOfNeighbors(3) == 2) &&
-            (c->numberOfNeighbors(0) == 2)) // if we have been connected for a while to two cubes, and haven't seen the light... we BOUNCE... disconnect
+    else if((c->numberOfNeighbors(2, 0) == 2) &&
+            (c->numberOfNeighbors(0, 0) == 2)) // if we have been connected for a while to two cubes, and haven't seen the light... we BOUNCE... disconnect
     {
       if(MAGIC_DEBUG){Serial.println(" SO IT HAS COME TO THIS.... PEACE OUT BROTHERS...");}
       c->blockingBlink(&red, 50, 50);
@@ -89,7 +89,7 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior, SerialDecoderBuffer* buf, 
 //NEIGHBORS == __ 2+ __
 //************************************
 
-  else if(numberOfNeighbors > 2)
+  else if(numberOfNeighborz > 2)
   {
     if(MAGIC_DEBUG){Serial.println("***NEIGHBORS == __ 2+ __");}
     newBehavior = ATTRACTIVE;
@@ -299,9 +299,10 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf) // green
       
       if(c->returnForwardFace() == -1)
       {
-        if(millis() % 3 != 0)
+        //if(MAGIC_DEBUG){Serial.println("MILLIS() % 3 = "); Serial.println((millis()%3 != 0));}
+        if(millis()%3 != 0)
         {
-          if(c->roll(1,buf,2000,"bldcaccel f 6000 1700") == false)
+          if(c->moveBLDCACCEL(1, GlobalMaxAccel, 1700) == false)
           {
             iAmStuck = true;
             iMightBeStuck = true;
@@ -329,7 +330,7 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf) // green
     //****************************
     else if(c->returnForwardFace() == -1)
     {
-      if(c->roll(1,buf,1900,"bldcaccel f 6000 1600") == false)
+      if(c->moveBLDCACCEL(1, GlobalMaxAccel, 1700) == false)
           iMightBeStuck = true;
       delay(100);
     }
@@ -367,7 +368,7 @@ Behavior climb(Cube* c, SerialDecoderBuffer* buf)  // yellow
   c->superSpecialBlink(&white, 200);
   
   while((nextBehavior == CLIMB) && 
-        (c->numberOfNeighbors(0) == 1) && // loop until something changes the next behavior
+        (c->numberOfNeighbors(0, 0) == 1) && // loop until something changes the next behavior
         (millis() < c->shutDownTime))        // and if we aren't feeling sleepy
   {
 //    for(int i = 0; i < 6; i++)
