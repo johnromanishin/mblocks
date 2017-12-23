@@ -31,6 +31,7 @@ typedef enum Behavior
     PRE_SOLO_LIGHT,
     SOLO_LIGHT_TRACK,
     DUO_LIGHT_TRACK,
+    MULTI_LIGHT_TRACK,
     FOLLOW_ARROWS,
     CHILLING,
     CLIMB,

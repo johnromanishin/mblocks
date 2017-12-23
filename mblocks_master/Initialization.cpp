@@ -10,20 +10,20 @@
 
 /*
  * *************************************************************************************************************************************************************************************
- * ** Cube Name   ** Version      * Plane Ch      * BAD Red     * Bad White      * i2c Busted      * Mech. Rubbing *  Drains Bat  * Acceler Issue*  6000ma Kills * batteries Replaced                    
+ * ** Cube Name   **   Version    * Plane Ch      * BAD Red     * Bad White      * i2c Busted      * Mech. Rubbing *  Drains Bat  * Acceler Issue*  6000ma Kills * batteries Replaced                    
  * *************************************************************************************************************************************************************************************
- * ** PEI BLACK   **              *               *             *                *                 *               *              *              *     XX        *                    *
+ * ** PEI BLACK   **              *               *             *                *                 *               *              *              *               *    2017-12-21      *
  * ** PEI GREEN   **              *               *             *                *                 *               *              *              *               *    2017-12-17      *                                      
  * ** PEI ORANGE  **              *               *    XX       *  X             *                 *               *              *              *               *                    *                                              
  * ** PEI PURPLE  **              *               *             *                *                 *               *    X         *              *               *                    *                                                                                          
  * ** PEI RED     **              *               *             *                *                 *               *              *              *               *                    *
  * ** PEI YELLOW  **              *               *    X        *                *                 *               *              *     X        *               *                    *                
- * ** PEI BROWN   **              *               *    X        *                *                 *               *              *              *     X         *                    *
+ * ** PEI BROWN   **              *               *    X        *                *                 *               *              *              *               *    2017-12-21      *
  * ** PEI BLUE    **              *               *    X        *                *                 *               *              *              *               *                    *
  * 
  * ** PC BLACK    **              *               *             *                *                 *               *              *              *               *                    *
  * ** PC BLUE     **              *               *    X        *   X            *                 *               *              *              *               *                    *                    
- * ** PC PURPLE   **              *               *             *                *                 *               *              *              *               *                    *      
+ * ** PC PURPLE   **              *               *             *                *                 *   Brake Arms  *              *              *               *                    *      
  * ** PC GREEN    **              *               *    XX       *                *                 *               *              *              *               *                    * 
  * ** PC BROWN    **              *               *             *                *                 *               *              *              *               *                    * X          
  * ** PC YELLOW   **              *               *    X        *                *                 *               *              *              *               *                    *

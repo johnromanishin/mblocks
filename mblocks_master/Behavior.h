@@ -3,7 +3,6 @@
 
 #include "Cube.h"
 #include "Face.h"
-#include "SerialDecoder.h"
 #include "CBuff.h"
 #include "Defines.h"
 #include "Communication.h"        // Includes wifi
@@ -25,7 +24,7 @@
 ////////////////////////////////////////////////////////////////////////////////////
 Behavior sleep(Cube* c);
 
-Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf);
+Behavior soloSeekLight(Cube* c);
 /*        --- What it does ---
  * 0. Updated sensors and checks if exit conditions are met
  * 1. Determine which face is the brightest
@@ -35,7 +34,7 @@ Behavior soloSeekLight(Cube* c, SerialDecoderBuffer* buf);
  * b. Checks to see if it has tried and failed to move repeaditly      >>>> Lattice alignment Behavior
  */
 
-Behavior Pre_Solo_Light(Cube* c, SerialDecoderBuffer* buf);
+Behavior Pre_Solo_Light(Cube* c);
 /*        --- What it does ---
  * 0. Updated sensors and checks if exit conditions are met
  * 1. Determine which face is the brightest
@@ -45,7 +44,7 @@ Behavior Pre_Solo_Light(Cube* c, SerialDecoderBuffer* buf);
  * b. Checks to see if it has tried and failed to move repeaditly      >>>> Lattice alignment Behavior
  */
  
-Behavior duoSeekLight(Cube* c, SerialDecoderBuffer* buf);
+Behavior duoSeekLight(Cube* c);
 /*        --- What it does ---
  * 0.
  * 1.
@@ -64,7 +63,7 @@ Behavior crystallize();
  * a.
  * b.
  */
-Behavior chilling(Cube* c, SerialDecoderBuffer* buf);
+Behavior chilling(Cube* c);
 /*        --- What it does ---
  * 0.
  * 1.
@@ -73,7 +72,7 @@ Behavior chilling(Cube* c, SerialDecoderBuffer* buf);
  * b.
  */
 
-Behavior attractive(Cube* c, SerialDecoderBuffer* buf);
+Behavior attractive(Cube* c);
 /*        --- What it does ---
  * 0.   Attempts to attract other cubes to it by turning on its lights
  * 1.   Determines which faces are not top/bottom/ or connected
@@ -84,7 +83,7 @@ Behavior attractive(Cube* c, SerialDecoderBuffer* buf);
  * b.   All 4 faces are blocked with something --> Chilling
  */
 
-Behavior followArrows(Cube* c, SerialDecoderBuffer* buf);
+Behavior followArrows(Cube* c);
 /*        --- What it does ---
  * 0.
  * 1.
@@ -100,7 +99,7 @@ Behavior followArrows(Cube* c, SerialDecoderBuffer* buf);
  */
 //Behavior relayBehavior(Cube* c, Behavior);
 
-Behavior climb(Cube* c, SerialDecoderBuffer* buf);
+Behavior climb(Cube* c);
 /*        --- What it does ---
  * 0.
  * 1.
@@ -112,14 +111,14 @@ Behavior climb(Cube* c, SerialDecoderBuffer* buf);
  //==================Utilities===============================
 void wifiDelay(int delayTime);
 int checkForMagneticTagsStandard(Cube* c);
-Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf);
+Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior);
 Behavior relayBehavior(Cube* c, Behavior behaviorToRelay, int cubeToRelayTo = -1, int timesToRelay = 4);
 Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior);
-Behavior checkForBehaviors(Cube* c, SerialDecoderBuffer* buf, Behavior behavior);
+Behavior checkForBehaviors(Cube* c, Behavior behavior);
 
-Behavior basicUpkeep(Cube* c, Behavior currentBehavior, SerialDecoderBuffer* buf, bool updateFaceLEDs = true);
+Behavior basicUpkeep(Cube* c, Behavior currentBehavior, bool updateFaceLEDs = true);
 
-int checkLightDigits(Cube* c);
+int processLightDigits(Cube* c);
 String behaviorsToCmd(Behavior inputBehavior);
 void printDebugThings(Cube* c, Behavior behaviorToReturnFinal);
 #endif

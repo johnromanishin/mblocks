@@ -58,7 +58,11 @@ bool Face::updateFace(bool blinkLEDs)
                    this->updateMagneticBarcode()); // actually reads magnetic valuess
   }
   this->neighborPresenceBuffer.push(this->processTag()); // actually processes Tag... adds 
-  
+  if(this->returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE)
+  {
+    this->blinkRingDigit(2, 3);
+    magicTheLight = true;
+  }
   // if we are connected... and we are supposed to check for light, wait 2 seconds to try to find a message
   if((this->returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) && blinkLEDs) // checks for lightdigits...
   {
@@ -94,7 +98,7 @@ bool Face::processTag()
   int angle2 = this->returnMagnetAngle_B(0);
   int agc1 = this->returnMagnetStrength_A(0);
   int agc2 = this->returnMagnetStrength_B(0);
-  int strengthThreshold = 480;
+  int strengthThreshold = 490;
   int magDigit1 = 0;
   int magDigit2 = 0;
         if (agc1 == 0 || agc1 >= 255)       {magDigit1 = 0;}
@@ -205,23 +209,23 @@ bool Face::updateIOExpander()
 
 bool Face::readAmbient(bool activate)
 {
-if(activate)
-{
-  activateLightSensor(this->ambientSensorAddress);
-}
-delay(19);
-int reading = 0;
-Wire.beginTransmission(this->ambientSensorAddress); 
-Wire.write(byte(0x8C)); // this is the register where the Ambient values are stored
-Wire.endTransmission();
-Wire.requestFrom(this->ambientSensorAddress, 2);
-if (2 <= Wire.available()) //ambientLight  = twiBuf[0] << 2;
-{
-  reading = Wire.read();
-  reading |= Wire.read()<<8;
-}
-this->ambientBuffer.push(reading); // adds the sensor value to the buffer 
-return(true);
+  if(activate)
+  {
+    activateLightSensor(this->ambientSensorAddress);
+  }
+  delay(19);
+  int reading = 0;
+  Wire.beginTransmission(this->ambientSensorAddress); 
+  Wire.write(byte(0x8C)); // this is the register where the Ambient values are stored
+  Wire.endTransmission();
+  Wire.requestFrom(this->ambientSensorAddress, 2);
+  if (2 <= Wire.available()) //ambientLight  = twiBuf[0] << 2;
+  {
+    reading = Wire.read();
+    reading |= Wire.read()<<8;
+  }
+  this->ambientBuffer.push(reading); // adds the sensor value to the buffer 
+  return(true);
 }
 
 void Face::forceUpdateAmbientValue(int value)
@@ -257,52 +261,44 @@ int Face::processLightData()
  *20-23 Periods High = 5
  */
 {
-int results[6] = {0,0,0,0,0,0};
-int endResult = -1;
-int index = 0;
-int tempResult = 0;
-int thresholdValue = 4000;
+  int results[6] = {0,0,0,0,0,0};
+  int endResult = -1;
+  int index = 0;
+  int tempResult = 0;
+  int thresholdValue = 3700;
 
-for(int binIndex = 0; binIndex < 5; binIndex++)
-{
-  tempResult = 0;
-  for(int sample = 0; sample < 24; sample++)
-    {
-      if(this->returnAmbientValue(index) > thresholdValue)
-        tempResult++;
-      index++;
-//      Serial.print(index);
-//      Serial.print(" : ");
-//      Serial.print(this->returnAmbientValue(index));
-//      Serial.print(" || ");
-    }
-  if(tempResult < 4)
-    results[0]++;
-  else if((tempResult > 3)  && (tempResult < 8))
-    results[1]++;
-  else if((tempResult > 7)  && (tempResult < 12))
-    results[2]++;
-  else if((tempResult > 11) && (tempResult < 16))
-    results[3]++;
-  else if((tempResult > 15) && (tempResult < 20))
-    results[4]++;
-  else if(tempResult > 19)
-    results[5]++;
-}
+  for(int binIndex = 0; binIndex < 5; binIndex++)
+  {
+    tempResult = 0;
+    for(int sample = 0; sample < 24; sample++)
+      {
+        if(this->returnAmbientValue(index) > thresholdValue)
+          tempResult++;
+        index++;
+      }
+    if(tempResult < 4)
+      results[0]++;
+    else if((tempResult > 3)  && (tempResult < 8))
+      results[1]++;
+    else if((tempResult > 7)  && (tempResult < 12))
+      results[2]++;
+    else if((tempResult > 11) && (tempResult < 16))
+      results[3]++;
+    else if((tempResult > 15) && (tempResult < 20))
+      results[4]++;
+    else if(tempResult > 19)
+      results[5]++;
+  }
 
-//Serial.println("and... Parsing...");
-for(int tempIndex = 0; tempIndex < 6; tempIndex++) // go through the six bins from results[6]
-{
-//  Serial.print("for index value: ");
-//  Serial.print(tempIndex);
-//  Serial.print(" A count of: ");
-//  Serial.println(results[tempIndex]);
-  if(results[tempIndex] > 2) // if we see 3 of the same number... we consider it a success... Voting based...
-    endResult = tempIndex;
-}
+  for(int tempIndex = 0; tempIndex < 6; tempIndex++) // go through the six bins from results[6]
+  {
+  
+    if(results[tempIndex] > 2) // if we see 3 of the same number... we consider it a success... Voting based...
+      endResult = tempIndex;
+  }
 //Serial.print("We Found the Following Result... from the LIGHT DIGIT CHECK: ");
 //Serial.println(endResult);
-return(endResult);
+  return(endResult);
 }
 
 void Face::blinkOutMessage(int digit)
@@ -390,7 +386,7 @@ void Face::blinkRingDigit(int digit, int numberOfTimes)
         delay(delayTime);
       }
   }
-  else if(digit == 5) //2/5
+  else if(digit == 5) //5/5
   {
     for(int i = 0; i < numberOfTimes; i++)
       {

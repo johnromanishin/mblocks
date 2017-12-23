@@ -2,19 +2,30 @@
 #include "Defines.h"
 #include "Behavior.h"
 #include "Cube.h"
-#include "SerialDecoder.h"
 #include "Face.h"
 #include "Z_ArrowMap.h"
 #include <Wire.h> 
 #include <stdint.h>
 
+
+
+// *INDEX - crt + find - to go to...
+// *PLAN-E | plane related
+// *UPDAT-E | - related to updating things...
+// *MOTIO-N | related to motion
+// *NEIGHBO-R  -related to figuring out neighbors
+// *SENSOR-S - IMU's and light sensors
+// *MIS-C - random things
+// *LIGHT-S
+// *STAT-E - related to IMUs...
+
+
+
 Cube::Cube()
   :    
-    faceSensorUpdateTimeBuffer(ARRAY_SIZEOF(this->faceSensorUpdateTimeData),  this->faceSensorUpdateTimeData),
     behaviorBuffer(ARRAY_SIZEOF(this->behaviorBufferData),                    this->behaviorBufferData),
     currentPlaneBuffer(ARRAY_SIZEOF(this->currentPlaneBufferData),            this->currentPlaneBufferData),
     moveSuccessBuffer(ARRAY_SIZEOF(this->moveSuccessBufferData),              this->moveSuccessBufferData),
-    moveShakingBuffer(ARRAY_SIZEOF(this->moveShakingBufferData),              this->moveShakingBufferData),
     topFaceBuffer(ARRAY_SIZEOF(this->topFaceBufferData),                      this->topFaceBufferData),
       
     axFrameBuffer(ARRAY_SIZEOF(this->axFrameData), this->axFrameData),
@@ -38,62 +49,101 @@ Cube::Cube()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-//////////////////////COMMONLY USED FUNCTIONS///////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+///////////////////// *UPDATE //////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
-bool Cube::roll(bool forwardReverse, SerialDecoderBuffer* buf, int rpm, String ALTERNATE)
+bool Cube::update(bool blinkLEDs)
+{
+  /*
+   * This functions updates all of the sensor buffers on each cube
+   * It also refreshes variables like this->topFace/ forwardFace/ ...
+   */
+  this->processState();// -- this deals with anything involving IMUs 
+  for(int i = 0; i< FACES; i++)
+    {
+      delay(3);
+      this->faces[i].updateFace(blinkLEDs);  // updateFace updates light and Magnetic sensors  
+      delay(3);
+    }
+  return(true);
+}
+
+bool Cube::processState()
+{
+  bool succeed = false;
+  if(this->updateBothIMUs())
+  {
+    delay(1);
+    succeed = true;
+  }
+  else
+  {
+    delay(200);
+    if(this->updateBothIMUs() || (this->cubeID > 60))
+    {
+      succeed = true;
+    }
+    else
+    {
+       {
+         wifiDelay(300);
+         this->resetI2C();
+         wifiDelay(300);
+         if(this->updateBothIMUs() == true)
+         {
+            succeed = true;
+         }
+       }
+    }
+  }    
+  this->determineTopFace();
+  this->determineForwardFace();
+  return(succeed);
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+///////////////////// *MOTION /////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+bool Cube::roll(bool forwardReverse, int rpm)
 /*
  * This function is intended to be used when a cube is NOT on a lattice
  * It will roll around the environment, defaults to FORWARD with 6000 RPM
  * it returns TRUE and Blinks Green if it thinks it moved Substantially
  * and returns FALSE and Blinks REd if it thinkgs it did not move...
- * 
- * There are two ways to use this function.. leave ALTERNATE Blank, and 
- * then it will generate a movement based on RPM and forward/reverse
- * 
- * type something in alternate, and it will use RPM as the delayBeforeBrake time
- * and will just print what ever the text of ALTERNATE to Kyles board, but will 
- * do the same work of assesssing whether the movement was successfull or not
  */
 {
   this->processState(); // update IMU's and "topFace" 
-  delay(200);
-  int timeToDelayBeforeBrake = (1500 + (rpm-6000));
+  int timeToDelayBeforeBrake = (1700 + (rpm-6000));
   int faceUpBeginning = this->returnTopFace();
   bool succeed = false;
   int shakingThreshold = 10000;
   String CW_CCW;
-  String stringToPrint = "ver";
+  
   if(forwardReverse == false)
   {
-    this->blockingBlink(&yellow);
+    this->superSpecialBlink(&yellow, 50);
     CW_CCW = " r "; // set the direction to "reverse" if forwardReverse is negatuve
   }
   else
   {
-    this->blockingBlink(&teal);
+    this->superSpecialBlink(&teal, 50);
     CW_CCW = " f ";
   }
-  delay(20);
   
-  if(ALTERNATE == "nothing") // Normal Mode ... Ignore the string, just spin up RPM
-  {
-    stringToPrint = "bldcspeed" + CW_CCW + String(rpm); // generate String for motor
-  }
-  else // This if if we have input a string, then we take RPM to be the delay...
-  {
-    stringToPrint = ALTERNATE;
-    timeToDelayBeforeBrake = rpm;
-  }
+  String stringToPrint = "bldcspeed" + CW_CCW + String(rpm); // generate String for motor
+  this->printString(stringToPrint);
   
-  Serial.println(stringToPrint); // this actually tells the thing to move.
-  delay(timeToDelayBeforeBrake);
-  Serial.println("bldcstop b"); // this actually tells the Cube to start rolling
+  delay(timeToDelayBeforeBrake); // motor is now getting up to speed...
+
+  this->printString("bldcstop b");
   int shakingAmmount = wifiDelayWithMotionDetection(3000);
-  Serial.println("bldcstop");
-  delay(100);
-  this->moveShakingBuffer.push(shakingAmmount); // delays 2500 ms
+  
   if(MAGIC_DEBUG) {Serial.print("We detected this ammount of Shaking: ");Serial.println(shakingAmmount);}
+  
   this->processState();
   delay(100);
   if((this->returnTopFace() == faceUpBeginning) || (this->returnTopFace() == -1)) // If the same face is pointing up... or it failed
@@ -153,7 +203,6 @@ bool Cube::moveBLDCACCEL(bool forwardReverse, int current, int lengthOfTime)
   int shakingAmmount = wifiDelayWithMotionDetection(3000);
   Serial.println("bldcstop");
   delay(100);
-  this->moveShakingBuffer.push(shakingAmmount); // delays 2500 ms
   if(MAGIC_DEBUG) {Serial.print("We detected this ammount of Shaking: ");Serial.println(shakingAmmount);}
   this->processState();
   delay(100);
@@ -200,11 +249,11 @@ bool Cube::moveIASimple(Motion* motion)
   
     // Actually send the action to Kyles Board...
     String iaString = "ia " + String(motion->for_rev)+ " " + String(motion->rpm) + " " + String(motion->current) + " " + String(motion->brakeTime) + " e 15";
-    Serial.println(iaString);
+    this->printString(iaString);
     delay(motion->timeout);
   
     // we are now waiting, and collecting data
-    this->moveShakingBuffer.push(wifiDelayWithMotionDetection(3000)); // delays 2500 ms
+    wifiDelayWithMotionDetection(3000);
   
     // Check to see our NEW state...
     this->processState();
@@ -233,184 +282,141 @@ bool Cube::moveIASimple(Motion* motion)
   }
 }
 
-void Cube::disconnectI2C()
-{
-  digitalWrite(Switch, LOW); 
-}
-void Cube::reconnectI2C()
-{
-  digitalWrite(Switch, HIGH); 
-}
 
-void Cube::resetI2C()
-{
-  this->disconnectI2C();
-  wifiDelay(300);
-  this->reconnectI2C();
-  wifiDelay(300);
-}
-void Cube::blinkParasiteLED(int blinkTime)
-{
-  digitalWrite(LED, HIGH);
-  wifiDelay(blinkTime);
-  digitalWrite(LED, LOW);
-}
 
-bool Cube::updateSensors(bool blinkLEDs)
-{
-  /*
-   * This functions updates all of the sensor buffers on each cube
-   * It also refreshes variables like this->topFace/ forwardFace/ ...
-   */
-  this->processState();// -- this deals with anything involving IMUs 
-  this->updateFaces(blinkLEDs); // -- this checks all of the specific sensors on each face
-  return(true);
-}
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+//////////////////// *NEIGHBOR RELATED////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
 
-bool Cube::processState()
-{
-  bool succeed = false;
-  if(this->updateBothIMUs())
-  {
-    delay(1);
-    succeed = true;
-  }
-  else
-  {
-    delay(200);
-    if(this->updateBothIMUs() || (this->cubeID > 60))
-    {
-      succeed = true;
-    }
-    else
-    {
-       {
-         wifiDelay(300);
-         this->resetI2C();
-         wifiDelay(300);
-         if(this->updateBothIMUs() == true)
-         {
-            succeed = true;
-         }
-       }
-    }
-  }    
-  this->determineTopFace();
-  this->determineForwardFace();
-  return(succeed);
-}
-
-bool Cube::blockingBlink(Color* inputColor, int howManyTimes, int waitTime)
-{
-
-  for(int times = 0; times < howManyTimes; times++)
-  {
-    this->lightCube(inputColor);
-    delay(waitTime);
-    this->lightCube(&off);
-    delay(waitTime);
-  }
-}
-
-bool Cube::updateFaces(bool blinkLEDs)
-{
-for(int i = 0; i< FACES; i++)
-    {
-      delay(3);
-      this->faces[i].updateFace(blinkLEDs);  // updateFace updates light and Magnetic sensors  
-      delay(3);
-    }
-}
-
-void Cube::shutDown()
-// Turns the entire cube off by printing "sleep" to the slave board
-{
-  while(1)
-  {
-    Serial.println("sleep");delay(1000);
-  }
-}   
-
-int Cube::returnTopFace(int index)
-{
-  return(this->topFaceBuffer.access(index));
-}
-
-int Cube::returnBottomFace()
-{
-  return(oppositeFace(this->topFace));
-}
-
-int Cube::returnForwardFace()
+int Cube::numberOfNeighbors(int index, bool doIlightFace)
 /*
- * Returns the face which is "forward"
+ * 
  */
 {
-  return(this->forwardFace);
-}
-
-int Cube::returnReverseFace()
-{
-  return(oppositeFace(this->returnForwardFace()));
-}
-
-void wifiDelay(int delayTime)
-{
-  int millisNow = millis();
-  while((millis() - millisNow) < delayTime)
-  {
-    delay(2);
-    mesh.update();
+  int neighbors = 0;
+  for(int face = 0; face < 6; face++)
+    {
+    if((this->faces[face].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) ||
+       (this->faces[face].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE))
+    {
+      neighbors++;
+      if(doIlightFace) 
+      {
+        this->lightFace(face,&green);
+        delay(200);
+      }
+    }
   }
+return(neighbors);
 }
 
+int Cube::whichFaceHasNeighbor(int index)
 /*
- * Delays for specified ammount of time, and returns an integer 
- * representing the average rotational motion of the core over the time
+ * This is designed to return the face number for each face connection...
+ * it works like this, you say
+ * whichFaceHasNeighbor(0) // or default - and it returns the first face, counting from 0
+ * that has a neighbor connected.
+ * 
+ * whichFaceHasNeighbor(1) will return the next connected face...
+ * 
+ * So if the cube has neighbors on faces, 2, 4, and 5,
+ * this SHOULD be the result...
+ * 
+ * whichFaceHasNeighbor(0) -> 2
+ * whichFaceHasNeighbor(1) -> 4
+ * whichFaceHasNeighbor(2) -> 5
+ * whichFaceHasNeighbor(3) -> -1 -- no faces...
+ * 
+ * Yeah I am sure there is a fancier way to do this...
+ * but I don't want to think about it right at this moment.
+ * 
  */
-int Cube::wifiDelayWithMotionDetection(int delayTime) //**WIP
 {
-  int motionSum = 0;
-  int updateCount = 0;
-  long millisNow = millis();
-  while((millis() - millisNow) < delayTime)
+  int faceToReturn = -1;
+  int secondFaceToReturn = -1;
+  int thirdFaceToReturn = -1;
+  int fourthFaceToReturn = -1;
+  int fifthFaceToReturn = -1;
+  int sixthFaceToReturn = -1;
+  
+  int facesCount = 0;
+  for(int face = 0; face < 6; face++)
   {
-    mesh.update();
-    if(this->cubeID < 30)
+    if((this->faces[face].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) ||
+       (this->faces[face].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE))
     {
-      if(this->updateCoreIMU())
-      {
-        updateCount++;
-        motionSum += (abs(this->gxCoreBuffer.access(0)) + 
-                      abs(this->gyCoreBuffer.access(0)) + 
-                      abs(this->gzCoreBuffer.access(0)));     
-      }
+      facesCount++;
+      if(facesCount == 1)
+        faceToReturn = face;
+        
+      else if(facesCount == 2)
+        secondFaceToReturn = face;
+      else if(facesCount == 3)
+        thirdFaceToReturn = face;
+      else if(facesCount == 4)
+        fourthFaceToReturn = face;
+      else if(facesCount == 4)
+        fifthFaceToReturn = face;
+      else if(facesCount == 4)
+        sixthFaceToReturn = face;
     }
-    else
-    {
-    if(this->updateFrameIMU())
-      {
-        updateCount++;
-        motionSum += (abs(this->gxFrameBuffer.access(0)) + 
-                      abs(this->gyFrameBuffer.access(0)) + 
-                      abs(this->gzFrameBuffer.access(0)));     
-      }
-    }
-    mesh.update();
-    delay(50);
   }
-  if(motionSum == 0 || updateCount == 0)
+if(index == 0)
+  return(faceToReturn); 
+else if(index == 1)
+  return(secondFaceToReturn); 
+else if(index == 2)
+  return(thirdFaceToReturn); 
+else if(index == 3)
+  return(fourthFaceToReturn); 
+else if(index == 4)
+  return(fifthFaceToReturn); 
+else if(index == 5)
+  return(sixthFaceToReturn); 
+}
+
+////////
+int Cube::numberOfNeighborsCheckNow()
+{
+  int neighbors = 0;
+  for(int face = 0; face < 6; face++)
   {
-    return(0); // to make sure we don't have a divide by zero error...
+    if(this->faces[face].isThereNeighbor() == true)
+    {
+      neighbors++;
+    }
   }
-  return(motionSum /(updateCount));
+return(neighbors);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-//////////////////////REGARDING PLANE CHANGING//////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+//////////////////// *PLANE ///////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
-bool Cube::goToPlaneIncludingFaces(int face1, int face2, SerialDecoderBuffer* buf)
+bool Cube::isPlaneInPlaneOfFaces(int face1, int face2)
+/*
+ * 
+ */
+{
+  bool result = false;
+  if((face1 > -1) && (face1 < 6))
+  {
+    if((face2 > -1) && (face2 < 6))
+    {
+      if(this->currentPlaneBuffer.access(0) == returnPlane(face1, face2))
+      {
+        result = true;
+      }
+    }
+  }
+  return(result);
+}
+
+bool Cube::goToPlaneIncludingFaces(int face1, int face2)
 /*
  * 
  */
@@ -427,6 +433,9 @@ bool Cube::goToPlaneIncludingFaces(int face1, int face2, SerialDecoderBuffer* bu
 }
 
 bool Cube::isPlaneParallel(int faceExclude)
+/*
+ * 
+ */
 {
   bool result = false;
   if((faceExclude == 4 )|| (faceExclude == 5))
@@ -448,6 +457,9 @@ return(result);
 }
 
 bool Cube::goToPlaneParallel(int faceExclude)
+/*
+ * 
+ */
 {
   bool result = false;
   if((faceExclude == 4 )|| (faceExclude == 5))
@@ -466,6 +478,9 @@ bool Cube::goToPlaneParallel(int faceExclude)
 }
 
 bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
+/*
+ * 
+ */
 {   
   if((targetCorePlane == PLANENONE)  ||
      (targetCorePlane == PLANEERROR) || 
@@ -475,16 +490,15 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
   }
   if(this->findPlaneStatus(false) == targetCorePlane)
   {
-    this->superSpecialBlink(&green,50);
     return(true);
   }
-  delay(200);
+  this->lightPlaneRing(targetCorePlane); // blink the desired plane to go into...
   Serial.println("sma retractcurrent 1050");
-  delay(500);
+  delay(800);
   bool succeed = false;
-  Serial.println("sma retract 7500");
+  this->printString("sma retract 7500");
   int beginTime = millis();
-  delay(700);
+  delay(500);
   while((this->findPlaneStatus(false) != targetCorePlane) && ((millis()-beginTime) < 8300))
   {
     PlaneEnum likelyStatus = this->currentPlaneBuffer.access(0);
@@ -516,7 +530,7 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
     wifiDelay(100);
   }
   
-  if(this->findPlaneStatus(false) == targetCorePlane)
+  if(this->findPlaneStatus(true) == targetCorePlane)
   {
     this->superSpecialBlink(&green, 100);
     return(true);
@@ -528,7 +542,10 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
   return(false);
 }
 
-
+/**
+ * This function uses the 
+ * We expect raw, signed 14-bit accelerometer readings
+ */
 #define ROOT2OVER2Q15_16 46341
 #define ONE_Q15_16 65536
 #define Q15_16_TO_DOUBLE(x) (((double)x) / (65536.0))
@@ -551,12 +568,10 @@ static const int32_t rotationMatricies[3][3][3] =
      {                0,                0,      -ONE_Q15_16}}
 };
 
-/**
- * This function uses the 
- * We expect raw, signed 14-bit accelerometer readings
- */
-
 bool Cube::isValidPlane()
+/*
+ * 
+ */
 {
   if((this->currentPlaneBuffer.access(0) == PLANE0123) ||
      (this->currentPlaneBuffer.access(0) == PLANE0425) || 
@@ -567,29 +582,11 @@ bool Cube::isValidPlane()
   else
     return(false);
 }
-bool Cube::isFaceNeitherTopNorBottom(int face)
-/*
- * Returns "true" if face arguement "face"
- * happens to currently be one of the four faces in ring
- * around relative to gravity
- * 
- * Returns "false" if it is top or bottom face or if 
- * the cube isn't sure what orientation its in
- */
-{
-  bool result = false;
-  if(this->returnTopFace() == -1)
-    delay(1);
-  else if(face == this->returnTopFace())
-    delay(1);
-  else if(face == this->returnBottomFace())
-    delay(1);
-  else
-    result = true;
-  return result;
-}
 
 PlaneEnum Cube::findPlaneStatus(bool reset)
+/*
+ * 
+ */
 {
   if(this->cubeID > 50) // this means it is a benchtop example and it can't actually run this.
   {
@@ -681,11 +678,11 @@ PlaneEnum Cube::findPlaneStatus(bool reset)
   return(likelyStatus);
 }
 
+static void apply_3x3_mult(const int32_t* R, const int32_t* V, int32_t* target)
 /**
  * Multiplies two Q15.16 matricies.  R should be 3x3 and V should be should
  * be 1x3.
  */
-static void apply_3x3_mult(const int32_t* R, const int32_t* V, int32_t* target)
 {
     for(int i = 0; i < 3; i++)
     {
@@ -696,6 +693,9 @@ static void apply_3x3_mult(const int32_t* R, const int32_t* V, int32_t* target)
 }
 
 static int32_t vector_distance_squared(const int32_t* a, const int32_t* b)
+/*
+ * 
+ */
 {
     int32_t accum = 0;
     for(int i = 0; i < 3; i++)
@@ -704,120 +704,204 @@ static int32_t vector_distance_squared(const int32_t* a, const int32_t* b)
     return accum;
 }
 
-/**
- * Given a primary face and a secondary face, this array gives led settings such that if the 
- * face leds on the "primary face" are set according to the given settings, they will be on 
- * the "side" of the secondary face.
- */
-static const bool faceLEDCornerMapping[6][6][4] = 
-{
-  {{1,1,1,1}, {1,0,0,1}, {0,0,0,0}, {0,1,1,0}, {0,0,1,1}, {1,1,0,0}},
-  {{0,1,1,0}, {1,1,1,1}, {1,0,0,1}, {0,0,0,0}, {0,0,1,1}, {1,1,0,0}},
-  {{0,0,0,0}, {1,1,0,0}, {1,1,1,1}, {0,0,1,1}, {0,1,1,0}, {1,0,0,1}},
-  {{1,0,0,1}, {0,0,0,0}, {0,1,1,0}, {1,1,1,1}, {0,0,1,1}, {1,1,0,0}},
-  {{0,0,1,1}, {0,1,1,0}, {1,1,0,0}, {1,0,0,1}, {1,1,1,1}, {0,0,0,0}},
-  {{1,0,0,1}, {1,1,0,0}, {0,1,1,0}, {0,0,1,1}, {0,0,0,0}, {1,1,1,1}}
-};
 
-void Cube::setFaceLEDsAtEdge(int primaryFace, int adjacentFace)
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////// *MISC /////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+
+void Cube::disconnectI2C()
 {
-  this->faces[primaryFace].turnOnFaceLEDs(faceLEDCornerMapping[primaryFace][adjacentFace][0],
-                                          faceLEDCornerMapping[primaryFace][adjacentFace][1],
-                                          faceLEDCornerMapping[primaryFace][adjacentFace][2],
-                                          faceLEDCornerMapping[primaryFace][adjacentFace][3]);
+  digitalWrite(Switch, LOW); 
+}
+void Cube::reconnectI2C()
+{
+  digitalWrite(Switch, HIGH); 
 }
 
-int Cube::numberOfNeighbors(int index, bool doIlightFace)
+void Cube::resetI2C()
 {
-  int neighbors = 0;
-  for(int face = 0; face < 6; face++)
+  this->disconnectI2C();
+  wifiDelay(300);
+  this->reconnectI2C();
+  wifiDelay(300);
+}
+
+
+void Cube::shutDown()
+// Turns the entire cube off by printing "sleep" to the slave board
+{
+  while(1)
+  {
+    Serial.println("sleep");delay(1000);
+  }
+}   
+
+int Cube::returnTopFace(int index)
+{
+  return(this->topFaceBuffer.access(index));
+}
+
+int Cube::returnBottomFace()
+{
+  return(oppositeFace(this->topFace));
+}
+
+int Cube::returnForwardFace()
+/*
+ * Returns the face which is "forward"
+ */
+{
+  return(this->forwardFace);
+}
+
+int Cube::returnReverseFace()
+{
+  return(oppositeFace(this->returnForwardFace()));
+}
+
+void wifiDelay(int delayTime)
+{
+  int millisNow = millis();
+  while((millis() - millisNow) < delayTime)
+  {
+    delay(2);
+    mesh.update();
+  }
+}
+
+/*
+ * Delays for specified ammount of time, and returns an integer 
+ * representing the average rotational motion of the core over the time
+ */
+int Cube::wifiDelayWithMotionDetection(int delayTime) //**WIP
+{
+  int motionSum = 0;
+  int updateCount = 0;
+  long millisNow = millis();
+  while((millis() - millisNow) < delayTime)
+  {
+    mesh.update();
+    if(this->cubeID < 30)
     {
-    if((this->faces[face].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) ||
-       (this->faces[face].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE))
-    {
-      neighbors++;
-      if(doIlightFace) 
+      if(this->updateCoreIMU())
       {
-        this->lightFace(face,&green);
-        delay(200);
+        updateCount++;
+        motionSum += (abs(this->gxCoreBuffer.access(0)) + 
+                      abs(this->gyCoreBuffer.access(0)) + 
+                      abs(this->gzCoreBuffer.access(0)));     
       }
     }
+    else
+    {
+    if(this->updateFrameIMU())
+      {
+        updateCount++;
+        motionSum += (abs(this->gxFrameBuffer.access(0)) + 
+                      abs(this->gyFrameBuffer.access(0)) + 
+                      abs(this->gzFrameBuffer.access(0)));     
+      }
+    }
+    mesh.update();
+    delay(50);
   }
-return(neighbors);
+  if((motionSum == 0) || (updateCount == 0))
+  {
+    return(0); // to make sure we don't have a divide by zero error...
+  }
+  return(motionSum /(updateCount));
 }
 
-int Cube::whichFaceHasNeighbor()
+
+
+
+
+bool Cube::isFaceNeitherTopNorBottom(int face)
+/*
+ * Returns "true" if face arguement "face"
+ * happens to currently be one of the four faces in ring
+ * around relative to gravity
+ * 
+ * Returns "false" if it is top or bottom face or if 
+ * the cube isn't sure what orientation its in
+ */
 {
-  int faceToReturn = -1;
-  int facesCount = 0;
-  for(int face = 0; face < 6; face++)
+  bool result = false;
+  if(this->returnTopFace() == -1)
+    delay(1);
+  else if(face == this->returnTopFace())
+    delay(1);
+  else if(face == this->returnBottomFace())
+    delay(1);
+  else
+    result = true;
+  return result;
+}
+
+
+
+
+bool Cube::printString(String stringToPrint, int waitTime)
+/*
+ * This function is desinged to help fix a problem that we have with the serial communication
+ * It is designed to print a string, and then wait a little while to see if the other board responds,
+ * 
+ * if the other board doesn't respond (See more than 5 characters...) within a certian time limit,
+ * we try to print the message again. if it fails twice in a row, then we return false,
+ */
+{
+  Serial.println(stringToPrint); // tries to print the string...
+  if(this->anythingOnSerial(waitTime) == false) // if we see characters comming back withing waittime, we assume success...
   {
-    if((this->faces[face].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) ||
-       (this->faces[face].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE))
+    this->blinkRingAll(20, 2);
+    Serial.println(stringToPrint);
+    if(this->anythingOnSerial(waitTime) == false) 
     {
-      faceToReturn = face;
-      facesCount++;
+      return(false);
     }
   }
-if(facesCount > 1)
-  faceToReturn = 9;
-return(faceToReturn); 
+  return(true);
 }
 
-int Cube::whichFaceHasNeighborCheckNow()
+bool Cube::anythingOnSerial(int waitTime)
+/*
+ * First erases serial que... then
+ * waits to see if we receive at least 5 serial characters...
+ * 
+ * Useage, put immediately after a Serial.println to see if we see anything...
+ */
 {
-  int faceToReturn = -1;
-  int facesCount = 0;
-  for(int face = 0; face < 6; face++)
+  int beginTime = millis();
+  int bytesSeen = 0;
+  // First we empty out the buffer...
+  while((Serial.available() > 0) && (millis() - beginTime) < waitTime )
   {
-    if(this->faces[face].isThereNeighbor() == true)
-    {
-      faceToReturn = face;
-      facesCount++;
-    }
+    int newByte = Serial.read();
   }
-return(faceToReturn); 
+
+  // if there is still time left, we count the incomming bytes...
+  while((millis() - beginTime) < waitTime)
+  {
+    delay(1);
+    if(Serial.available() > 0)
+    {
+      int newByte = Serial.read();
+      bytesSeen++;
+    }
+    if(bytesSeen > 5)
+      {
+        return(true);
+      }
+  }
+  return(false);
 }
 
-////////
-int Cube::numberOfNeighborsCheckNow()
-{
-  int neighbors = 0;
-  for(int face = 0; face < 6; face++)
-  {
-    if(this->faces[face].isThereNeighbor() == true)
-    {
-      neighbors++;
-    }
-  }
-return(neighbors);
-}
-//
-//
-////////////////
-//int Cube::numberOfCubeNeighbors(int index)
-//{
-//  int neighbors = 0;
-//  for(int face = 0; face < 6; face++)
-//  {
-//    if((this->faces[face].returnNeighborType(index) == TAGTYPE_REGULAR_CUBE) ||
-//       (this->faces[face].returnNeighborType(index) == TAGTYPE_PASSIVE_CUBE)) 
-//    {
-//      neighbors++;
-//    }
-//  }
-//return(neighbors);
-//}
+
 
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-//////////////////////REGARDING LIGHT SENSORS///////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
+////////////////////// *SENSORS ///////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -893,19 +977,245 @@ int sortList(int* inputList, int listLength, int desiredIndex)
     }
   return(indexList[desiredIndex]);
 } 
+
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
+////////////////////// *STATE and IMU RELATED///////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
+bool Cube::updateFrameIMU()
+{
+  int error;
+  int16_t ax, ay, az, Tmp, gx, gy, gz;
+  this->wakeIMU(this->frameIMUaddress);
+  Wire.beginTransmission(this->frameIMUaddress);
+  Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
+  error = Wire.endTransmission(false);
+  //succeed = Wire.requestFrom(this->frameIMUaddress, 14, 1); // 7 reads of 2 bytes
+  Wire.requestFrom(this->frameIMUaddress, 14, 1); // 7 reads of 2 bytes
+  ax =  Wire.read() << 8 | Wire.read(); // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)
+  ay =  Wire.read() << 8 | Wire.read(); // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
+  az =  Wire.read() << 8 | Wire.read(); // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
+  Tmp = Wire.read() << 8 | Wire.read(); // 0x41 (TEMP_OUT_H) & 0x42 (TEMP_OUT_L)
+  gx =  Wire.read() << 8 | Wire.read(); // 0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
+  gy =  Wire.read() << 8 | Wire.read(); // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
+  gz =  Wire.read() << 8 | Wire.read(); // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
+  
+  this->axFrameBuffer.push(ax);
+  this->ayFrameBuffer.push(ay);
+  this->azFrameBuffer.push(az);
+  this->gxFrameBuffer.push(gx);
+  this->gyFrameBuffer.push(gy);
+  this->gzFrameBuffer.push(gz);
+  
+  // This returns true if the i2c command was a success...
+  if(error == 0)
+    {
+      return(true);
+    }
+  else
+    {
+      return(false);
+    }
+}
+
+bool Cube::updateCoreIMU()
+{
+  int error; // integer to store results of wire.endtransmission(false)
+  int16_t ax, ay, az, Tmp, gx, gy, gz;
+  this->wakeIMU(this->coreIMUaddress);
+  Wire.beginTransmission(this->coreIMUaddress);
+  Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
+  error = Wire.endTransmission(false);
+  Wire.requestFrom(this->coreIMUaddress, 14, 1); // 7 reads of 2 bytes
+  ax =  Wire.read() << 8 | Wire.read(); // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)
+  ay =  Wire.read() << 8 | Wire.read(); // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
+  az =  Wire.read() << 8 | Wire.read(); // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
+  Tmp = Wire.read() << 8 | Wire.read(); // 0x41 (TEMP_OUT_H) & 0x42 (TEMP_OUT_L)
+  gx =  Wire.read() << 8 | Wire.read(); // 0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
+  gy =  Wire.read() << 8 | Wire.read(); // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
+  gz =  Wire.read() << 8 | Wire.read(); // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
+  
+  this->axCoreBuffer.push(ax);
+  this->ayCoreBuffer.push(ay);
+  this->azCoreBuffer.push(az);
+  this->gxCoreBuffer.push(gx);
+  this->gyCoreBuffer.push(gy);
+  this->gzCoreBuffer.push(gz);
+  
+  // This returns true if the i2c command was a success...
+  if(error == 0)
+    {
+      return true;
+    }
+  else
+    {
+      return false;
+    }
+}
+
+bool Cube::determineTopFace(int threshold)
+{
+  /**  
+   *  Each IMU returns value from -16000 to +16000 if cube is stationary
+   *  Since the Accelerometer lines up with X Y and Z axes we just check if any of the axes
+   *  This function returns an integer representing
+   *  the face which is point upwards. Returns -1 if results are inconclusive
+   *  c.axFrameBuffer.access(0)
+   */
+  int sum = ( abs(this->axFrameBuffer.access(0)) +
+              abs(this->ayFrameBuffer.access(0)) + 
+              abs(this->azFrameBuffer.access(0)));
+  
+       if ((this->azFrameBuffer.access(0) < (-threshold)) && sum < 25000)  
+          { this->topFace = 0; }
+  else if ((this->azFrameBuffer.access(0) > (threshold)) && sum < 25000)   
+          { this->topFace = 2; }
+  else if ((this->axFrameBuffer.access(0) < (-threshold)) && sum < 25000)  
+          { this->topFace = 5; }
+  else if ((this->axFrameBuffer.access(0) > (threshold)) && sum < 25000)   
+          { this->topFace = 4; }
+  else if ((this->ayFrameBuffer.access(0) < (-threshold)) && sum < 25000)  
+          { this->topFace = 1; }
+  else if ((this->ayFrameBuffer.access(0) > (threshold)) && sum < 25000)   
+          { this->topFace = 3; }
+  else                                                                     
+          {this->topFace = -1;}
+  this->topFaceBuffer.push(this->topFace);
+
+  if(sum > 0)
+  {
+    return(true); 
+  }
+  else
+  {
+    return(false);
+  }
+}
+
+bool Cube::areFacesOpposite(int face1, int face2)
+{
+  if(face1 == oppositeFace(face2))
+    return(true);
+  else
+    return(false);
+}
+
+bool Cube::wakeIMU(int i2cAddress)
+// Wakes the IMU_6050 accelerometer
+{
+  Wire.beginTransmission(i2cAddress);
+  Wire.write(0x6B);  // PWR_MGupdateFaceSensorsMT_1 register
+  Wire.write(0);     // set to zero (wakes up the MPU-6050)
+  Wire.endTransmission(true);
+}
+
+bool Cube::determineForwardFace() // FUN3 // plane should be either int 1234, 1536 2546 or -1
+{
+  /*
+   * plane PLANE_0321 /0
+   * plane PLANE_0425 /1
+   * plane PLANE_1534 /4
+   */
+  int topFace = this->returnTopFace(); // 
+  PlaneEnum plane = this->currentPlaneBuffer.access(0);
+  
+       if( (topFace == 1 && plane == PLANE0123)  ||  (topFace == 5 && plane == PLANE0425) )   
+        {
+          this->forwardFace = 0;
+        }
+  else if( (topFace == 2 && plane == PLANE0123)  ||  (topFace == 4 && plane == PLANE1453) )    
+        {
+          this->forwardFace = 1;
+        }
+  else if( (topFace == 3 && plane == PLANE0123)  ||  (topFace == 4 && plane == PLANE0425) )
+        {
+          this->forwardFace = 2;
+        }
+  else if( (topFace == 0 && plane == PLANE0123)  ||  (topFace == 5 && plane == PLANE1453) )    
+        {
+          this->forwardFace = 3;
+        }
+  else if( (topFace == 3 && plane == PLANE1453)  ||  (topFace == 0 && plane == PLANE0425) )    
+        {
+          this->forwardFace = 4;
+        }
+  else if( (topFace == 1 && plane == PLANE1453)  ||  (topFace == 2 && plane == PLANE0425) )    
+        {
+          this->forwardFace = 5;
+        }
+  
+  else if(  (topFace == 4 && plane == PLANE0123) || 
+            (topFace == 0 && plane == PLANE1453) || 
+            (topFace == 1 && plane == PLANE0425) ) 
+        {
+          this->forwardFace = -1;
+        }
+  else if(  (topFace == 5 && plane == PLANE0123) || 
+            (topFace == 2 && plane == PLANE1453) || 
+            (topFace == 3 && plane == PLANE0425) ) 
+        {
+          this->forwardFace = -1;
+        }
+  else                                                                                                    
+        {
+          return(false);
+        }
+  return(true);
+}
+
+bool Cube::updateBothIMUs()
+{
+  bool a = this->updateCoreIMU();
+  delay(2);
+  bool b = this->updateFrameIMU();
+  return(a && b);
+}
+
+int oppositeFace(int face)
+{
+  if(face == 0){return(2);}
+  else if(face == 1){return(3);}
+  else if(face == 2){return(0);}
+  else if(face == 3){return(1);}
+  else if(face == 4){return(5);}
+  else if(face == 5){return(4);}
+  else{return(-1);}
+}
+
+void Cube::updateCubeID(int idNUM)
+{
+  this->cubeID = idNUM;
+  if(GlobalCubeID > 50) // stationay cube
+  {
+    MAGIC_DEBUG = 1;
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
-//////////////////////Color and Sensor Related//////////////////////////////////////
+////////////////////// *LIGHTS BLINKING RELATED//////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
+
+void Cube::blinkParasiteLED(int blinkTime)
+{
+  digitalWrite(LED, HIGH);
+  wifiDelay(blinkTime);
+  digitalWrite(LED, LOW);
+}
+
+bool Cube::blockingBlink(Color* inputColor, int howManyTimes, int waitTime)
+{
+
+  for(int times = 0; times < howManyTimes; times++)
+  {
+    this->lightCube(inputColor);
+    delay(waitTime);
+    this->lightCube(&off);
+    delay(waitTime);
+  }
+}
 
 bool Cube::lightCorner(int corner, Color* inputColor)
 {
@@ -1035,188 +1345,6 @@ bool Cube::lightFace(int face, Color* inputColor)
   return(true);
 }
 
-//
-bool Cube::updateFrameIMU()
-{
-  int error;
-  int16_t ax, ay, az, Tmp, gx, gy, gz;
-  this->wakeIMU(this->frameIMUaddress);
-  Wire.beginTransmission(this->frameIMUaddress);
-  Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
-  error = Wire.endTransmission(false);
-  //succeed = Wire.requestFrom(this->frameIMUaddress, 14, 1); // 7 reads of 2 bytes
-  Wire.requestFrom(this->frameIMUaddress, 14, 1); // 7 reads of 2 bytes
-  ax =  Wire.read() << 8 | Wire.read(); // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)
-  ay =  Wire.read() << 8 | Wire.read(); // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
-  az =  Wire.read() << 8 | Wire.read(); // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
-  Tmp = Wire.read() << 8 | Wire.read(); // 0x41 (TEMP_OUT_H) & 0x42 (TEMP_OUT_L)
-  gx =  Wire.read() << 8 | Wire.read(); // 0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
-  gy =  Wire.read() << 8 | Wire.read(); // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
-  gz =  Wire.read() << 8 | Wire.read(); // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
-  
-  this->axFrameBuffer.push(ax);
-  this->ayFrameBuffer.push(ay);
-  this->azFrameBuffer.push(az);
-  this->gxFrameBuffer.push(gx);
-  this->gyFrameBuffer.push(gy);
-  this->gzFrameBuffer.push(gz);
-  
-  // This returns true if the i2c command was a success...
-  if(error == 0)
-    {
-      return(true);
-    }
-  else
-    {
-      return(false);
-    }
-}
-
-bool Cube::updateCoreIMU()
-{
-  int error; // integer to store results of wire.endtransmission(false)
-  int16_t ax, ay, az, Tmp, gx, gy, gz;
-  this->wakeIMU(this->coreIMUaddress);
-  Wire.beginTransmission(this->coreIMUaddress);
-  Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
-  error = Wire.endTransmission(false);
-  Wire.requestFrom(this->coreIMUaddress, 14, 1); // 7 reads of 2 bytes
-  ax =  Wire.read() << 8 | Wire.read(); // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)
-  ay =  Wire.read() << 8 | Wire.read(); // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
-  az =  Wire.read() << 8 | Wire.read(); // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
-  Tmp = Wire.read() << 8 | Wire.read(); // 0x41 (TEMP_OUT_H) & 0x42 (TEMP_OUT_L)
-  gx =  Wire.read() << 8 | Wire.read(); // 0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
-  gy =  Wire.read() << 8 | Wire.read(); // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
-  gz =  Wire.read() << 8 | Wire.read(); // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
-  
-  this->axCoreBuffer.push(ax);
-  this->ayCoreBuffer.push(ay);
-  this->azCoreBuffer.push(az);
-  this->gxCoreBuffer.push(gx);
-  this->gyCoreBuffer.push(gy);
-  this->gzCoreBuffer.push(gz);
-  
-  // This returns true if the i2c command was a success...
-  if(error == 0)
-    {
-      return true;
-    }
-  else
-    {
-      return false;
-    }
-}
-
-bool Cube::determineTopFace(int threshold)
-{
-  /**  
-   *  Each IMU returns value from -16000 to +16000 if cube is stationary
-   *  Since the Accelerometer lines up with X Y and Z axes we just check if any of the axes
-   *  This function returns an integer representing
-   *  the face which is point upwards. Returns -1 if results are inconclusive
-   *  c.axFrameBuffer.access(0)
-   */
-  int sum = ( abs(this->axFrameBuffer.access(0)) +
-              abs(this->ayFrameBuffer.access(0)) + 
-              abs(this->azFrameBuffer.access(0)));
-  
-       if ((this->azFrameBuffer.access(0) < (-threshold)) && sum < 25000)  
-          { this->topFace = 0; }
-  else if ((this->azFrameBuffer.access(0) > (threshold)) && sum < 25000)   
-          { this->topFace = 2; }
-  else if ((this->axFrameBuffer.access(0) < (-threshold)) && sum < 25000)  
-          { this->topFace = 5; }
-  else if ((this->axFrameBuffer.access(0) > (threshold)) && sum < 25000)   
-          { this->topFace = 4; }
-  else if ((this->ayFrameBuffer.access(0) < (-threshold)) && sum < 25000)  
-          { this->topFace = 1; }
-  else if ((this->ayFrameBuffer.access(0) > (threshold)) && sum < 25000)   
-          { this->topFace = 3; }
-  else                                                                     
-          {this->topFace = -1;}
-  this->topFaceBuffer.push(this->topFace);
-
-  if(sum > 0)
-  {
-    return(true); 
-  }
-  else
-  {
-    return(false);
-  }
-}
-
-bool Cube::wakeIMU(int i2cAddress)
-// Wakes the IMU_6050 accelerometer
-{
-  Wire.beginTransmission(i2cAddress);
-  Wire.write(0x6B);  // PWR_MGupdateFaceSensorsMT_1 register
-  Wire.write(0);     // set to zero (wakes up the MPU-6050)
-  Wire.endTransmission(true);
-}
-
-bool Cube::determineForwardFace() // FUN3 // plane should be either int 1234, 1536 2546 or -1
-{
-  /*
-   * plane PLANE_0321 /0
-   * plane PLANE_0425 /1
-   * plane PLANE_1534 /4
-   */
-  int topFace = this->returnTopFace(); // 
-  PlaneEnum plane = this->findPlaneStatus(false);
-  
-       if( (topFace == 1 && plane == PLANE0123)  ||  (topFace == 5 && plane == PLANE0425) )   
-        {
-          this->forwardFace = 0;
-        }
-  else if( (topFace == 2 && plane == PLANE0123)  ||  (topFace == 4 && plane == PLANE1453) )    
-        {
-          this->forwardFace = 1;
-        }
-  else if( (topFace == 3 && plane == PLANE0123)  ||  (topFace == 4 && plane == PLANE0425) )
-        {
-          this->forwardFace = 2;
-        }
-  else if( (topFace == 0 && plane == PLANE0123)  ||  (topFace == 5 && plane == PLANE1453) )    
-        {
-          this->forwardFace = 3;
-        }
-  else if( (topFace == 3 && plane == PLANE1453)  ||  (topFace == 0 && plane == PLANE0425) )    
-        {
-          this->forwardFace = 4;
-        }
-  else if( (topFace == 1 && plane == PLANE1453)  ||  (topFace == 2 && plane == PLANE0425) )    
-        {
-          this->forwardFace = 5;
-        }
-  
-  else if(  (topFace == 4 && plane == PLANE0123) || 
-            (topFace == 0 && plane == PLANE1453) || 
-            (topFace == 1 && plane == PLANE0425) ) 
-        {
-          this->forwardFace = -1;
-        }
-  else if(  (topFace == 5 && plane == PLANE0123) || 
-            (topFace == 2 && plane == PLANE1453) || 
-            (topFace == 3 && plane == PLANE0425) ) 
-        {
-          this->forwardFace = -1;
-        }
-  else                                                                                                    
-        {
-          return(false);
-        }
-  return(true);
-}
-
-bool Cube::updateBothIMUs()
-{
-  bool a = this->updateCoreIMU();
-  delay(2);
-  bool b = this->updateFrameIMU();
-  return(a && b);
-}
-
 bool Cube::clearRGB()
 /*
  * Switches all of the bits to HIGH (or off) for all 8 corner RGBLED's
@@ -1282,37 +1410,6 @@ for(int i = 0; i < 4; i++)
 return(true);
 }
 
-int oppositeFace(int face)
-{
-  if(face == 0){return(2);}
-  else if(face == 1){return(3);}
-  else if(face == 2){return(0);}
-  else if(face == 3){return(1);}
-  else if(face == 4){return(5);}
-  else if(face == 5){return(4);}
-  else{return(-1);}
-}
-/////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////DEBUG THINGS/////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-bool waitForSerialResponse(SerialResponse response, int timeOutTime, SerialDecoderBuffer* buf)
-{
-   bool result = false;
-   long startTime = millis();
-   while(millis()-startTime < timeOutTime)
-   {
-    delay(2);
-    SerialResponse resp = pushNewChar(buf);
-    //mesh.update();
-    if(resp == response)
-      { 
-        result = true;
-        break;
-      }
-   }
-   return(result);
-}
-
 void Cube::superSpecialBlink(Color* inputColor, int delayTime)
 {
   for(int corner = 0; corner < 8; corner++)
@@ -1331,14 +1428,116 @@ void Cube::blinkRingAll(int delayLength, int numberOfTimes)
   }
 }
 
-void Cube::updateCubeID(int idNUM)
+void Cube::lightPlaneRing(PlaneEnum corePlane)
+/*
+ * 
+ */
 {
-  this->cubeID = idNUM;
-  if(GlobalCubeID > 50) // stationay cube
+  if(corePlane == PLANE0123)
   {
-    MAGIC_DEBUG = 1;
+    for(int i = 0; i < 2; i++)
+    {
+      this->faces[0].turnOnFaceLEDs(1, 0, 1, 0);
+      this->faces[1].turnOnFaceLEDs(1, 0, 1, 0);
+      this->faces[2].turnOnFaceLEDs(1, 0, 1, 0);
+      this->faces[3].turnOnFaceLEDs(1, 0, 1, 0);
+      delay(100);
+      this->faces[0].turnOnFaceLEDs(0, 1, 0, 1);
+      this->faces[1].turnOnFaceLEDs(0, 1, 0, 1);
+      this->faces[2].turnOnFaceLEDs(0, 1, 0, 1);
+      this->faces[3].turnOnFaceLEDs(0, 1, 0, 1);
+      delay(100);
+      this->faces[0].turnOffFaceLEDs();
+      this->faces[1].turnOffFaceLEDs();
+      this->faces[2].turnOffFaceLEDs();
+      this->faces[3].turnOffFaceLEDs();
+    }
+  }
+  else if(corePlane == PLANE0425)
+  {
+    for(int i = 0; i < 2; i++)
+    {
+      this->faces[0].turnOnFaceLEDs(1, 0, 1, 0);
+      this->faces[4].turnOnFaceLEDs(1, 0, 1, 0);
+      this->faces[2].turnOnFaceLEDs(1, 0, 1, 0);
+      this->faces[5].turnOnFaceLEDs(1, 0, 1, 0);
+      delay(100);
+      this->faces[0].turnOnFaceLEDs(0, 1, 0, 1);
+      this->faces[4].turnOnFaceLEDs(0, 1, 0, 1);
+      this->faces[2].turnOnFaceLEDs(0, 1, 0, 1);
+      this->faces[5].turnOnFaceLEDs(0, 1, 0, 1);
+      delay(100);
+      this->faces[0].turnOffFaceLEDs();
+      this->faces[4].turnOffFaceLEDs();
+      this->faces[2].turnOffFaceLEDs();
+      this->faces[5].turnOffFaceLEDs();
+    }
+  }
+  else if(corePlane == PLANE1453)
+  {
+  for(int i = 0; i < 2; i++)
+    {
+      this->faces[1].turnOnFaceLEDs(1, 0, 1, 0);
+      this->faces[4].turnOnFaceLEDs(1, 0, 1, 0);
+      this->faces[3].turnOnFaceLEDs(1, 0, 1, 0);
+      this->faces[5].turnOnFaceLEDs(1, 0, 1, 0);
+      delay(100);
+      this->faces[1].turnOnFaceLEDs(0, 1, 0, 1);
+      this->faces[4].turnOnFaceLEDs(0, 1, 0, 1);
+      this->faces[5].turnOnFaceLEDs(0, 1, 0, 1);
+      this->faces[3].turnOnFaceLEDs(0, 1, 0, 1);
+      delay(100);
+      this->faces[1].turnOffFaceLEDs();
+      this->faces[4].turnOffFaceLEDs();
+      this->faces[5].turnOffFaceLEDs();
+      this->faces[3].turnOffFaceLEDs();
+    }
+  }
+  else if(corePlane == PLANENONE)
+  {
+    delay(10);
+  }
+  else if(corePlane == PLANEERROR)
+  {
+    delay(10);
+  }
+  else if(corePlane == PLANEMOVING)
+  {
+    delay(10);
   }
 }
+
+/**
+ * Given a primary face and a secondary face, this array gives led settings such that if the 
+ * face leds on the "primary face" are set according to the given settings, they will be on 
+ * the "side" of the secondary face.
+ */
+static const bool faceLEDCornerMapping[6][6][4] = 
+{
+  {{1,1,1,1}, {1,0,0,1}, {0,0,0,0}, {0,1,1,0}, {0,0,1,1}, {1,1,0,0}},
+  {{0,1,1,0}, {1,1,1,1}, {1,0,0,1}, {0,0,0,0}, {0,0,1,1}, {1,1,0,0}},
+  {{0,0,0,0}, {1,1,0,0}, {1,1,1,1}, {0,0,1,1}, {0,1,1,0}, {1,0,0,1}},
+  {{1,0,0,1}, {0,0,0,0}, {0,1,1,0}, {1,1,1,1}, {0,0,1,1}, {1,1,0,0}},
+  {{0,0,1,1}, {0,1,1,0}, {1,1,0,0}, {1,0,0,1}, {1,1,1,1}, {0,0,0,0}},
+  {{1,0,0,1}, {1,1,0,0}, {0,1,1,0}, {0,0,1,1}, {0,0,0,0}, {1,1,1,1}}
+};
+
+void Cube::setFaceLEDsAtEdge(int primaryFace, int adjacentFace)
+/*
+ * 
+ */
+{
+  this->faces[primaryFace].turnOnFaceLEDs(faceLEDCornerMapping[primaryFace][adjacentFace][0],
+                                          faceLEDCornerMapping[primaryFace][adjacentFace][1],
+                                          faceLEDCornerMapping[primaryFace][adjacentFace][2],
+                                          faceLEDCornerMapping[primaryFace][adjacentFace][3]);
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////// *DEBUG PRINTING RELATED//////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
 
 String Cube::returnCurrentPlane_STRING()
 {
