@@ -6,6 +6,19 @@
 #include "Communication.h"      // Includes wifi
 #include "Defines.h"
 
+Behavior basicUpkeep_DEMO_ONLY(Cube* c, Behavior inputBehavior, bool updateFaceLEDs)
+/*
+ * Then it checks the wifi BUFFER and checks the magnetic tags
+ * for actionable configurations
+ */
+{
+  if(MAGIC_DEBUG) Serial.println("Beginning basicUpKeep");
+  // update sensors, numberOfNeighbors, and check wifi commands...
+  c->update(updateFaceLEDs); // actually read all of the sensors
+  int numberOfNeighborz = checkForMagneticTagsDEMO(c);
+  return(inputBehavior);
+}
+
 Behavior basicUpkeep(Cube* c, Behavior inputBehavior, bool updateFaceLEDs)
 /*
  * This function does basic state machine switching
@@ -91,6 +104,7 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior, bool updateFaceLEDs)
       newBehavior = SOLO_LIGHT_TRACK;
     }
   }
+  
 //************************************
 //NEIGHBORS == __ 2+ __
 //************************************
@@ -116,6 +130,7 @@ Behavior sleep(Cube* c)
     delay(300);
   }
 }
+
 
 
 Behavior followArrows(Cube* c) // purple
@@ -412,6 +427,21 @@ Behavior climb(Cube* c)  // yellow
     c->superSpecialBlink(&white, 100);
     nextBehavior = basicUpkeep(c, nextBehavior, true);
     loopCounter++;
+  }
+  return nextBehavior;
+}
+
+//================================================================
+//==========================CHILLING==============================
+//================================================================
+Behavior demo(Cube* c)
+{
+  long loopCounter = 0;
+  Behavior nextBehavior = DEMO;
+  while(nextBehavior == DEMO) // loop until something changes the next behavior
+  {
+    nextBehavior = basicUpkeep_DEMO_ONLY(c, nextBehavior, false);
+    delay(1000);
   }
   return nextBehavior;
 }
@@ -850,6 +880,7 @@ int checkForMagneticTagsStandard(Cube* c)
            (c->faces[i].returnNeighborCommand(6) == TAGCOMMAND_27))
  
            {
+            
               relayBehavior(c, SOLO_LIGHT_TRACK);
            }
         
@@ -999,6 +1030,8 @@ Behavior checkForBehaviors(Cube* c, Behavior behavior)
     behavior = chilling(c);
   else if (behavior == ATTRACTIVE)
     behavior = attractive(c);
+  else if (behavior == DEMO)
+    behavior = demo(c);
   else if (behavior == SLEEP)
     behavior = sleep(c);
   else if (behavior == PRE_SOLO_LIGHT)
@@ -1062,4 +1095,89 @@ void printDebugThings(Cube* c, Behavior behaviorToReturnFinal)
   Serial.print("# of Neighbors: ");     Serial.println(c->numberOfNeighbors(0,0));
   Serial.print("Resultalt Behavior: "); Serial.println(behaviorsToCmd(behaviorToReturnFinal));
   Serial.println("--------------Ending BASIC UPKEEP---------------");
+}
+
+
+int checkForMagneticTagsDEMO(Cube* c)
+{
+  int neighbors = 0;
+  if(MAGIC_DEBUG) {Serial.println("Checking for MAGNETIC TAGS");}
+    for(int i = 0; i < 6; i++)
+    { 
+
+      /* This gets activated if we are attached to an actual cube or passive cube
+       * for at least two time steps...
+       */
+       
+      if((c->faces[i].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE) ||
+         (c->faces[i].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE))
+      {
+        neighbors++;
+        if(c->faces[i].returnNeighborAngle(0) > -1)
+        {
+          c->lightFace(faceArrowPointsTo(i, c->faces[i].returnNeighborAngle(0)), &yellow);
+          delay(1000);
+          c->lightCube(&off);
+        }
+      }
+      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_SLEEP)
+      {
+        if(MAGIC_DEBUG == 0)
+          {
+            c->blockingBlink(&purple);
+            MAGIC_DEBUG = 1;
+          }
+        else
+          {
+            c->blockingBlink(&yellow);
+            MAGIC_DEBUG = 0;
+          }
+      }
+      
+      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_PURPLE ||
+        (magicVariable == 1))
+      {
+        int z = i;
+        if(magicVariable)
+        {
+          z = magicFace;
+          magicFace = 0;
+        }
+        magicVariable = 0;
+        c->goToPlaneParallel(z);
+      }
+      
+      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_27)
+      {
+          c->lightCube(&green);
+          delay(1000);
+      }
+      
+      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_23)
+      {
+        
+        for(int times = 0; times < 5; times++)
+        {
+          c->lightCube(&blue);
+          delay(1000);
+          c->blockingBlink(&blue,100,100);
+          Serial.println("sleep");
+          delay(500);
+        }
+      }
+      
+      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_13_ESPOFF)
+      {
+        c->lightCube(&red);
+        delay(1000);
+      }
+
+      
+      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_19)
+      {
+        c->lightCube(&purple);
+        delay(1000);
+      }
+   }
+return(neighbors);
 }

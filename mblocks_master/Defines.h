@@ -39,7 +39,8 @@ typedef enum Behavior
     TESTING, 
     SHUT_DOWN,
     SLEEP,
-    RELAY_SLEEP
+    RELAY_SLEEP,
+    DEMO
 } Behavior;
 
 // This is a struct for organizing information about motions

@@ -25,7 +25,7 @@ char storage[256]; // This creates storage space for decoding serial messages
 //SerialDecoderBuffer buf = {storage, 256, 0}; //Struct used to detect serial messages from Kyles Board
 
 // Beginning Behavior
-Behavior behavior = PRE_SOLO_LIGHT; // initial Behavior Cube implements
+Behavior behavior = DEMO; // initial Behavior Cube implements
 
 void setup() // Actually the main loop...
 {

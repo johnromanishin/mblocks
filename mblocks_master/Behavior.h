@@ -99,6 +99,8 @@ Behavior followArrows(Cube* c);
  */
 //Behavior relayBehavior(Cube* c, Behavior);
 
+Behavior demo(Cube* c);
+
 Behavior climb(Cube* c);
 /*        --- What it does ---
  * 0.
@@ -118,7 +120,11 @@ Behavior checkForBehaviors(Cube* c, Behavior behavior);
 
 Behavior basicUpkeep(Cube* c, Behavior currentBehavior, bool updateFaceLEDs = true);
 
+int checkForMagneticTagsDEMO(Cube* c);
+
 int processLightDigits(Cube* c);
+Behavior basicUpkeep_DEMO_ONLY(Cube* c, Behavior inputBehavior, bool updateFaceLEDs);
+
 String behaviorsToCmd(Behavior inputBehavior);
 void printDebugThings(Cube* c, Behavior behaviorToReturnFinal);
 #endif
