@@ -112,15 +112,15 @@ Behavior climb(Cube* c);
 
 // WIFI RELATED
 void wifiTargetFace(Cube* c, int faceToSend, int recipientCube = -1);
-
- //==================Utilities===============================
-void wifiDelay(int delayTime);
-int checkForMagneticTagsStandard(Cube* c);
 Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior);
 Behavior relayBehavior(Cube* c, Behavior behaviorToRelay, int cubeToRelayTo = -1, int timesToRelay = 4);
+void wifiDelay(int delayTime);
+
+
+ //==================Utilities===============================
+int checkForMagneticTagsStandard(Cube* c);
 Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior);
 Behavior checkForBehaviors(Cube* c, Behavior behavior);
-
 Behavior basicUpkeep(Cube* c, Behavior currentBehavior, bool updateFaceLEDs = true);
 
 int checkForMagneticTagsDEMO(Cube* c);

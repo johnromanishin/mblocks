@@ -18,6 +18,7 @@ Behavior demo(Cube* c)
     nextBehavior = basicUpkeep_DEMO_ONLY(c, nextBehavior, false);
     delay(100);
   }
+  nextBehavior = checkForBasicWifiCommands(c, nextBehavior);
   return nextBehavior;
 }
 
@@ -60,7 +61,8 @@ Behavior basicUpkeep_DEMO_ONLY(Cube* c, Behavior inputBehavior, bool updateFaceL
   }
   if(topFace != c->returnTopFace(1))
   {
-    wifiTargetFace(c, topFace, -1); 
+    Serial.print("trying to send wifi Message");
+    wifiTargetFace(c, topFace, -1);
   }
   return(inputBehavior);
 }
