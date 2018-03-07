@@ -16,9 +16,9 @@ Behavior demo(Cube* c)
   while(nextBehavior == DEMO) // loop until something changes the next behavior
   {
     nextBehavior = basicUpkeep_DEMO_ONLY(c, nextBehavior, false);
-    delay(100);
+    nextBehavior = checkForBasicWifiCommands(c, nextBehavior);
+    wifiDelay(100);
   }
-  nextBehavior = checkForBasicWifiCommands(c, nextBehavior);
   return nextBehavior;
 }
 
@@ -28,7 +28,7 @@ Behavior basicUpkeep_DEMO_ONLY(Cube* c, Behavior inputBehavior, bool updateFaceL
  * for actionable configurations
  */
 {
-  if(MAGIC_DEBUG) Serial.println("Beginning basicUpKeep");
+  //if(MAGIC_DEBUG) Serial.println("Beginning basicUpKeep");
   // update sensors, numberOfNeighbors, and check wifi commands...
   c->update(updateFaceLEDs); // actually read all of the sensors
   //int numberOfNeighborz = checkForMagneticTagsDEMO(c);
@@ -149,6 +149,42 @@ int checkForMagneticTagsDEMO(Cube* c)
       }
    }
 return(neighbors);
+}
+
+//=============================================================================================
+//=============================WIFI Checking  CHECKING=========================================
+//=============================================================================================
+Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior)
+{
+  //if(MAGIC_DEBUG) {Serial.println("Checking for basic WIFI Commands...");}
+  int attempts = 5;
+  Behavior resultBehavior = currentBehavior;
+  while(!jsonCircularBuffer.empty() && attempts > 0) //while there are still messages, and we haven't tried 5 times
+  {
+    StaticJsonBuffer<1000> jb;
+    JsonObject& root = jb.parseObject(jsonCircularBuffer.pop());
+    if((root["cubeID"] == getCubeIDFromEsp(ESP.getChipId())) || // If message matches your ID
+       (root["cubeID"] == -1))                                  // or if message is brodcast
+    {
+      String receivedCMD = root["cmd"];
+      resultBehavior = cmdToBehaviors(receivedCMD, currentBehavior); // checks to see if we recieved message 
+      if(isDigit(receivedCMD[0]))
+      {
+        int targetFace = receivedCMD.toInt();
+        Serial.print("HEY BROSKI!!");
+      }
+      
+      if(c->cubeID > 40) // cubeID's over 40 means it is attached by a cable... not a real cube // so we print
+      {
+        String receivedID = root["cubeID"];
+        String receivedCMD = root["cmd"];
+        String messageString = "Message: From: " + receivedID + " Command is: " + receivedCMD;// + " Command is: ";
+        Serial.println(messageString);
+      }
+    }
+    attempts--;
+  }
+  return(resultBehavior);
 }
 
 void wifiTargetFace(Cube* c, int faceToSend, int recipientCube)
@@ -915,42 +951,7 @@ Behavior crystalize(Cube* c, painlessMesh* m)
   
 }
 
-//=============================================================================================
-//=============================WIFI Checking  CHECKING=========================================
-//=============================================================================================
-Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior)
-{
-  if(MAGIC_DEBUG) {Serial.println("Checking for basic WIFI Commands...");}
-  
-  int attempts = 5;
-  Behavior resultBehavior = currentBehavior;
-  while(!jsonCircularBuffer.empty() && attempts > 0) //while there are still messages, and we haven't tried 5 times
-  {
-    StaticJsonBuffer<1000> jb;
-    JsonObject& root = jb.parseObject(jsonCircularBuffer.pop());
-    if((root["cubeID"] == getCubeIDFromEsp(ESP.getChipId())) || // If message matches your ID
-       (root["cubeID"] == -1))                                  // or if message is brodcast
-    {
-      String receivedCMD = root["cmd"];
-      resultBehavior = cmdToBehaviors(receivedCMD, currentBehavior); // checks to see if we recieved message 
-      if(isDigit(receivedCMD[0]))
-      {
-        int targetFace = receivedCMD.toInt();
-        Serial.print("HEY BROSKI!!");
-      }
-      
-      if(c->cubeID > 40) // cubeID's over 40 means it is attached by a cable... not a real cube // so we print
-      {
-        String receivedID = root["cubeID"];
-        String receivedCMD = root["cmd"];
-        String messageString = "Message: From: " + receivedID + " Command is: " + receivedCMD;// + " Command is: ";
-        Serial.println(messageString);
-      }
-    }
-    attempts--;
-  }
-  return(resultBehavior);
-}
+
 
 //=============================================================================================
 //=============================MAGNETIC TAGS CHECKING==========================================
