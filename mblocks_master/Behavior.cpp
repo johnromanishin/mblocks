@@ -6,6 +6,21 @@
 #include "Communication.h"      // Includes wifi
 #include "Defines.h"
 
+//================================================================
+//==========================DEMO==============================
+//================================================================
+Behavior demo(Cube* c)
+{
+  long loopCounter = 0;
+  Behavior nextBehavior = DEMO;
+  while(nextBehavior == DEMO) // loop until something changes the next behavior
+  {
+    nextBehavior = basicUpkeep_DEMO_ONLY(c, nextBehavior, false);
+    delay(100);
+  }
+  return nextBehavior;
+}
+
 Behavior basicUpkeep_DEMO_ONLY(Cube* c, Behavior inputBehavior, bool updateFaceLEDs)
 /*
  * Then it checks the wifi BUFFER and checks the magnetic tags
@@ -15,9 +30,144 @@ Behavior basicUpkeep_DEMO_ONLY(Cube* c, Behavior inputBehavior, bool updateFaceL
   if(MAGIC_DEBUG) Serial.println("Beginning basicUpKeep");
   // update sensors, numberOfNeighbors, and check wifi commands...
   c->update(updateFaceLEDs); // actually read all of the sensors
-  int numberOfNeighborz = checkForMagneticTagsDEMO(c);
+  //int numberOfNeighborz = checkForMagneticTagsDEMO(c);
+  
+  int topFace = c->returnTopFace(0);
+  switch (topFace) 
+  {
+    //********************************
+    //case -1: // This is the cube on the BIG Breadboard
+      //c->lightCube(&off);
+      //break;
+    case 0: // This is the cube on the BIG Breadboard
+      c->lightCube(&green);
+      break;
+    case 1: // This is the cube on the BIG Breadboard
+      c->lightCube(&blue);
+      break;
+    case 2: // This is the cube on the BIG Breadboard
+      c->lightCube(&red);
+      break;
+    case 3: // This is the cube on the BIG Breadboard
+      c->lightCube(&teal);
+      break;
+    case 4: // This is the cube on the BIG Breadboard
+      c->lightCube(&purple);
+      break;
+    case 5: // This is the cube on the BIG Breadboard
+      c->lightCube(&yellow);
+      break;
+  }
+  if(topFace != c->returnTopFace(1))
+  {
+    wifiTargetFace(c, topFace, -1); 
+  }
   return(inputBehavior);
 }
+
+int checkForMagneticTagsDEMO(Cube* c)
+{
+  int neighbors = 0;
+  if(MAGIC_DEBUG) {Serial.println("Checking for MAGNETIC TAGS");}
+    for(int i = 0; i < 6; i++)
+    { 
+
+      /* This gets activated if we are attached to an actual cube or passive cube
+       * for at least two time steps...
+       */
+       
+      if((c->faces[i].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE) ||
+         (c->faces[i].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE))
+      {
+        neighbors++;
+        if(c->faces[i].returnNeighborAngle(0) > -1)
+        {
+          c->lightFace(faceArrowPointsTo(i, c->faces[i].returnNeighborAngle(0)), &yellow);
+          delay(1000);
+          c->lightCube(&off);
+        }
+      }
+      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_SLEEP)
+      {
+        if(MAGIC_DEBUG == 0)
+          {
+            c->blockingBlink(&purple);
+            MAGIC_DEBUG = 1;
+          }
+        else
+          {
+            c->blockingBlink(&yellow);
+            MAGIC_DEBUG = 0;
+          }
+      }
+      
+      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_PURPLE ||
+        (magicVariable == 1))
+      {
+        int z = i;
+        if(magicVariable)
+        {
+          z = magicFace;
+          magicFace = 0;
+        }
+        magicVariable = 0;
+        c->goToPlaneParallel(z);
+      }
+      
+      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_27)
+      {
+          c->lightCube(&green);
+          delay(1000);
+      }
+      
+      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_23)
+      {
+        
+        for(int times = 0; times < 5; times++)
+        {
+          c->lightCube(&blue);
+          delay(1000);
+          c->blockingBlink(&blue,100,100);
+          Serial.println("sleep");
+          delay(500);
+        }
+      }
+      
+      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_13_ESPOFF)
+      {
+        c->lightCube(&red);
+        delay(1000);
+      }
+
+      
+      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_19)
+      {
+        c->lightCube(&purple);
+        delay(1000);
+      }
+   }
+return(neighbors);
+}
+
+void wifiTargetFace(Cube* c, int faceToSend, int recipientCube)
+{
+  //======Temporarily Generated a Broadcast message =========
+  StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
+  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
+  //^class type||^ Root         ^class method                   
+  root["type"] = "cmd";
+  root["cubeID"] = recipientCube;
+  root["cmd"] = String(faceToSend);
+  //^ "key"   |  ^ "Value"
+  String str; // generate empty string
+  root.printTo(str); // print to JSON readable string...
+  //======== End Generating of Broadcast message ==========
+  mesh.sendBroadcast(str);
+}
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+
 
 Behavior basicUpkeep(Cube* c, Behavior inputBehavior, bool updateFaceLEDs)
 /*
@@ -431,20 +581,7 @@ Behavior climb(Cube* c)  // yellow
   return nextBehavior;
 }
 
-//================================================================
-//==========================CHILLING==============================
-//================================================================
-Behavior demo(Cube* c)
-{
-  long loopCounter = 0;
-  Behavior nextBehavior = DEMO;
-  while(nextBehavior == DEMO) // loop until something changes the next behavior
-  {
-    nextBehavior = basicUpkeep_DEMO_ONLY(c, nextBehavior, false);
-    delay(1000);
-  }
-  return nextBehavior;
-}
+
 
 //================================================================
 //==========================CHILLING==============================
@@ -669,7 +806,6 @@ Behavior multiSeekLight(Cube* c)
   c->lightFace(connectedFace2,&red);
   delay(300);
   c->lightCube(&off);
-
   // if basic upkeep decides to change behavior, we exit now...
   // otherwise we keep running in this loop until something 
   // changes the state
@@ -793,8 +929,14 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior)
     if((root["cubeID"] == getCubeIDFromEsp(ESP.getChipId())) || // If message matches your ID
        (root["cubeID"] == -1))                                  // or if message is brodcast
     {
-      resultBehavior = cmdToBehaviors(root["cmd"], currentBehavior); // checks to see if we recieved message 
-                                                                    //to switch behaviors
+      String receivedCMD = root["cmd"];
+      resultBehavior = cmdToBehaviors(receivedCMD, currentBehavior); // checks to see if we recieved message 
+      if(isDigit(receivedCMD[0]))
+      {
+        int targetFace = receivedCMD.toInt();
+        Serial.print("HEY BROSKI!!");
+      }
+      
       if(c->cubeID > 40) // cubeID's over 40 means it is attached by a cable... not a real cube // so we print
       {
         String receivedID = root["cubeID"];
@@ -957,7 +1099,6 @@ Behavior relayBehavior(Cube* c, Behavior behaviorToRelay, int cubeToRelayTo, int
   return(behaviorToRelay);
 }
 
-
 /*********************************************************
  *  Everything involving adding/removing behaviors is here...
  *  (1) cmdToBehaviors | converts takes in a String, and 
@@ -990,6 +1131,7 @@ Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior)
   else if(cmd == "sleep")               {behaviorToReturn = SLEEP;}
   else if(cmd == "multi_light_track")   {behaviorToReturn = MULTI_LIGHT_TRACK;}
   else if(cmd == "pre_solo_light")      {behaviorToReturn = PRE_SOLO_LIGHT;}
+  
 return(behaviorToReturn);
 }
 
@@ -1095,89 +1237,4 @@ void printDebugThings(Cube* c, Behavior behaviorToReturnFinal)
   Serial.print("# of Neighbors: ");     Serial.println(c->numberOfNeighbors(0,0));
   Serial.print("Resultalt Behavior: "); Serial.println(behaviorsToCmd(behaviorToReturnFinal));
   Serial.println("--------------Ending BASIC UPKEEP---------------");
-}
-
-
-int checkForMagneticTagsDEMO(Cube* c)
-{
-  int neighbors = 0;
-  if(MAGIC_DEBUG) {Serial.println("Checking for MAGNETIC TAGS");}
-    for(int i = 0; i < 6; i++)
-    { 
-
-      /* This gets activated if we are attached to an actual cube or passive cube
-       * for at least two time steps...
-       */
-       
-      if((c->faces[i].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE) ||
-         (c->faces[i].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE))
-      {
-        neighbors++;
-        if(c->faces[i].returnNeighborAngle(0) > -1)
-        {
-          c->lightFace(faceArrowPointsTo(i, c->faces[i].returnNeighborAngle(0)), &yellow);
-          delay(1000);
-          c->lightCube(&off);
-        }
-      }
-      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_SLEEP)
-      {
-        if(MAGIC_DEBUG == 0)
-          {
-            c->blockingBlink(&purple);
-            MAGIC_DEBUG = 1;
-          }
-        else
-          {
-            c->blockingBlink(&yellow);
-            MAGIC_DEBUG = 0;
-          }
-      }
-      
-      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_PURPLE ||
-        (magicVariable == 1))
-      {
-        int z = i;
-        if(magicVariable)
-        {
-          z = magicFace;
-          magicFace = 0;
-        }
-        magicVariable = 0;
-        c->goToPlaneParallel(z);
-      }
-      
-      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_27)
-      {
-          c->lightCube(&green);
-          delay(1000);
-      }
-      
-      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_23)
-      {
-        
-        for(int times = 0; times < 5; times++)
-        {
-          c->lightCube(&blue);
-          delay(1000);
-          c->blockingBlink(&blue,100,100);
-          Serial.println("sleep");
-          delay(500);
-        }
-      }
-      
-      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_13_ESPOFF)
-      {
-        c->lightCube(&red);
-        delay(1000);
-      }
-
-      
-      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_19)
-      {
-        c->lightCube(&purple);
-        delay(1000);
-      }
-   }
-return(neighbors);
 }

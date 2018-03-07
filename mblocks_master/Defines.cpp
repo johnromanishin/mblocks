@@ -79,6 +79,9 @@ extern int CC_BRAKETIME_R = 12;
 
 EspToCubeMapping espCubeMap[] =
 {
+  {960662, 1}, // PEI BROWN  - F1:E8:71:B2:99:B5
+  
+  //
   {960348,    15},  // PEI ||  GREEN   || EC:47:A9:35:1F:02 01  || WORKS great!
   {959694,    14},  // PEI ||  PURPLE  || FA:AA:25:19:C7:DF 01  || SPINS VERY FREELY
   {960242,    07},  // 

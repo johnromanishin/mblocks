@@ -110,6 +110,9 @@ Behavior climb(Cube* c);
  * b.
  */
 
+// WIFI RELATED
+void wifiTargetFace(Cube* c, int faceToSend, int recipientCube = -1);
+
  //==================Utilities===============================
 void wifiDelay(int delayTime);
 int checkForMagneticTagsStandard(Cube* c);
