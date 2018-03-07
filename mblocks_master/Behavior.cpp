@@ -32,37 +32,10 @@ Behavior basicUpkeep_DEMO_ONLY(Cube* c, Behavior inputBehavior, bool updateFaceL
   // update sensors, numberOfNeighbors, and check wifi commands...
   c->update(updateFaceLEDs); // actually read all of the sensors
   //int numberOfNeighborz = checkForMagneticTagsDEMO(c);
-  
-  int topFace = c->returnTopFace(0);
-  switch (topFace) 
-  {
-    //********************************
-    //case -1: // This is the cube on the BIG Breadboard
-      //c->lightCube(&off);
-      //break;
-    case 0: // This is the cube on the BIG Breadboard
-      c->lightCube(&green);
-      break;
-    case 1: // This is the cube on the BIG Breadboard
-      c->lightCube(&blue);
-      break;
-    case 2: // This is the cube on the BIG Breadboard
-      c->lightCube(&red);
-      break;
-    case 3: // This is the cube on the BIG Breadboard
-      c->lightCube(&teal);
-      break;
-    case 4: // This is the cube on the BIG Breadboard
-      c->lightCube(&purple);
-      break;
-    case 5: // This is the cube on the BIG Breadboard
-      c->lightCube(&yellow);
-      break;
-  }
-  if(topFace != c->returnTopFace(1))
+  if(c->returnTopFace(0) != c->returnTopFace(1)) // checking to see if there is a change in its own orientation
   {
     Serial.print("trying to send wifi Message");
-    wifiTargetFace(c, topFace, -1);
+    wifiTargetFace(c, c->returnTopFace(0), -1);
   }
   return(inputBehavior);
 }
@@ -171,7 +144,31 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior)
       if(isDigit(receivedCMD[0]))
       {
         int targetFace = receivedCMD.toInt();
-        Serial.print("HEY BROSKI!!");
+        switch (targetFace) 
+        {
+        //********************************
+        //case -1: // This is the cube on the BIG Breadboard
+        //c->lightCube(&off);
+        //break;
+        case 0: // This is the cube on the BIG Breadboard
+          c->lightCube(&green);
+          break;
+        case 1: // This is the cube on the BIG Breadboard
+          c->lightCube(&blue);
+          break;
+        case 2: // This is the cube on the BIG Breadboard
+          c->lightCube(&red);
+          break;
+        case 3: // This is the cube on the BIG Breadboard
+          c->lightCube(&teal);
+          break;
+        case 4: // This is the cube on the BIG Breadboard
+          c->lightCube(&purple);
+          break;
+        case 5: // This is the cube on the BIG Breadboard
+          c->lightCube(&yellow);
+          break;
+        }
       }
       
       if(c->cubeID > 40) // cubeID's over 40 means it is attached by a cable... not a real cube // so we print
