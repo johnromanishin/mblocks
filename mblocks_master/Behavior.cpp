@@ -18,6 +18,7 @@ Behavior demo(Cube* c)
     nextBehavior = basicUpkeep_DEMO_ONLY(c, nextBehavior, false);
     nextBehavior = checkForBasicWifiCommands(c, nextBehavior);
     wifiDelay(100);
+    
   }
   return nextBehavior;
 }
@@ -28,7 +29,6 @@ Behavior basicUpkeep_DEMO_ONLY(Cube* c, Behavior inputBehavior, bool updateFaceL
  * for actionable configurations
  */
 {
-  //if(MAGIC_DEBUG) Serial.println("Beginning basicUpKeep");
   // update sensors, numberOfNeighbors, and check wifi commands...
   c->update(updateFaceLEDs); // actually read all of the sensors
   //int numberOfNeighborz = checkForMagneticTagsDEMO(c);
@@ -152,21 +152,33 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior)
         //break;
         case 0: // This is the cube on the BIG Breadboard
           c->lightCube(&green);
+          wifiDelay(1000);
+          c->lightCube(&off);
           break;
         case 1: // This is the cube on the BIG Breadboard
           c->lightCube(&blue);
+          wifiDelay(1000);
+          c->lightCube(&off);
           break;
         case 2: // This is the cube on the BIG Breadboard
           c->lightCube(&red);
+          wifiDelay(1000);
+          c->lightCube(&off);
           break;
         case 3: // This is the cube on the BIG Breadboard
           c->lightCube(&teal);
+          wifiDelay(1000);
+          c->lightCube(&off);
           break;
         case 4: // This is the cube on the BIG Breadboard
           c->lightCube(&purple);
+          wifiDelay(1000);
+          c->lightCube(&off);
           break;
         case 5: // This is the cube on the BIG Breadboard
           c->lightCube(&yellow);
+          wifiDelay(1000);
+          c->lightCube(&off);
           break;
         }
       }

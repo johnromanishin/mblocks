@@ -497,7 +497,7 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 10;
       break;
        
-    case 3: // PC Blue  D8:9C:4D:EA:27:65
+    case 15044426: // PC Blue  D8:9C:4D:EA:27:65
       GlobalCubeID = 13;
       
       TRAVERSE_RPM_F = 6500;

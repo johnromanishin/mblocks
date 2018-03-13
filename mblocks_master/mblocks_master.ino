@@ -21,7 +21,7 @@
 // Global Objects
 Cube c; // Initialize the Cube Object c globally so that things don't crash
 
-char storage[256]; // This creates storage space for decoding serial messages
+char storage[512]; // This creates storage space for decoding serial messages
 //SerialDecoderBuffer buf = {storage, 256, 0}; //Struct used to detect serial messages from Kyles Board
 
 // Beginning Behavior
@@ -44,72 +44,7 @@ void setup() // Actually the main loop...
   c.superSpecialBlink(&white, 40);
   c.blinkRingAll();
   c.lightCube(&off);
-
-   ///// BUNCH OF RANDOM TESTING ////
-//  for(int i = 0; i < 10; i++)
-//  {
-//    c.updateSensors();
-//    if(c.numberOfNeighbors() > 1)
-//    {
-//      Serial.print("c.whichFaceHasNeighbor(0) : ");Serial.println(c.whichFaceHasNeighbor(0));
-//      Serial.print("c.whichFaceHasNeighbor(1) : ");Serial.println(c.whichFaceHasNeighbor(1));
-//      if(c.areFacesOpposite(c.whichFaceHasNeighbor(0), c.whichFaceHasNeighbor(1)) == true)
-//      {
-//        c.blockingBlink(&green);
-//      }
-//      else
-//      {
-//        c.blockingBlink(&red);
-//      }
-//    }
-//  }
-//  
-//  c.lightPlaneRing(PLANE0123);
-//  delay(500);
-//  c.lightPlaneRing(PLANE0425);
-//  delay(500);
-//  c.lightPlaneRing(PLANE1453);
-//  delay(500);
-//  Serial.println("ver");
-//  if(c.anythingOnSerial(400) == true)
-//  {
-//    c.blockingBlink(&green, 10);
-//  }
-//  else
-//  {
-//    c.blockingBlink(&red, 10);
-//  }
-//  
-//  Serial.println("vet");
-//  if(c.anythingOnSerial(400) == false)
-//  {
-//    c.blockingBlink(&green, 10);
-//  }
-//  else
-//  {
-//    c.blockingBlink(&red, 10);
-//  }
   
-  ///// BUNCH OF RANDOM TESTING ////
-  //if(c.cubeID != 12)
-  //c.blinkOutMessageWholeCube(3, 2);
-//  if(c.cubeID > 30)
-//  {
-//    for(int i = 0; i < 20; i++)
-//    {
-//      c.updateSensors();
-//      delay(300);
-//    }
-//  }
-//  else
-//  {
-//    for(int i = 0; i < 50; i ++)
-//    {
-//      c.faces[2].blinkRingDigit(3, 20);
-//      c.faces[2].blinkRingDigit(2, 20);
-//      c.faces[2].blinkRingDigit(1, 20);
-//    }
-//  }
   ///////////////////ACTUAL LOOP////////////////////
   while((millis() < c.shutDownTime) && (!shutDown))
   {
