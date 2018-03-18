@@ -37,9 +37,6 @@ void setup() // Actually the main loop...
   c.update(); // populates initial readings for variables such as which face is up, and # of neighbors
   c.updateCubeID(GlobalCubeID); // updated variable c.cubeID from initialization loop up table...
   c.superSpecialBlink(&purple, 100);
-  c.superSpecialBlink(&red, 75);
-  c.superSpecialBlink(&yellow, 55);
-  c.superSpecialBlink(&teal, 50);
   c.superSpecialBlink(&blue, 40);
   c.superSpecialBlink(&white, 40);
   c.blinkRingAll();

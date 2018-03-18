@@ -16,8 +16,8 @@
 painlessMesh  mesh;
 
 extern Cube c;
-String jsonBufferSpace[200];
-CircularBuffer<String, true> jsonCircularBuffer(200, jsonBufferSpace);
+String jsonBufferSpace[500];
+CircularBuffer<String, true> jsonCircularBuffer(500, jsonBufferSpace);
 
 bool calc_delay = false;
 SimpleList<uint32_t> nodes;

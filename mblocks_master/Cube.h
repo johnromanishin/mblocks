@@ -4,7 +4,6 @@
 #include "Defines.h"
 #include "CBuff.h"
 #include "Face.h"
-#include "Z_ArrowMap.h"
 #include <Arduino.h>
 
 //typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING, PLANEERROR} PlaneEnum;
@@ -120,7 +119,7 @@ class Cube
     void blinkRingAll(int delayLength = 50, int numberOfTimes = 1);
     
     // Misc. Useful Functions
-    void shutDown();                   // Turns off the entire cub
+    void shutDown();                   // Turns off the entire cube
     long cubeMAC = ESP.getChipId();
     //
     CircularBuffer<Behavior> behaviorBuffer;
@@ -141,8 +140,6 @@ class Cube
     CircularBuffer<int> gxFrameBuffer;
     CircularBuffer<int> gyFrameBuffer;
     CircularBuffer<int> gzFrameBuffer;
-
-    ArrowMap arrowMap;
     //
     Face faces[6];
     Cube();

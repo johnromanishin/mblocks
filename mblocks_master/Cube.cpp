@@ -3,7 +3,6 @@
 #include "Behavior.h"
 #include "Cube.h"
 #include "Face.h"
-#include "Z_ArrowMap.h"
 #include <Wire.h> 
 #include <stdint.h>
 
@@ -12,7 +11,7 @@
 // *INDEX - crt + find - to go to...
 // *PLAN-E | plane related
 // *UPDAT-E | - related to updating things...
-// *MOTIO-N | related to motion
+// *MOTIO-N | related to motion]
 // *NEIGHBO-R  -related to figuring out neighbors
 // *SENSOR-S - IMU's and light sensors
 // *MIS-C - random things
