@@ -27,12 +27,12 @@ Motion shake_F        = {"shake"      , false   , 4500            , 4000        
 Motion softShake_F    = {"softShake"  , false   , 3500            , 3000          , 3000              , 20            , 250       ,"f"};
 
 
-Motion explode_F      = {"explode"    , false   , 15500            , 6000         , 5000              , 30            , 250       ,"f"};
-Motion explode_R      = {"explode"    , false   , 15500            , 6000         , 5000              , 30            , 250       ,"r"};
+Motion explode_F      = {"explode"    , false   , 15500           , 6000          , 5000              , 30            , 250       ,"f"};
+Motion explode_R      = {"explode"    , false   , 15500           , 6000          , 5000              , 30            , 250       ,"r"};
 //
 
-Motion rollDouble_F      = {"double"    , false   , 15500            , 3000         , 3000              , 5            , 250       ,"f"};
-Motion rollDouble_R      = {"double"    , false   , 15500            , 3000         , 3000              , 5            , 250       ,"r"};
+Motion rollDouble_F   = {"double"     , false   , 15500           , 3000          , 3000              , 5             , 250       ,"f"};
+Motion rollDouble_R   = {"double"     , false   , 15500           , 3000          , 3000              , 5             , 250       ,"r"};
 
 //  List of possible colors;
 Color red =     {1,0,0};
@@ -44,11 +44,10 @@ Color teal  =   {0,1,1};
 Color white =   {1,1,1};
 Color off   =   {0,0,0};
 
-int faceVersion = 1;
-int GlobalCubeID = 0;
+//int faceVersion = 1;
 // typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING, PLANEERROR} PlaneEnum;
-//int GlobalplaneChangeTime = 60;
-//int GlobalplaneChangeRPM = 5000;
+
+int GlobalCubeID = 0;
 extern int GlobalplaneChangeTime;
 extern int GlobalplaneChangeRPM;
 extern int GlobalPlaneAccel = 2100;
@@ -79,6 +78,8 @@ extern int CC_BRAKETIME_R = 12;
 
 EspToCubeMapping espCubeMap[] =
 {
+  {9086927, 99},  // || 2139793359 ||  This is the cube on the BIG Breadboard
+  {13374829, 98}, // || 885790061  ||  Smaller breadboard...
   {959839, 16},   // PEI BLACK DB:9D:99:1A:BA:23
   {960662, 1},    // PEI BROWN  - F1:E8:71:B2:99:B5
   {959694, 14},   // PEI PURPLE | FA:AA:25:19:C7:DF
@@ -95,20 +96,19 @@ EspToCubeMapping espCubeMap[] =
   {8577715, 6},   // PC Brown  C5:FF:AB:04:3B:9D
   {15044426, 13}, // PC Blue  D8:9C:4D:EA:27:65
   {8575308, 4},   // PC Green : ED:A6:6A:8E:1B:58  
-  //{15044359, 3}: // ORANGE PC RED  CD:2B:5E:AB:3E:F3
+//{15044359, 3}: // ORANGE PC RED  CD:2B:5E:AB:3E:F3
   {9086927,   3}     // ESP thing "A" with orange board (magID 3)
 };
-//{959839,    10},  // 
-//{959694,    99},  // PEI ||  BLUE    || FA:AA:25:19:C7:DF 01  ||  WIFI doesn't work great..
 
 
-int getEspIDFromCube(int GlobalCubeID)
+
+int getEspIDFromCube(int toCheckID)
 {
   int idex;
   int foundit = 0;
   for(idex = 0; idex < (sizeof(espCubeMap) / sizeof(espCubeMap[0])); idex++)
   {
-    if(GlobalCubeID == espCubeMap[idex].cube)
+    if(toCheckID == espCubeMap[idex].cube)
     {
       foundit = 1;
       break;

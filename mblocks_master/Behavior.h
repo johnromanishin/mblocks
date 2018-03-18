@@ -22,7 +22,6 @@
 ////////////////////////////////////////////////////////////////////////////////////
 // I. Behaviors involving non lattice connected Cubes or small mobile assemblies////
 ////////////////////////////////////////////////////////////////////////////////////
-Behavior sleep(Cube* c);
 
 Behavior soloSeekLight(Cube* c);
 /*        --- What it does ---
@@ -55,14 +54,6 @@ Behavior duoSeekLight(Cube* c);
 ///////////////////////////////////////////////////////////
 // II. Behaviors for Cubes connected on a large lattice////
 ///////////////////////////////////////////////////////////
-Behavior crystallize();
-/*        --- What it does ---
- * 0.
- * 1.
- *        --- Exit Conditions ---
- * a.
- * b.
- */
 Behavior chilling(Cube* c);
 /*        --- What it does ---
  * 0.

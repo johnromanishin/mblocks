@@ -29,7 +29,6 @@ Behavior behavior = DEMO; // initial Behavior Cube implements
 
 void setup() // Actually the main loop...
 {
-  int mainLoopCounter = 0;
   int timerCounter = millis(); // start time
   bool shutDown = false;
   initializeCube(); // Runs this code once to setup input/outputs, communication networks...
@@ -41,18 +40,23 @@ void setup() // Actually the main loop...
   c.superSpecialBlink(&white, 40);
   c.blinkRingAll();
   c.lightCube(&off);
-  
   ///////////////////ACTUAL LOOP////////////////////
-  while((millis() < c.shutDownTime) && (!shutDown))
-  {
-    mainLoopCounter++;
-    behavior = checkForBehaviors(&c, behavior);
-  }
-  c.blockingBlink(&red);
-  c.shutDown();
+//  while((millis() < c.shutDownTime) && (!shutDown))
+//  {
+//    mainLoopCounter++;
+//    behavior = checkForBehaviors(&c, behavior);
+//  }
+  //c.blockingBlink(&red);
+  //c.shutDown();
 }
 // This is here only becuase arduino won't compile without it, but it is never used, 
 //the real loop is "while(1)" in the void setup() Function
 void loop()
 {
+  behavior = checkForBehaviors(&c, behavior);
+  if(millis() < c.shutDownTime)
+  {
+    c.blockingBlink(&red);
+    c.shutDown();
+  }
 }

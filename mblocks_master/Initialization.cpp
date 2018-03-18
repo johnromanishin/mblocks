@@ -39,7 +39,7 @@ void initializeCube()
   initializeWifiMesh();
   wifiDelay(200);
   int count = 0;
-  while(!checkFaceVersion) // check to see if face boards are connected
+  while(!checkIfConnected) // check to see if face boards are connected
   {
     whatToDoIfIamNotConnectedAtBeginning(); // assuming we are not connected...
                                             // we reset things.
@@ -53,6 +53,18 @@ void initializeCube()
 }
 //// Smaller Functions ////
 
+bool checkIfConnected()
+{
+  int error;
+  for(int i = 0; i < 6; i++)
+  {
+    Wire.beginTransmission(0x20);
+    error = Wire.endTransmission();
+    if(error == 0)
+      return(true);
+    delay(1000);
+  }
+}
 void shutDownMasterBoard()
 {
   while (true) {
@@ -61,54 +73,17 @@ void shutDownMasterBoard()
   }
 }
 
-bool checkFaceVersion()
-/*
- * This functions checks to see which version of the cube's Face hardware is running
- * It will first check for version 1: Containing i2c address 0x21,
- * Then it will check for version 0: Containing i2c address 
- */
-{
-  int error;
-  for(int i = 0; i < 6; i++)
-  {
-    Wire.beginTransmission(0x20); // Check for i2c address 0x20
-    error = Wire.endTransmission();  
-    if(error == 0){faceVersion = 1; return(true);}
-    delay(100);      
-    
-    Wire.beginTransmission(0x21); // Check for i2c address 0x21
-    error = Wire.endTransmission();  
-    if(error == 0){faceVersion = 1; return(true);}
-    delay(100);
-
-    Wire.beginTransmission(0x22); // Check for i2c address 0x22
-    error = Wire.endTransmission();  
-    if(error == 0){faceVersion = 1; return(true);}
-    delay(100);
-
-    Wire.beginTransmission(0x23); // Check for i2c address 0x22
-    error = Wire.endTransmission();  
-    if(error == 0){faceVersion = 1; return(true);}
-    delay(100);
-      
-    Wire.beginTransmission(0x04);
-    error = Wire.endTransmission();  
-    if(error == 0){faceVersion = 0; return(true);}
-    delay(500);
-  }
-  return(false);
-}
-
 void whatToDoIfIamNotConnectedAtBeginning()
 {
   mesh.update();
   resetI2cBus();
+  delay(100);
 }
 
 void initializeHardware()
 {
   Serial.begin(115200);       // open serial connection to the Slave Board
-  delay(2000);
+  delay(1500);
   Serial.print("ESP Chip ID: ");
   Serial.println(ESP.getChipId());
   pinMode(Switch, OUTPUT);    // Initialize the pin to controll the power switching circuitry

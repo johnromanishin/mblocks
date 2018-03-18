@@ -9,8 +9,8 @@
 
 void initializeCube();
 void initializeClasses(int faceVersion);
-bool checkFaceVersion();
 void shutDownMasterBoard();
+bool checkIfConnected();
 void lookUpCalibrationValues();
 void initializeHardware();
 void disableAutoReset();

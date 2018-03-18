@@ -22,7 +22,7 @@
 
 Cube::Cube()
   :    
-    behaviorBuffer(ARRAY_SIZEOF(this->behaviorBufferData),                    this->behaviorBufferData),
+    //behaviorBuffer(ARRAY_SIZEOF(this->behaviorBufferData),                    this->behaviorBufferData),
     currentPlaneBuffer(ARRAY_SIZEOF(this->currentPlaneBufferData),            this->currentPlaneBufferData),
     moveSuccessBuffer(ARRAY_SIZEOF(this->moveSuccessBufferData),              this->moveSuccessBufferData),
     topFaceBuffer(ARRAY_SIZEOF(this->topFaceBufferData),                      this->topFaceBufferData),
@@ -1185,8 +1185,11 @@ int oppositeFace(int face)
 void Cube::updateCubeID(int idNUM)
 {
   this->cubeID = idNUM;
+  Serial.print("My New cubeID is: ");
+  Serial.println(idNUM);
   if(GlobalCubeID > 50) // stationay cube
   {
+    Serial.print("Printing Debugging Information");
     MAGIC_DEBUG = 1;
   }
 }

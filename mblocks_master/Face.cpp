@@ -1,5 +1,3 @@
-// We want to implement classes for ease of reference as we construct and modify code.
-// The classes we define here are the cube, the face.
 #include "Defines.h"
 #include "Cube.h"
 #include "Face.h"
@@ -43,7 +41,7 @@ Face::Face()
 bool Face::updateFace(bool blinkLEDs)
 {
   bool updateSuccess = false;
-  if(blinkLEDs == true)
+  if(blinkLEDs == true) // this is true if we are trying to communicate through light blinking...
   {
   updateSuccess = (this->enableSensors() &&
                    this->updateAmbient(true) &&
@@ -58,6 +56,7 @@ bool Face::updateFace(bool blinkLEDs)
                    this->updateMagneticBarcode()); // actually reads magnetic valuess
   }
   this->neighborPresenceBuffer.push(this->processTag()); // actually processes Tag... adds 
+  
   if(this->returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE)
   {
     this->blinkRingDigit(2, 3);
@@ -402,40 +401,16 @@ void Face::blinkRing(int delayLength, int numberOfTimes)
   for(int i = 0; i < numberOfTimes; i++)
   {
     this->turnOnFaceLEDs(1, 0, 0, 0);
-    delay(delayLength);
+    wifiDelay(delayLength);
     this->turnOnFaceLEDs(0, 1, 0, 0);
-    delay(delayLength);
+    wifiDelay(delayLength);
     this->turnOnFaceLEDs(0, 0, 1, 0);
-    delay(delayLength);
+    wifiDelay(delayLength);
     this->turnOnFaceLEDs(0, 0, 0, 1);
-    delay(delayLength);
+    wifiDelay(delayLength);
   }
   this->turnOffFaceLEDs();
 }
-
-//bool Face::updateReflectivity()
-///*
-// * 
-// */
-//{
-//  activateLightSensor(this->ambientSensorAddress);
-//  bool error = false; // not yet implemented
-//  delay(17); // 15ms delay to ensure integration period for light sensor works
-//  int reading = 0;
-//  Wire.beginTransmission(this->ambientSensorAddress); 
-//  Wire.write(byte(0x8C)); // this is the register where the Ambient values are stored
-//  Wire.endTransmission();
-//  Wire.requestFrom(this->ambientSensorAddress, 2);
-//  if (2 <= Wire.available())  // request data from the sensor
-//    {
-//      reading = Wire.read();
-//      reading |= Wire.read()<<8;
-//    }
-//  this->reflectivityBuffer.push(reading); // adds the sensor value to the buffer
-//  //Serial.print("Reflectivity: ");Serial.println(reading);
-//  
-//  return(true);
-//}
 
 int Face::returnAmbientValue(int index)
 {

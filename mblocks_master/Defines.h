@@ -91,6 +91,7 @@ extern Motion explode_R;
 
 extern Motion rollDouble_F;
 extern Motion rollDouble_R;
+
 /// ESP ID to CUBE MAP ////
 typedef struct EspToCubeMapping
 {
@@ -105,8 +106,8 @@ typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING,
 
 /// Global Variables ///
 #define DEBUG1 0 // DEBUG was already used somewhere
-#define DEBUG_VERBOSE 0
-#define DEBUG_BEHAVIOR 0
+//#define DEBUG_VERBOSE 0
+//#define DEBUG_BEHAVIOR 0
 
 #define FACES 6  // Number of faces on a cube...
 // Hardware Pin Definitions
@@ -116,7 +117,7 @@ typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING,
 #define SDA 2     //  Managed by the wire.begin in initializeCube()
 #define SCL 14    //  Managed by the wire.begin in initializeCube() 
 /////////////////////////////////////////////////////////////////////
-extern int faceVersion;
+//extern int faceVersion; // This 
 extern int GlobalCubeID;
 extern int GlobalPlaneAccel;
 extern bool magicTheLight;

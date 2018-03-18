@@ -48,16 +48,17 @@ class Face
     
     void getMagnetEncoderAddresses(int* target)
     {
-      switch(faceVersion)
-      {
-        case 1:
-          target[0] = 0x43; target[1] = 0x42;
-          break;
+      target[0] = 0x43; target[1] = 0x42;
+      //switch(faceVersion)
+      //{
+        //case 1:
+          //target[0] = 0x43; target[1] = 0x42;
+          //break;
           
-        default:
-          target[0] = 0x42; target[1] = 0x43;
-          break;
-      }
+        //default:
+          //target[0] = 0x42; target[1] = 0x43;
+          //break;
+      //}
     }
     
       // Data storage spaces
@@ -78,13 +79,13 @@ class Face
     CircularBuffer<int> magnetStrengthBuffer_A;
     
       // Neighbor Information Buffers
-    int neighborData[8];
-    TagType     neighborTypeData[10];
-    TagCommand  neighborCommandData[10];
-    int neighborIDData[10];
-    int neighborFaceData[10];
-    int neighborAngleData[10];
-    bool neighborPresenceData[10];
+    int neighborData[5];
+    TagType     neighborTypeData[5];
+    TagCommand  neighborCommandData[5];
+    int neighborIDData[5];
+    int neighborFaceData[5];
+    int neighborAngleData[5];
+    bool neighborPresenceData[5];
     int neighborLightDigitData[10];
     
       // Circular Buffers for Magnetic Tag Variables

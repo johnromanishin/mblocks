@@ -122,7 +122,7 @@ class Cube
     void shutDown();                   // Turns off the entire cube
     long cubeMAC = ESP.getChipId();
     //
-    CircularBuffer<Behavior> behaviorBuffer;
+    //CircularBuffer<Behavior> behaviorBuffer;
     CircularBuffer<PlaneEnum> currentPlaneBuffer;
     CircularBuffer<bool> moveSuccessBuffer;
     CircularBuffer<int> topFaceBuffer;

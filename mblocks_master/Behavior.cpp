@@ -6,142 +6,44 @@
 #include "Communication.h"      // Includes wifi
 #include "Defines.h"
 
-//================================================================
-//==========================DEMO==============================
-//================================================================
-Behavior demo(Cube* c)
-{
-  long loopCounter = 0;
-  Behavior nextBehavior = DEMO;
-  while(nextBehavior == DEMO) // loop until something changes the next behavior
-  {
-    nextBehavior = basicUpkeep_DEMO_ONLY(c, nextBehavior, false);
-    nextBehavior = checkForBasicWifiCommands(c, nextBehavior);
-    wifiDelay(100);
-    
-  }
-  return nextBehavior;
-}
-
-Behavior basicUpkeep_DEMO_ONLY(Cube* c, Behavior inputBehavior, bool updateFaceLEDs)
-/*
- * Then it checks the wifi BUFFER and checks the magnetic tags
- * for actionable configurations
- */
-{
-  // update sensors, numberOfNeighbors, and check wifi commands...
-  c->update(updateFaceLEDs); // actually read all of the sensors
-  //int numberOfNeighborz = checkForMagneticTagsDEMO(c);
-  if(c->returnTopFace(0) != c->returnTopFace(1)) // checking to see if there is a change in its own orientation
-  {
-    Serial.print("trying to send wifi Message");
-    wifiTargetFace(c, c->returnTopFace(0), -1);
-  }
-  return(inputBehavior);
-}
-
-int checkForMagneticTagsDEMO(Cube* c)
-{
-  int neighbors = 0;
-  if(MAGIC_DEBUG) {Serial.println("Checking for MAGNETIC TAGS");}
-    for(int i = 0; i < 6; i++)
-    { 
-
-      /* This gets activated if we are attached to an actual cube or passive cube
-       * for at least two time steps...
-       */
-       
-      if((c->faces[i].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE) ||
-         (c->faces[i].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE))
-      {
-        neighbors++;
-        if(c->faces[i].returnNeighborAngle(0) > -1)
-        {
-          c->lightFace(faceArrowPointsTo(i, c->faces[i].returnNeighborAngle(0)), &yellow);
-          delay(1000);
-          c->lightCube(&off);
-        }
-      }
-      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_SLEEP)
-      {
-        if(MAGIC_DEBUG == 0)
-          {
-            c->blockingBlink(&purple);
-            MAGIC_DEBUG = 1;
-          }
-        else
-          {
-            c->blockingBlink(&yellow);
-            MAGIC_DEBUG = 0;
-          }
-      }
-      
-      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_PURPLE ||
-        (magicVariable == 1))
-      {
-        int z = i;
-        if(magicVariable)
-        {
-          z = magicFace;
-          magicFace = 0;
-        }
-        magicVariable = 0;
-        c->goToPlaneParallel(z);
-      }
-      
-      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_27)
-      {
-          c->lightCube(&green);
-          delay(1000);
-      }
-      
-      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_23)
-      {
-        
-        for(int times = 0; times < 5; times++)
-        {
-          c->lightCube(&blue);
-          delay(1000);
-          c->blockingBlink(&blue,100,100);
-          Serial.println("sleep");
-          delay(500);
-        }
-      }
-      
-      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_13_ESPOFF)
-      {
-        c->lightCube(&red);
-        delay(1000);
-      }
-
-      
-      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_19)
-      {
-        c->lightCube(&purple);
-        delay(1000);
-      }
-   }
-return(neighbors);
-}
-
 //=============================================================================================
 //=============================WIFI Checking  CHECKING=========================================
 //=============================================================================================
 Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior)
 {
-  //if(MAGIC_DEBUG) {Serial.println("Checking for basic WIFI Commands...");}
   int attempts = 5;
   Behavior resultBehavior = currentBehavior;
-  while(!jsonCircularBuffer.empty() && attempts > 0) //while there are still messages, and we haven't tried 5 times
+  while(!jsonCircularBuffer.empty() && attempts > 0) // while there are still messages, and we haven't tried 5 times
   {
-    StaticJsonBuffer<1000> jb;
+    StaticJsonBuffer<1000> jb; // Create a buffer to store our Jason Objects...
     JsonObject& root = jb.parseObject(jsonCircularBuffer.pop());
-    if((root["cubeID"] == getCubeIDFromEsp(ESP.getChipId())) || // If message matches your ID
-       (root["cubeID"] == -1))                                  // or if message is brodcast
+    if((root["targetID"] == getCubeIDFromEsp(ESP.getChipId())) || // If message matches your ID
+       (root["targetID"] == -1))                                  // or if message is brodcast
     {
-      String receivedCMD = root["cmd"];
-      resultBehavior = cmdToBehaviors(receivedCMD, currentBehavior); // checks to see if we recieved message 
-      if(isDigit(receivedCMD[0]))
+      // At this point, we have determined that the message is for us... so now we try to decode the contents
+      String receivedCMD = root["cmd"]; // this extracts the contents of "cmd" and puts it into a local variable
+
+      /* checks to see if we recieved message matches a behavior... 
+       *  If it doesn't we default to the currentBehavior
+       */
+      resultBehavior = cmdToBehaviors(receivedCMD, currentBehavior);                                                                      
+
+      /*
+       * If the command we received is "blink" we then quickly blink the cube's face LED's
+       */
+      if(receivedCMD == "blink")
+      {
+        for(int i = 0; i < 6; i++)
+        {
+          c->faces[i].turnOnFaceLEDs(0,1,0,1); 
+        }
+        wifiDelay(300);
+        for(int i = 0; i < 6; i++)
+        {
+          c->faces[i].turnOffFaceLEDs(); 
+        }
+      }
+      else if(isDigit(receivedCMD[0]))
       {
         int targetFace = receivedCMD.toInt();
         switch (targetFace) 
@@ -185,15 +87,49 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior)
       
       if(c->cubeID > 40) // cubeID's over 40 means it is attached by a cable... not a real cube // so we print
       {
-        String receivedID = root["cubeID"];
+        String targetID = root["targetID"];
         String receivedCMD = root["cmd"];
-        String messageString = "Message: From: " + receivedID + " Command is: " + receivedCMD;// + " Command is: ";
+        String senderID = root["senderID"];
+        String messageString = "Message: From: " + senderID + " to: " + targetID + " Command is: " + receivedCMD;// + " Command is: ";
         Serial.println(messageString);
       }
     }
     attempts--;
   }
   return(resultBehavior);
+}
+
+//================================================================
+//==========================DEMO==============================
+//================================================================
+Behavior demo(Cube* c)
+{
+  long loopCounter = 0;
+  Behavior nextBehavior = DEMO;
+  while(nextBehavior == DEMO) // loop until something changes the next behavior
+  {
+    nextBehavior = basicUpkeep_DEMO_ONLY(c, nextBehavior, false);
+    nextBehavior = checkForBasicWifiCommands(c, nextBehavior);
+    wifiDelay(100);
+  }
+  return nextBehavior;
+}
+
+Behavior basicUpkeep_DEMO_ONLY(Cube* c, Behavior inputBehavior, bool updateFaceLEDs)
+/*
+ * Then it checks the wifi BUFFER and checks the magnetic tags
+ * for actionable configurations
+ */
+{
+  // update sensors, numberOfNeighbors, and check wifi commands...
+  c->update(updateFaceLEDs); // actually read all of the sensors
+  //int numberOfNeighborz = checkForMagneticTagsDEMO(c);
+  if(c->returnTopFace(0) != c->returnTopFace(1)) // checking to see if there is a change in its own orientation
+  {
+    Serial.print("trying to send wifi Message");
+    wifiTargetFace(c, c->returnTopFace(0), -1);
+  }
+  return(inputBehavior);
 }
 
 void wifiTargetFace(Cube* c, int faceToSend, int recipientCube)
@@ -327,8 +263,6 @@ Behavior sleep(Cube* c)
     delay(300);
   }
 }
-
-
 
 Behavior followArrows(Cube* c) // purple
 /*
@@ -507,49 +441,6 @@ Behavior soloSeekLight(Cube* c) // green
         }
       } 
     }
-    
-    /* 
-     *  this happens if we suspect we might be stuck...
-     *  we will try to move, and if we fail
-     *  then we set the stuck flag to be true,
-     */
-    //****************************
-//    else if(iMightBeStuck)
-//    {
-//      iMightBeStuck = false; // reset flag
-//      
-//      if(c->returnForwardFace() == -1)
-//      {
-//        //if(MAGIC_DEBUG){Serial.println("MILLIS() % 3 = "); Serial.println((millis()%3 != 0));}
-//        if(millis()%3 != 0)
-//        {
-//          if(c->moveBLDCACCEL(1, GlobalMaxAccel, 1700) == false)
-//          {
-//            iAmStuck = true;
-//            iMightBeStuck = true;
-//          }
-//        }
-//        else
-//        {
-//          if(c->moveIASimple(&traverse_F) == false)
-//          {
-//            iAmStuck = true;
-//            iMightBeStuck = true;
-//
-//            
-//          }
-//        }
-//      }
-//      else // try to roll... if we fail... advance to plane changing, etc...
-//      {
-//        if(c->roll(direct, 10000) == false)
-//        {
-//          delay(10);
-//          iAmStuck = true;
-//          iMightBeStuck = true;
-//        }
-//      }
-//    }
     //****************************
     else if(c->returnForwardFace() == -1)
     {
@@ -960,8 +851,6 @@ Behavior crystalize(Cube* c, painlessMesh* m)
   
 }
 
-
-
 //=============================================================================================
 //=============================MAGNETIC TAGS CHECKING==========================================
 //=============================================================================================
@@ -1059,31 +948,7 @@ int checkForMagneticTagsStandard(Cube* c)
       }
       if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_19)
       {
-//        //====================SEND DEBUG =================== 
-//        StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
-//        JsonObject& root2 = jsonBuffer.createObject(); // & is "c++ reference"
-//        String message =  "  ID#: " + String(ESP.getChipId()) +
-//                          "  on Face: " + String(i) + "  " +
-//                          "  t.type: " + String(t.type) +
-//                          "  t.angle: " + String(t.angle) +
-//                          "  t.id: " + String(t.id) +
-//                          "  t.face: " + String(t.face) +
-//                          //"  t.Strength: " + String(t.strength) +
-//                          "  t.command: " + String(t.command) +
-//                          " --- " +
-//                          " A0: " +  String(c->faces[i].returnMagnetAngle_A(0)) + 
-//                          " S0: " +  String(c->faces[i].returnMagnetStrength_A(0)) + 
-//                          " A1: " +  String(c->faces[i].returnMagnetAngle_B(0)) + 
-//                          " S1: " +  String(c->faces[i].returnMagnetStrength_B(0));   
-//                         // " Reflectivity: " + String(reflect);                    
-//                          
-//        root2["msg"] = message;       
-//        root2["cmd"]  = "debugMSG";  
-//        root2["cubeID"] = -1;
-//        String newStr;
-//        root2.printTo(newStr); 
-//        mesh.sendBroadcast(newStr);
-        //====================END SEND DEBUG ===================       
+
       }
    }
 return(neighbors);
@@ -1169,7 +1034,7 @@ return(stringToReturn);
 
 Behavior checkForBehaviors(Cube* c, Behavior behavior)
 {
-  c->behaviorBuffer.push(behavior); // adds the behavior into a buffer
+  //c->behaviorBuffer.push(behavior); // adds the behavior into a buffer
   if (behavior == SOLO_LIGHT_TRACK)
     behavior = soloSeekLight(c);
   else if (behavior == DUO_LIGHT_TRACK)
