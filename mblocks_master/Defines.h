@@ -4,6 +4,32 @@
 #include <Arduino.h>
 #include "Communication.h"
 
+/*
+ * Plane Enums are the possible states that the internal robot can be in
+ * in regards to the frame. Functions involving PlaneEnums involve 
+ * 
+ * PlaneEnum Cube::findPlaneStatus(bool reset) - returns (And adds to buffer) the current plane 
+ * bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane) - actually attempts to go to a certian plane
+ * 
+ * Also See:
+ * bool Cube::isValidPlane() - returns TRUE if 
+ * PlaneEnum returnPlane(int face1, int face2)
+ */
+typedef enum PlaneEnum 
+{
+  PLANE0123,  // Valid Plane, with face "5" On Top
+  PLANE0425,  // Valid Plane, with face "1" On Top
+  PLANE1453,  // Valid Plane, with face "2" On Top
+  PLANENONE,  // Means we are inbetween two valid planes
+  PLANEMOVING,// gyro values show we are moving, measurements are therefor unreliable
+  PLANEERROR  // Error - maybe I2C bus is disconnected?
+} PlaneEnum;
+
+/*
+ * TagCommands are different types of "commands" that can be contained within 
+ * the special magnetic tags. Commands are designated by having the two magnetic Values
+ * to be about the same value, i.e. Both digits are 27, or one is 26 and the other is 27
+ */
 typedef enum TagCommand
 {
   TAGCOMMAND_NONE,
@@ -73,8 +99,7 @@ extern Color teal;
 extern Color white;
 extern Color off;
 
-// List of Possible Motions, defined in Motion.cpp
-
+// List of Possible Motions, defined in Defines.cpp
 
 extern Motion traverse_F;
 extern Motion traverse_R;

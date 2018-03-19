@@ -17,8 +17,6 @@
 //    ATTRACTIVE,
 //} Behavior;
 
-// Behaviors are enumerated
-
 ////////////////////////////////////////////////////////////////////////////////////
 // I. Behaviors involving non lattice connected Cubes or small mobile assemblies////
 ////////////////////////////////////////////////////////////////////////////////////
@@ -105,20 +103,20 @@ Behavior climb(Cube* c);
 void wifiTargetFace(Cube* c, int faceToSend, int recipientCube = -1);
 Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior);
 Behavior relayBehavior(Cube* c, Behavior behaviorToRelay, int cubeToRelayTo = -1, int timesToRelay = 4);
-void wifiDelay(int delayTime);
-
 
  //==================Utilities===============================
 int checkForMagneticTagsStandard(Cube* c);
 Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior);
 Behavior checkForBehaviors(Cube* c, Behavior behavior);
-Behavior basicUpkeep(Cube* c, Behavior currentBehavior, bool updateFaceLEDs = true);
+
+Behavior basicUpkeep(Cube* c, Behavior currentBehavior);
 
 int checkForMagneticTagsDEMO(Cube* c);
 
 int processLightDigits(Cube* c);
+
 Behavior basicUpkeep_DEMO_ONLY(Cube* c, Behavior inputBehavior, bool updateFaceLEDs);
 
 String behaviorsToCmd(Behavior inputBehavior);
-void printDebugThings(Cube* c, Behavior behaviorToReturnFinal);
+
 #endif

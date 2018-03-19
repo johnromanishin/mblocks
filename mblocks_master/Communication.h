@@ -6,8 +6,8 @@
 #include <ArduinoJson.h>
 #include "CBuff.h"
 
-extern painlessMesh mesh;
-extern CircularBuffer<String, true> jsonCircularBuffer;
+extern painlessMesh mesh; // This is the class for the wireless mesh, usage is mesh.function()
+extern CircularBuffer<String, true> jsonCircularBuffer; // we store received messages in a circular buffer
 
 void initializeWifiMesh();
 bool sendMessage(String message);
