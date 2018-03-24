@@ -32,19 +32,19 @@ class Cube
     bool moveSuccessBufferData[10];       // this buffer stores a history of moves and if they worked or not
     int topFaceBufferData[10];
 
-    int axCoreData[20];
-    int ayCoreData[20];
-    int azCoreData[20];
-    int gxCoreData[20];
-    int gyCoreData[20];
-    int gzCoreData[20];
+    int axCoreData[10];
+    int ayCoreData[10];
+    int azCoreData[10];
+    int gxCoreData[10];
+    int gyCoreData[10];
+    int gzCoreData[10];
 
-    int axFrameData[20];
-    int ayFrameData[20];
-    int azFrameData[20];
-    int gxFrameData[20];
-    int gyFrameData[20];
-    int gzFrameData[20];
+    int axFrameData[10];
+    int ayFrameData[10];
+    int azFrameData[10];
+    int gxFrameData[10];
+    int gyFrameData[10];
+    int gzFrameData[10];
 
       // Internal functions
     //bool CornerRGB(int face, bool top, bool r, bool g, bool b); // Only for Version 0;

@@ -21,15 +21,12 @@
 // Global Objects
 Cube c; // Initialize the Cube Object c globally so that things don't crash
 
-char storage[512]; // This creates storage space for decoding serial messages
-//SerialDecoderBuffer buf = {storage, 256, 0}; //Struct used to detect serial messages from Kyles Board
-
 // Beginning Behavior
 Behavior behavior = DEMO; // initial Behavior Cube implements
 
-void setup() // Actually the main loop...
+void setup() // starts up the various electronic hardware...
 {
-  int timerCounter = millis(); // start time
+  int timerCounter = millis(); // records when everything started
   bool shutDown = false;
   initializeCube(); // Runs this code once to setup input/outputs, communication networks...
                     // (Wifi, i2c, serial) and instantiates classes and calibration values

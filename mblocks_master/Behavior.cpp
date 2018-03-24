@@ -15,7 +15,7 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior)
   Behavior resultBehavior = currentBehavior;
   while(!jsonCircularBuffer.empty() && attempts > 0) // while there are still messages, and we haven't tried 5 times
   {
-    StaticJsonBuffer<800> jb; // Create a buffer to store our Jason Objects...
+    StaticJsonBuffer<700> jb; // Create a buffer to store our Jason Objects...
     JsonObject& root = jb.parseObject(jsonCircularBuffer.pop());
     if((root["targetID"] == getCubeIDFromEsp(ESP.getChipId())) || // If message matches your ID
        (root["targetID"] == -1))                                  // or if message is brodcast
@@ -26,6 +26,7 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior)
       /* checks to see if the recieved message matches a behavior... 
        *  If it doesn't we default to the currentBehavior
        */
+       
       resultBehavior = cmdToBehaviors(receivedCMD, currentBehavior);                                                                      
 
       /*
@@ -106,7 +107,7 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior)
 Behavior relayBehavior(Cube* c, Behavior behaviorToRelay, int cubeToRelayTo, int timesToRelay)
 {
   //======Temporarily Generated a Broadcast message =========
-  StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
+  StaticJsonBuffer<264> jsonBuffer; //Space Allocated to store json instance
   JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
   //^class type||^ Root         ^class method                   
   root["type"] = "cmd";

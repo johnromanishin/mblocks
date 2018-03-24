@@ -127,7 +127,7 @@ typedef struct EspToCubeMapping
 int getEspIDFromCube(int);
 int getCubeIDFromEsp(int);
 
-typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING, PLANEERROR} PlaneEnum;
+//typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING, PLANEERROR} PlaneEnum;
 
 /// Global Variables ///
 #define DEBUG1 0 // DEBUG was already used somewhere

@@ -13,11 +13,15 @@
 #define   MESH_PASSWORD   "mblocks3d"
 #define   MESH_PORT       5555
 
-painlessMesh  mesh;
+painlessMesh  mesh; // instantiates the class "mesh" which handles the wireless messages
 
-extern Cube c;
-String jsonBufferSpace[500];
-CircularBuffer<String, true> jsonCircularBuffer(500, jsonBufferSpace);
+// CircularBuffer<int> axCoreBuffer;
+// int axCoreData[10];
+// axCoreBuffer(ARRAY_SIZEOF(this->axCoreData), this->axCoreData),
+
+// CircularBuffer<int> axCoreBuffer(ARRAY_SIZEOF(this->axCoreData), this->axCoreData),
+String jsonBufferSpace[700];
+CircularBuffer<String, true> jsonCircularBuffer(700, jsonBufferSpace);
 
 bool calc_delay = false;
 SimpleList<uint32_t> nodes;
