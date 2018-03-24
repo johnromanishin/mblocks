@@ -6,8 +6,6 @@
 #include <Wire.h> 
 #include <stdint.h>
 
-
-
 // *INDEX - crt + find - to go to...
 // *PLAN-E | plane related
 // *UPDAT-E | - related to updating things...
@@ -18,11 +16,8 @@
 // *LIGHT-S
 // *STAT-E - related to IMUs...
 
-
-
 Cube::Cube()
   :    
-    //behaviorBuffer(ARRAY_SIZEOF(this->behaviorBufferData),                    this->behaviorBufferData),
     currentPlaneBuffer(ARRAY_SIZEOF(this->currentPlaneBufferData),            this->currentPlaneBufferData),
     moveSuccessBuffer(ARRAY_SIZEOF(this->moveSuccessBufferData),              this->moveSuccessBufferData),
     topFaceBuffer(ARRAY_SIZEOF(this->topFaceBufferData),                      this->topFaceBufferData),
@@ -53,17 +48,18 @@ Cube::Cube()
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
-bool Cube::update(bool blinkLEDs)
+bool Cube::update()
 {
   /*
    * This functions updates all of the sensor buffers on each cube
    * It also refreshes variables like this->topFace/ forwardFace/ ...
    */
-  this->processState();// -- this deals with anything involving IMUs 
+  this->processState();// this deals with anything involving IMUs 
+  
   for(int i = 0; i< FACES; i++)
     {
-      delay(3);
-      this->faces[i].updateFace(blinkLEDs);  // updateFace updates light and Magnetic sensors  
+      delay(3); // we wait a bit to allow the i2c switches to switch, so that we don't get collisions on the bus
+      this->faces[i].updateFace();  // updateFace updates light and Magnetic sensors  
       delay(3);
     }
   return(true);
@@ -234,7 +230,6 @@ bool Cube::moveBLDCACCEL(bool forwardReverse, int current, int lengthOfTime)
   return(succeed);
 }
 
-//PLANE0123, PLANE0425, PLANE1453,
 bool Cube::moveIASimple(Motion* motion)
 {
   if(MAGIC_DEBUG){Serial.println("moveIASimple(Motion* motion)");}
@@ -601,26 +596,27 @@ PlaneEnum Cube::findPlaneStatus(bool reset)
   else                       // if it fails, flip power switch
   {
     delay(30);
-    if(reset)
+    if(reset) // if the input parameter tells us that we should reset the i2c...
       {
         this->resetI2C();
       }
-    if(this->updateBothIMUs())// and try again
+    if(this->updateBothIMUs())// and try again to contact the IMU's
     {
       delay(1);
     }
     else
     {
       this->currentPlaneBuffer.push(likelyStatus);
-      return(likelyStatus);   // if it fails on second try... exit
+      return(likelyStatus);   // if it fails on second try... exit which will be PLANEERROR
     }
   }
-    const int validPlaneThreshold = 200; // This number is what determines if it is actually in a proper plane
-    const int gyroMovingThreshold  = 1700; // This represents what "moving" is
+    const int validPlaneThreshold = 220; // This number is what determines if it is actually in a proper plane
+    const int gyroMovingThreshold  = 1700; // This represents what "moving" is in terms GYRO values
     
-    int32_t coreAccel[3] =   {this->axCoreBuffer.access(0),     
-                              this->ayCoreBuffer.access(0),
+    int32_t coreAccel[3] =   {this->axCoreBuffer.access(0),     // Access the most recent X Y and Z Values for the accelerometer
+                              this->ayCoreBuffer.access(0),     // These should have just been updated...
                               this->azCoreBuffer.access(0)};
+                              
     int32_t frameAccel[3] =  {this->axFrameBuffer.access(0), 
                               this->ayFrameBuffer.access(0),
                               this->azFrameBuffer.access(0)};
@@ -635,8 +631,9 @@ PlaneEnum Cube::findPlaneStatus(bool reset)
                           abs(centralGyro[1]) + // tells us how much "movement"
                           abs(centralGyro[2]));
     
-    
     //test each of the rotation matricies.  Store all results for debug purposes.
+    // We are evaluating the "distance" from the actual accelerometer on the "core" 
+    // to that of the accelerometer values on the "frame"
     for(int i = 0; i < 3; i++)
     {
       apply_3x3_mult(&rotationMatricies[i][0][0], coreAccel, &transformed[i][0]);
@@ -660,19 +657,28 @@ PlaneEnum Cube::findPlaneStatus(bool reset)
     {
       likelyStatus = PLANEMOVING;
     }
+    
+    // If one of the distances, for either 0, 1 or 2 is less than the threshold
+    // then we return that plane from the planeEnumMap... This means we are in an 
+    // actual plane
     else if((distance[minidx] < validPlaneThreshold) && 
             (sumOfGyros < gyroMovingThreshold))
     {
       likelyStatus = planeEnumMap[minidx];
     }
-    else if((distance[minidx] > validPlaneThreshold))
+    
+    // This returns of the minumium distance is greater than the valid plane threshold... we might be close
+    // but it is dangerous to assume we are in a valid plane if we really aren't
+    else if(distance[minidx] > validPlaneThreshold)
     { 
       likelyStatus = PLANENONE;
     }  
+    // the default is to return an error
     else
     {
       likelyStatus = PLANEERROR;
     }
+  // Add the result of this else if tree to the currentPlaneBuffer
   this->currentPlaneBuffer.push(likelyStatus);
   return(likelyStatus);
 }

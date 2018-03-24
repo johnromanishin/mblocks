@@ -36,22 +36,13 @@ void setup() // Actually the main loop...
   c.update(); // populates initial readings for variables such as which face is up, and # of neighbors
   c.updateCubeID(GlobalCubeID); // updated variable c.cubeID from initialization loop up table...
   c.superSpecialBlink(&purple, 100);
-  c.superSpecialBlink(&blue, 40);
-  c.superSpecialBlink(&white, 40);
+  c.superSpecialBlink(&blue, 100);
+  c.superSpecialBlink(&white, 100);
   c.blinkRingAll();
   c.lightCube(&off);
-  ///////////////////ACTUAL LOOP////////////////////
-//  while((millis() < c.shutDownTime) && (!shutDown))
-//  {
-//    mainLoopCounter++;
-//    behavior = checkForBehaviors(&c, behavior);
-//  }
-  //c.blockingBlink(&red);
-  //c.shutDown();
 }
-// This is here only becuase arduino won't compile without it, but it is never used, 
-//the real loop is "while(1)" in the void setup() Function
-void loop()
+
+void loop() // Main Loop... Just continually loops, most of the action happens in checkForBehaviors...
 {
   behavior = checkForBehaviors(&c, behavior);
   if(millis() < c.shutDownTime)

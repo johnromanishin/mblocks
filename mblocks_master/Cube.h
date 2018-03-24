@@ -66,7 +66,7 @@ class Cube
 
       // Update Functions involving SENSORS
 //************* MOST IMPORTANT FUNCTION ****************************
-    bool update(bool updateLEDs = true); // Updates almost everything on the cube...
+    bool update(); // Updates almost everything on the cube...
 //*******************************************************************
     int numberOfNeighbors(int index = 0, bool lightFace = true);
     int numberOfNeighborsCheckNow(); //quickly checks the magnetic field sensors to see if tehre are neighbors

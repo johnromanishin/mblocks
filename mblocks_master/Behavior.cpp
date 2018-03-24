@@ -15,7 +15,7 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior)
   Behavior resultBehavior = currentBehavior;
   while(!jsonCircularBuffer.empty() && attempts > 0) // while there are still messages, and we haven't tried 5 times
   {
-    StaticJsonBuffer<1000> jb; // Create a buffer to store our Jason Objects...
+    StaticJsonBuffer<800> jb; // Create a buffer to store our Jason Objects...
     JsonObject& root = jb.parseObject(jsonCircularBuffer.pop());
     if((root["targetID"] == getCubeIDFromEsp(ESP.getChipId())) || // If message matches your ID
        (root["targetID"] == -1))                                  // or if message is brodcast
@@ -23,7 +23,7 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior)
       // At this point, we have determined that the message is for us... so now we try to decode the contents
       String receivedCMD = root["cmd"]; // this extracts the contents of "cmd" and puts it into a local variable
 
-      /* checks to see if we recieved message matches a behavior... 
+      /* checks to see if the recieved message matches a behavior... 
        *  If it doesn't we default to the currentBehavior
        */
       resultBehavior = cmdToBehaviors(receivedCMD, currentBehavior);                                                                      
@@ -43,6 +43,10 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior)
           c->faces[i].turnOffFaceLEDs(); 
         }
       }
+
+      /*
+       * If the first element is a digit, we light up LED's and wait
+       */
       else if(isDigit(receivedCMD[0]))
       {
         int targetFace = receivedCMD.toInt();
@@ -52,34 +56,34 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior)
         //case -1: // This is the cube on the BIG Breadboard
         //c->lightCube(&off);
         //break;
-        case 0: // This is the cube on the BIG Breadboard
+        case 0: 
           c->lightCube(&green);
-          wifiDelay(1000);
+          wifiDelay(500);
           c->lightCube(&off);
           break;
-        case 1: // This is the cube on the BIG Breadboard
+        case 1: 
           c->lightCube(&blue);
-          wifiDelay(1000);
+          wifiDelay(500);
           c->lightCube(&off);
           break;
-        case 2: // This is the cube on the BIG Breadboard
+        case 2: 
           c->lightCube(&red);
-          wifiDelay(1000);
+          wifiDelay(500);
           c->lightCube(&off);
           break;
-        case 3: // This is the cube on the BIG Breadboard
+        case 3: 
           c->lightCube(&teal);
-          wifiDelay(1000);
+          wifiDelay(500);
           c->lightCube(&off);
           break;
-        case 4: // This is the cube on the BIG Breadboard
+        case 4: 
           c->lightCube(&purple);
-          wifiDelay(1000);
+          wifiDelay(500);
           c->lightCube(&off);
           break;
-        case 5: // This is the cube on the BIG Breadboard
+        case 5: 
           c->lightCube(&yellow);
-          wifiDelay(1000);
+          wifiDelay(500);
           c->lightCube(&off);
           break;
         }
@@ -99,6 +103,28 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior)
   return(resultBehavior);
 }
 
+Behavior relayBehavior(Cube* c, Behavior behaviorToRelay, int cubeToRelayTo, int timesToRelay)
+{
+  //======Temporarily Generated a Broadcast message =========
+  StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
+  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
+  //^class type||^ Root         ^class method                   
+  root["type"] = "cmd";
+  root["cubeID"] = cubeToRelayTo;
+  root["cmd"] = behaviorsToCmd(behaviorToRelay);
+  //^ "key"   |  ^ "Value"
+  String str; // generate empty string
+  root.printTo(str); // print to JSON readable string...
+  //======== End Generating of Broadcast message ==========
+  
+  for(int i = 0; i < timesToRelay; i++);
+  {
+    mesh.sendBroadcast(str);
+    wifiDelay(400);
+  }
+  return(behaviorToRelay);
+}
+
 //================================================================
 //==========================DEMO==============================
 //================================================================
@@ -108,7 +134,7 @@ Behavior demo(Cube* c)
   Behavior nextBehavior = DEMO;
   while(nextBehavior == DEMO) // loop until something changes the next behavior
   {
-    nextBehavior = basicUpkeep_DEMO_ONLY(c, nextBehavior, false);
+    //nextBehavior = basicUpkeep_DEMO_ONLY(c, nextBehavior);
     nextBehavior = checkForBasicWifiCommands(c, nextBehavior);
     wifiDelay(100);
   }
@@ -122,7 +148,7 @@ Behavior basicUpkeep_DEMO_ONLY(Cube* c, Behavior inputBehavior, bool updateFaceL
  */
 {
   // update sensors, numberOfNeighbors, and check wifi commands...
-  c->update(updateFaceLEDs); // actually read all of the sensors
+  c->update(); // actually read all of the sensors
   //int numberOfNeighborz = checkForMagneticTagsDEMO(c);
   if(c->returnTopFace(0) != c->returnTopFace(1)) // checking to see if there is a change in its own orientation
   {
@@ -137,7 +163,7 @@ void wifiTargetFace(Cube* c, int faceToSend, int recipientCube)
   //======Temporarily Generated a Broadcast message =========
   StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
   JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
-  //^class type||^ Root         ^class method                   
+             //^class type||^ Root   ^class method                   
   root["type"] = "cmd";
   root["cubeID"] = recipientCube;
   root["cmd"] = String(faceToSend);
@@ -152,7 +178,7 @@ void wifiTargetFace(Cube* c, int faceToSend, int recipientCube)
 //////////////////////////////////////////////////////////
 
 
-Behavior basicUpkeep(Cube* c, Behavior inputBehavior, bool updateFaceLEDs)
+Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
 /*
  * This function does basic state machine switching
  * It (1) Updates the sensors, including magnetic sensors
@@ -164,12 +190,12 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior, bool updateFaceLEDs)
 {
   if(MAGIC_DEBUG) Serial.println("Beginning basicUpKeep");
   // update sensors, numberOfNeighbors, and check wifi commands...
-  c->update(updateFaceLEDs); // actually read all of the sensors
+  c->update(); // actually read all of the sensors
   Behavior newBehavior = checkForBasicWifiCommands(c, inputBehavior);
   int numberOfNeighborz = checkForMagneticTagsStandard(c);
 
   // Check for Light Digits
-  int lightDigit = processLightDigits(c);
+  //int lightDigit = processLightDigits(c);
 
 //************************************
 //NEIGHBORS == __ 0 __
@@ -230,7 +256,7 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior, bool updateFaceLEDs)
     {
       if(MAGIC_DEBUG){Serial.println(" SO IT HAS COME TO THIS.... PEACE OUT BROTHERS...");}
       c->blockingBlink(&red, 70, 50);
-      c->update(false);
+      c->update();
       checkForMagneticTagsStandard(c); // give me a change to turn it off before it explodes...
       delay(1000);
       c->moveIASimple(&explode_F);
@@ -248,9 +274,6 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior, bool updateFaceLEDs)
     newBehavior = ATTRACTIVE;
   }
 
-  // Send out the new behavior... and print any debug...
-  if(MAGIC_DEBUG) 
-      printDebugThings(c, newBehavior);
   return(newBehavior);
 }
 
@@ -304,23 +327,17 @@ Behavior followArrows(Cube* c) // purple
     }
     loopCounter++;
     nextBehavior = basicUpkeep(c, nextBehavior);
-    ////////////////////////////////
-    if((loopCounter % 4) == 0)
-      c->lightCube(&purple);
-    else if(((loopCounter-1)%4) == 0)
-      c->lightCube(&off);
-    c->superSpecialBlink(&purple, 50);
-    c->superSpecialBlink(&white, 100);
-    c->superSpecialBlink(&purple, 50);
-    ///////////////////////////////
   }
   return(nextBehavior);
 }
 
-
-//================================================================
-//========================================================
-//================================================================
+/*
+ * Pre Solo Light is intented to run before we go into Solo Light Track
+ * The reason why this needs to exist is that if the cubes are programmed to make this the default mode 
+ * (In the case that they restart their processors) , then
+ * we don't want the robots to start moving immediatly, so basically this starts blinking, and it gives the person
+ * who turned on the robot a chance to stop it.
+ */
 Behavior Pre_Solo_Light(Cube* c)
 {
   if(MAGIC_DEBUG) {Serial.println("***ABOUT TO BEGIN SOLO_LIGHT***");}  
@@ -336,13 +353,15 @@ Behavior Pre_Solo_Light(Cube* c)
   return SOLO_LIGHT_TRACK;
 }
 
+/* Solo Light Seek is designed to have the module follow the brightest light source that it can find.
+ *  The secondary goal is to connect to other modules.
+ */
 Behavior soloSeekLight(Cube* c) // green
 {
   // General Starting things... initialize flags, etc...
   if(MAGIC_DEBUG) {Serial.println("***soloSeekLight***");}
   Behavior nextBehavior = SOLO_LIGHT_TRACK;
   int loopCounter = 0;
-  //bool iMightBeStuck  = true;
   bool iAmStuck  = false;
   nextBehavior = basicUpkeep(c, nextBehavior);  // check for neighbors, etc...
   
@@ -382,14 +401,11 @@ Behavior soloSeekLight(Cube* c) // green
     else if(thirdBrightestFace == c->returnReverseFace())
       direct = false;
     
-    
     /************* Begin if else if chain **************************
      *  The following if/else if chain represents the choices we can take
      *  give that we have recently updated our information, including light sensors,
      *  measurement if we are stuck or not (am I stuck FLAG), etc...
-     */
-
-    /* if(iAmStuck)
+     * if(iAmStuck)
      * This means we have previosuly tried to move and we think we are stuck
      * but we have already run basic upkeep, so we will try to move the plane 
      * parallel with the ground to align with the lattice
@@ -397,14 +413,11 @@ Behavior soloSeekLight(Cube* c) // green
     if(c->currentPlaneBuffer.access(0) == PLANENONE)
     {
       c->superSpecialBlink(&red, 160);
-      c->superSpecialBlink(&red, 120);
       magicFace = c->returnTopFace(); 
       magicVariable = 1;
     }
     else if(iAmStuck)
     {
-
-      
       // if we succeed in moving... we break out of this loop
       if(c->roll(direct, 8500) == true) // try to roll and succeed...
       {
@@ -469,17 +482,14 @@ Behavior soloSeekLight(Cube* c) // green
  * This is triggered when the cube has one neighbor... and when the neighbor
  * is on one of the faces other than the top and bottom faces...
  * goal is to move plane to be parallel and then to climb up ontop
- * 
  */
-Behavior climb(Cube* c)  // yellow
+Behavior climb(Cube* c)
 {
   if(MAGIC_DEBUG) {Serial.println("***Beginning CLIMB***");}
   int connectedFace = -1;
   long loopCounter = 0;
   Behavior nextBehavior = CLIMB;
-  nextBehavior = basicUpkeep(c, nextBehavior, true);
-  c->superSpecialBlink(&yellow, 100);
-  c->superSpecialBlink(&white, 200);
+  nextBehavior = basicUpkeep(c, nextBehavior);
   
   while((nextBehavior == CLIMB) && 
         (c->numberOfNeighbors(0, 0) == 1) && // loop until something changes the next behavior
@@ -513,13 +523,11 @@ Behavior climb(Cube* c)  // yellow
     //////////////////////////////// loop upkeep...
     c->superSpecialBlink(&yellow, 50);
     c->superSpecialBlink(&white, 100);
-    nextBehavior = basicUpkeep(c, nextBehavior, true);
+    nextBehavior = basicUpkeep(c, nextBehavior);
     loopCounter++;
   }
   return nextBehavior;
 }
-
-
 
 //================================================================
 //==========================CHILLING==============================
@@ -527,19 +535,11 @@ Behavior climb(Cube* c)  // yellow
 Behavior chilling(Cube* c)
 {
   if(MAGIC_DEBUG) {Serial.println("***CHILLING***");}  
-  long loopCounter = 0;
   Behavior nextBehavior = CHILLING;
   while(nextBehavior == CHILLING) // loop until something changes the next behavior
   {
     nextBehavior = basicUpkeep(c, nextBehavior);
     wifiDelay(400);
-    
-    if(loopCounter%5)
-      c->lightCube(&blue);
-    else if((loopCounter-1)%5)
-      c->lightCube(&off);
-    delay(10);
-    loopCounter++;
   }
   return nextBehavior;
 }
@@ -554,7 +554,7 @@ Behavior attractive(Cube* c)
 
   while(nextBehavior == ATTRACTIVE)
   {
-    nextBehavior = basicUpkeep(c, nextBehavior, false); // don't blink the lights... they will be on...
+    nextBehavior = basicUpkeep(c, nextBehavior); // don't blink the lights... they will be on...
     delay(100);
     
     c->lightCube(&off);
@@ -603,14 +603,14 @@ Behavior duoSeekLight(Cube* c)
   c->lightCube(&off);
  
   // perform basic upkeep... this involves updating sensors...
-  nextBehavior = basicUpkeep(c, nextBehavior, true);
+  nextBehavior = basicUpkeep(c, nextBehavior);
 
   if(c->returnForwardFace() == -1) // we try to nudge ourself into the correct orientation in the case that we are wrong...
   {
     for(int i = 0; i++; i < 2)
     {
       if(MAGIC_DEBUG){Serial.println("TRYING ALTERNATE");}
-      c->update(false);
+      c->update();
       int brightestFace = c->returnXthBrightestFace(0, true);
       int nextBrightestFace = c->returnXthBrightestFace(1, true);
       //
@@ -724,7 +724,7 @@ Behavior duoSeekLight(Cube* c)
     }
 //************** End if else if chain **************************
     loopCounter++;
-    nextBehavior = basicUpkeep(c, nextBehavior, true);  // check for neighbors, etc...
+    nextBehavior = basicUpkeep(c, nextBehavior);  // check for neighbors, etc...
   }
   return(nextBehavior);
 }
@@ -829,7 +829,7 @@ Behavior multiSeekLight(Cube* c)
     }
 //************** End if else if chain **************************
     loopCounter++;
-    nextBehavior = basicUpkeep(c, nextBehavior, true);  // check for neighbors, etc...
+    nextBehavior = basicUpkeep(c, nextBehavior);  // check for neighbors, etc...
   }
   return(nextBehavior);
 }
@@ -954,28 +954,6 @@ int checkForMagneticTagsStandard(Cube* c)
 return(neighbors);
 }
 
-Behavior relayBehavior(Cube* c, Behavior behaviorToRelay, int cubeToRelayTo, int timesToRelay)
-{
-  //======Temporarily Generated a Broadcast message =========
-  StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
-  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
-  //^class type||^ Root         ^class method                   
-  root["type"] = "cmd";
-  root["cubeID"] = cubeToRelayTo;
-  root["cmd"] = behaviorsToCmd(behaviorToRelay);
-  //^ "key"   |  ^ "Value"
-  String str; // generate empty string
-  root.printTo(str); // print to JSON readable string...
-  //======== End Generating of Broadcast message ==========
-  
-  for(int i = 0; i < timesToRelay; i++);
-  {
-    mesh.sendBroadcast(str);
-    wifiDelay(400);
-  }
-  return(behaviorToRelay);
-}
-
 /*********************************************************
  *  Everything involving adding/removing behaviors is here...
  *  (1) cmdToBehaviors | converts takes in a String, and 
@@ -1062,56 +1040,15 @@ Behavior checkForBehaviors(Cube* c, Behavior behavior)
   }
   return(behavior);
 }
-
-int processLightDigits(Cube *c)
-{
-  delay(100);
-  int digitToReturn = -2;
-  for(int face = 0; face < 6; face++)
-  {
-    if(c->faces[face].returnNeighborLightDigit(0) > 0)
-    {
-      if((c->faces[face].returnNeighborLightDigit(0) == 5) ||
-         (c->faces[face].returnNeighborLightDigit(1) == 5))
-      {
-        if(MAGIC_DEBUG) Serial.println("WOOOOOOOOOOOOOOOO I SEEEEEEEEEEEE THE LIGHT!!!!!");
-        c->blinkRingAll(25);
-        magicTheLight = true;
-        digitToReturn = 5;
-      }
-      if(c->faces[face].returnNeighborLightDigit(0) == 4)
-      {
-        if(MAGIC_DEBUG) Serial.println("Found a 4... LIGHT DIGIT");
-        digitToReturn = 4;
-      }
-      if(c->faces[face].returnNeighborLightDigit(0) == 3)
-      {
-        if(MAGIC_DEBUG) Serial.println("found a 3...LIGHT DIGIT");
-        digitToReturn = 3;
-      }
-      if(c->faces[face].returnNeighborLightDigit(0) == 2)
-      {
-        if(MAGIC_DEBUG) Serial.println("found a 3...LIGHT DIGIT");
-        digitToReturn = 2;
-      }
-      if(c->faces[face].returnNeighborLightDigit(0) == 1)
-      {
-        if(MAGIC_DEBUG) Serial.println("found a 3...LIGHT DIGIT");
-        digitToReturn = 1;
-      }
-    }
-  }
-return(digitToReturn);
-}
-
-void printDebugThings(Cube* c, Behavior behaviorToReturnFinal)
-{ 
-  Serial.println("-------------------------------------------");
-  Serial.println("Ending Basic Upkeep, here is what we found:");
-  Serial.print("Top face: ");           Serial.println(c->returnTopFace());
-  Serial.print("Current Plane: ");      
-  Serial.print("forward Face ");        Serial.println(c->returnForwardFace());
-  Serial.print("# of Neighbors: ");     Serial.println(c->numberOfNeighbors(0,0));
-  Serial.print("Resultalt Behavior: "); Serial.println(behaviorsToCmd(behaviorToReturnFinal));
-  Serial.println("--------------Ending BASIC UPKEEP---------------");
-}
+//
+//void printDebugThings(Cube* c, Behavior behaviorToReturnFinal)
+//{ 
+//  Serial.println("-------------------------------------------");
+//  Serial.println("Ending Basic Upkeep, here is what we found:");
+//  Serial.print("Top face: ");           Serial.println(c->returnTopFace());
+//  Serial.print("Current Plane: ");      
+//  Serial.print("forward Face ");        Serial.println(c->returnForwardFace());
+//  Serial.print("# of Neighbors: ");     Serial.println(c->numberOfNeighbors(0,0));
+//  Serial.print("Resultalt Behavior: "); Serial.println(behaviorsToCmd(behaviorToReturnFinal));
+//  Serial.println("--------------Ending BASIC UPKEEP---------------");
+//}
