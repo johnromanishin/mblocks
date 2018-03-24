@@ -11,7 +11,7 @@ extern painlessMesh mesh;
 extern CircularBuffer<String, true> jsonCircularBuffer;
 
 void initializeWifiMesh();
-bool sendMessage(String message);
+bool sendBroadcastMessage(String message);
 void receivedCallback(uint32_t from, String & msg);
 void newConnectionCallback(uint32_t nodeId);
 void changedConnectionCallback();

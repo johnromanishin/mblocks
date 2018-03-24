@@ -32,7 +32,7 @@ void initializeWifiMesh()
     randomSeed(analogRead(A0));
 }
 
-bool sendMessage(String message)
+bool sendBroadcastMessage(String message)
 {
   String msg = ""; // create empty string
   msg = message;   // assign contents of "message"
@@ -134,23 +134,18 @@ void requestUpdate(int cubeToRelayTo)
   mesh.sendBroadcast(str);
 }
 
-void messageSingle(uint32_t dest)
+bool messageSingle(uint32_t dest, String str)
 {
-//    StaticJsonBuffer<200> jsonBuffer; //Space Allocated to store json instance
-//    JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
-//    //^class type||^ Root         ^class method                   
-//    root["type"] = "cmd";
-//    root["targetID"] = 55;
-//    root["senderID"] = getCubeIDFromEsp(ESP.getChipId());
-//    root["cmd"] = "update";
-//    //^ "key"   |  ^ "Value"
-    String str = "yo"; // generate empty string
-    //root.printTo(str); // print to JSON readable string...
-    if(mesh.sendSingle(dest, str))
-    {
-      Serial.println("MESSAGE WENT THROUGH");
-    }
+  if(mesh.sendSingle(dest, str))
+  {
+    return(true);
+  }
+  else
+  {
+    return(false);
+  }
 }    
+
 //   String newmsg = "Angle: " + String(c.coreMagnetAngleBuffer.access(0) - initialMagnetReadingOffset)
 //   + " core.ax: " + String(c.axCoreBuffer.access(0))
 //   + " core.ay: " + String(c.ayCoreBuffer.access(0))
