@@ -7,7 +7,6 @@
 #include <painlessMesh.h>  // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
 #include <ArduinoJson.h>
 
-
 /*
  * *************************************************************************************************************************************************************************************
  * ** Cube Name   **   Version    * Plane Ch      * BAD Red     * Bad White      * i2c Busted      * Mech. Rubbing *  Drains Bat  * Acceler Issue*  6000ma Kills * batteries Replaced                    
@@ -31,6 +30,7 @@
  * 
  * ** ORANGEPC RED**              *               *    XX       *                *                 *               *              *              *               *                    *
  */
+ 
 void initializeCube()
 {
   initializeHardware();
@@ -47,13 +47,15 @@ void initializeCube()
     if(count > 3)
     {
         for(int i = 0; i < 10; i++) 
-        {Serial.println("sleep"); delay(500);}
+        {Serial.println("sleep"); delay(500);} // Go to sleep...
     }
   }
 }
-//// Smaller Functions ////
 
 bool checkIfConnected()
+/*
+ * This function checks to see if the ESP board is connected to the face boards through I2C
+ */
 {
   int error;
   for(int i = 0; i < 6; i++)
@@ -62,14 +64,19 @@ bool checkIfConnected()
     error = Wire.endTransmission();
     if(error == 0)
       return(true);
-    delay(1000);
+    wifiDelay(1000);
   }
 }
 void shutDownMasterBoard()
+/*
+ * this shuts down just the board with the ESP on it (The one running this software) 
+ * so that the other board can charge the batteries.
+ */
 {
-  while (true) {
+  while (true) 
+  {
     Serial.println("espoff");  // attempt to shut down, with a delay between attempts
-    delay(300);
+    wifiDelay(300);
   }
 }
 
@@ -77,10 +84,14 @@ void whatToDoIfIamNotConnectedAtBeginning()
 {
   mesh.update();
   resetI2cBus();
-  delay(100);
+  wifiDelay(100);
 }
 
 void initializeHardware()
+/*
+ * This functions sets the pins, starts the serial bus, starts the I2C bus, and checks to 
+ * see if we are connected to a charger
+ */
 {
   Serial.begin(115200);       // open serial connection to the Slave Board
   delay(1500);
@@ -98,10 +109,10 @@ void initializeHardware()
   {
     if (inputVoltage() > 3400) {
       shutDownMasterBoard(); // This turns off ESP if we are on a charging pad - checks three times
-      delay(500);
+      delay(1000);
     }
   }
-  disableAutoReset();
+  disableAutoReset(); // this disables a feature which would reset this board if it didn't send a special message...
   digitalWrite(Switch, HIGH); // turns on power to the face Boards
 }
 
@@ -510,6 +521,13 @@ void lookUpCalibrationValues()
 }
 
 void loadMotionData(Motion* motion, int RPM, int Current, int brakeTime)
+/*
+ * This updates the arrays with indivudually calibrated motion data values for the
+ * brake the and RPM for several types of moves... 
+ * 
+ * This function takes in a Motion Struct, and the values associated with it, and adds the values
+ * to the struct.
+ */
 {
   motion->rpm = RPM;
   motion->current = Current;
@@ -517,6 +535,10 @@ void loadMotionData(Motion* motion, int RPM, int Current, int brakeTime)
 }
 
 void actuallyLoadMotionData()
+/*
+ * This function goes through the list of motions, and applies
+ * "moadMotionData" to each one of them.
+ */
 {
   loadMotionData(&traverse_F, TRAVERSE_RPM_F, TRAVERSE_CURRENT_F, 10);
   loadMotionData(&traverse_R, TRAVERSE_RPM_R, TRAVERSE_CURRENT_R, 10);
@@ -532,7 +554,7 @@ void actuallyLoadMotionData()
 void resetI2cBus()
 {
 
-  digitalWrite(Switch, LOW); 
+  digitalWrite(Switch, LOW); // this turns off power to the I2C electronics
   for(int i = 0 ; i<10 ; i++)
   {
     digitalWrite(LED, HIGH);

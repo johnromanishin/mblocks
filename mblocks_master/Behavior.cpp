@@ -38,7 +38,7 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior)
         {
           c->faces[i].turnOnFaceLEDs(0,1,0,1); 
         }
-        wifiDelay(300);
+        wifiDelay(50);
         for(int i = 0; i < 6; i++)
         {
           c->faces[i].turnOffFaceLEDs(); 
@@ -260,7 +260,7 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
       c->update();
       checkForMagneticTagsStandard(c); // give me a change to turn it off before it explodes...
       delay(1000);
-      c->moveIASimple(&explode_F);
+      c->moveOnLattice(&explode_F);
       newBehavior = SOLO_LIGHT_TRACK;
     }
   }
@@ -301,7 +301,6 @@ Behavior followArrows(Cube* c) // purple
   nextBehavior = basicUpkeep(c, nextBehavior);  // check wifi and Magnetic Sensors
   c->superSpecialBlink(&purple, 100);
   c->superSpecialBlink(&white, 200);
-  c->superSpecialBlink(&purple, 100);
   while((nextBehavior == FOLLOW_ARROWS) && (millis() < c->shutDownTime))
   {
     for(int i = 0; i < FACES; i ++)
@@ -315,12 +314,12 @@ Behavior followArrows(Cube* c) // purple
           int CW_or_CCW = faceClockiness(otherFace, i);
           if(CW_or_CCW == 1)
           {
-            c->moveIASimple(&traverse_F);
+            c->moveOnLattice(&traverse_F);
             delay(500);
           }
           else if(CW_or_CCW == -1)
           {
-            c->moveIASimple(&traverse_R);
+            c->moveOnLattice(&traverse_R);
             delay(500);
           }
         }
@@ -377,13 +376,13 @@ Behavior soloSeekLight(Cube* c) // green
     int thirdBrightestFace = c->returnXthBrightestFace(2, true);
     //
     c->lightFace(brightestFace, &green);
-    delay(300);
+    wifiDelay(300);
     c->lightFace(nextBrightestFace, &teal);
-    delay(300);
+    wifiDelay(300);
     c->lightFace(thirdBrightestFace, &blue);
-    delay(300);
+    wifiDelay(300);
     c->lightCube(&off);
-    delay(100);
+    wifiDelay(100);
     
     // Figure out which way we should try to move
     bool direct = false; // false = reverse...
@@ -437,21 +436,21 @@ Behavior soloSeekLight(Cube* c) // green
         }
         else // we are not on the ground... So we jump a little bit...
         {
-          c->moveIASimple(&traverse_F);
+          c->moveOnLattice(&traverse_F);
         }
         
         if(c->returnForwardFace() == -1) // this is a proxy for plane being parallel to ground... or an error
         {
           if(c->numberOfNeighborsCheckNow() == 0)
-            c->moveIASimple(&traverse_F); 
+            c->moveOnLattice(&traverse_F); 
 
             
           c->superSpecialBlink(&yellow, 50);
-          delay(1500);
+          wifiDelay(1500);
           
           if(c->numberOfNeighborsCheckNow() == 0)
-            c->moveIASimple(&traverse_R);
-          delay(1500);
+            c->moveOnLattice(&traverse_R);
+          wifiDelay(1500);
         }
       } 
     }
@@ -460,7 +459,7 @@ Behavior soloSeekLight(Cube* c) // green
     {
       if(c->moveBLDCACCEL(1, GlobalMaxAccel, 1700) == false)
           iAmStuck = true;
-      delay(100);
+      wifiDelay(100);
     }
     //**************************** this is regular light tracking...
     else
@@ -511,9 +510,9 @@ Behavior climb(Cube* c)
         delay(50);
         int CW_or_CCW = faceClockiness(connectedFace, c->returnBottomFace());
         if(CW_or_CCW == 1)
-          c->moveIASimple(&cornerClimb_F);
+          c->moveOnLattice(&cornerClimb_F);
         if(CW_or_CCW == -1)
-          c->moveIASimple(&cornerClimb_R);
+          c->moveOnLattice(&cornerClimb_R);
       }
       else
       {
@@ -533,6 +532,7 @@ Behavior climb(Cube* c)
 //================================================================
 //==========================CHILLING==============================
 //================================================================
+
 Behavior chilling(Cube* c)
 {
   if(MAGIC_DEBUG) {Serial.println("***CHILLING***");}  
@@ -549,46 +549,41 @@ Behavior chilling(Cube* c)
 //==========================ACTRACTIVE==============================
 //================================================================
 Behavior attractive(Cube* c)
+/*
+ * This behavior involves the cube just sitting around turning its lights on
+ */
 {
   Behavior nextBehavior = ATTRACTIVE;
   if(MAGIC_DEBUG) {Serial.println("***ATTRACTIVE***");}   
-
   while(nextBehavior == ATTRACTIVE)
   {
-    nextBehavior = basicUpkeep(c, nextBehavior); // don't blink the lights... they will be on...
-    delay(100);
-    
-    c->lightCube(&off);
-    delay(100);
+    nextBehavior = basicUpkeep(c, nextBehavior); 
+    c->lightCube(&off);    
     for(int i = 0; i < 6; i++)
-      {
-        if((i == c->returnTopFace()) || (i == c->returnBottomFace())) // This ensures we only 
-          delay(1);                                              // turn on 4 faces in horizontal plane
-          //break;
-        else if(c->faces[i].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) // if we have a neighbor on that face....
-          {
-            c->faces[i].turnOnFaceLEDs(1,1,1,1); 
-          }
-        else if(c->faces[i].returnNeighborPresence(0) == true) //
-        
-//        if we have a neighbor on that face....
-          delay(1);
-        else
-          {
-            c->faces[i].turnOnFaceLEDs(1,1,1,1); // turns on LEDs on any exposed face thats not top/bottom/connected
-            delay(150);
-          }
-      }
+    {
+      if((i == c->returnTopFace()) || (i == c->returnBottomFace())) // This ensures we only 
+        delay(1);                                                   // turn on 4 faces in horizontal plane
+        //break;
+      else if(c->faces[i].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) // if we have a neighbor on that face....
+        {
+          c->faces[i].turnOnFaceLEDs(1,1,1,1); 
+        }
+      else if(c->faces[i].returnNeighborPresence(0) == true) // if we have a neighbor on that face....
+        delay(1);
+      else
+        {
+          c->faces[i].turnOnFaceLEDs(1,1,1,1); // turns on LEDs on any exposed face thats not top/bottom/connected
+        }
+    }
     wifiDelay(4000); // delay 10 seconds...
   }
-//  for(int i = 0; i < 6; i++)
-//  {
-//    c->faces[i].turnOffFaceLEDs(); // turn off face LEDs
-//  }
   return(nextBehavior);
 }
 
 Behavior duoSeekLight(Cube* c)
+/*
+ * This tries to drive two robots together towards a light source
+ */
 {
  // General Starting things... initialize flags, etc...
   if(MAGIC_DEBUG) {Serial.println("***Beginning DuoSeekLight***");}
@@ -694,17 +689,17 @@ Behavior duoSeekLight(Cube* c)
         }  
         else // we are not on the ground... So we jump a little bit...
         {
-          c->moveIASimple(&traverse_F);
+          c->moveOnLattice(&traverse_F);
         }
         if(c->returnForwardFace() == -1) // this is a proxy for plane being parallel to ground... or an error
         {
-          c->moveIASimple(&cornerClimb_F);
+          c->moveOnLattice(&cornerClimb_F);
           delay(1500);
         }
       }    
       else if(direct == true)
       {
-        if(c->moveIASimple(&rollDouble_F) == true)
+        if(c->moveOnLattice(&rollDouble_F) == true)
         {
           c->superSpecialBlink(&teal, 40);
           failedMoveCounter = 0;
@@ -714,7 +709,7 @@ Behavior duoSeekLight(Cube* c)
       }
       else if(direct == false)
       {
-        if(c->moveIASimple(&rollDouble_R) == true)
+        if(c->moveOnLattice(&rollDouble_R) == true)
         {
           c->superSpecialBlink(&teal, 40);
           failedMoveCounter = 0;
@@ -747,14 +742,14 @@ Behavior multiSeekLight(Cube* c)
   c->lightCube(&off);
   // if basic upkeep decides to change behavior, we exit now...
   // otherwise we keep running in this loop until something 
-  // changes the state
+  // changes the behaviour
   while((nextBehavior == MULTI_LIGHT_TRACK) && // if we haven't changed state
-        (c->numberOfNeighbors(0,0) > 1)  && // and if we have ZERO neighbors
+        (c->numberOfNeighbors(0,0) > 1)  && // and if we have more than one neighbor
         (millis() < c->shutDownTime))        // and if we aren't feeling sleepy
   {
     if(correctPlane == false)
     {
-      if(c->isPlaneParallel(connectedFace1) == true)
+      if(c->isPlaneParallel(connectedFace1) == true) // if our plane is alligned with the direction we want to move...
       {
         correctPlane = true;
       }
@@ -771,11 +766,11 @@ Behavior multiSeekLight(Cube* c)
       int nextBrightestFace = c->returnXthBrightestFace(1, true);
       //
       c->lightFace(brightestFace, &purple);
-      delay(400);
+      wifiDelay(400);
       c->lightFace(nextBrightestFace, &green);
-      delay(400);
+      wifiDelay(400);
       c->lightCube(&off);
-      delay(100);
+      wifiDelay(100);
       // Figure out which way we should try to move
       bool direct = false; // false = reverse...
       if(brightestFace == c->returnForwardFace())
@@ -799,17 +794,17 @@ Behavior multiSeekLight(Cube* c)
         }  
         else // we are not on the ground... So we jump a little bit...
         {
-          c->moveIASimple(&traverse_F);
+          c->moveOnLattice(&traverse_F);
         }
         if(c->returnForwardFace() == -1) // this is a proxy for plane being parallel to ground... or an error
         {
-          c->moveIASimple(&cornerClimb_F);
+          c->moveOnLattice(&cornerClimb_F);
           delay(1500);
         }
       }    
       else if(direct == true)
       {
-        if(c->moveIASimple(&cornerClimb_F) == true)
+        if(c->moveOnLattice(&cornerClimb_F) == true)
         {
           c->superSpecialBlink(&teal, 40);
           failedMoveCounter = 0;
@@ -819,7 +814,7 @@ Behavior multiSeekLight(Cube* c)
       }
       else if(direct == false)
       {
-        if(c->moveIASimple(&cornerClimb_R) == true)
+        if(c->moveOnLattice(&cornerClimb_R) == true)
         {
           c->superSpecialBlink(&teal, 40);
           failedMoveCounter = 0;
@@ -835,23 +830,6 @@ Behavior multiSeekLight(Cube* c)
   return(nextBehavior);
 }
 
-//================================================================
-//=================CRYSTALIZE==============================
-//================================================================
-/**
- * Cubes in the crystalize mode
- *
- * A single cube is nominated
- *
- * Extra "arrow directions" that can be used to communicate crystallization direction:
- *   4 - into center of cube
- *   5 - out of center of cube
- */
-Behavior crystalize(Cube* c, painlessMesh* m)
-{
-  
-}
-
 //=============================================================================================
 //=============================MAGNETIC TAGS CHECKING==========================================
 //=============================================================================================
@@ -863,96 +841,62 @@ Behavior crystalize(Cube* c, painlessMesh* m)
 //TagCommand returnNeighborCommand(int index);
 
 int checkForMagneticTagsStandard(Cube* c)
+/*
+ * This function processes the 6 magnetic tags on all 6 faces... 
+ */
 {
-  int neighbors = 0;
+  int neighbors = 0; // running count of how many actual cube neighbors we have...
   if(MAGIC_DEBUG) {Serial.println("Checking for MAGNETIC TAGS");}
-    for(int i = 0; i < 6; i++)
-    { 
-
-      /* This gets activated if we are attached to an actual cube or passive cube
-       * for at least two time steps...
-       */
-       
-      if((c->faces[i].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE) ||
-         (c->faces[i].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE))
+  for(int face = 0; face < 6; face++)
+  { 
+    /* This gets activated if we are attached to an actual cube or passive cube
+     * for at least two time steps...
+     */
+    if((c->faces[face].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE) ||
+       (c->faces[face].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE))
+    {
+      neighbors++;
+      if(c->faces[face].returnNeighborAngle(0) > -1)
       {
-        neighbors++;
-        if(c->faces[i].returnNeighborAngle(0) > -1)
-        {
-          c->lightFace(faceArrowPointsTo(i, c->faces[i].returnNeighborAngle(0)), &purple);
-          delay(200);
-          c->lightCube(&off);
-        }
+        c->lightFace(faceArrowPointsTo(face, c->faces[face].returnNeighborAngle(0)), &purple);
+        wifiDelay(200);
+        c->lightCube(&off);
       }
-      
-      /*
-       * The following is the behavior we want to trigger if we see a specific
-       * tag.
-       */
-      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_SLEEP)
+    }
+    
+    /*
+     * The following is the behavior we want to trigger if we see a specific
+     * tag.
+     */
+    if(c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_SLEEP)
+      wifiDelay(100);
+    
+    if((c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_PURPLE) ||
+      (magicVariable == 1))
+    {
+      int z = face;
+      if(magicVariable)
       {
-        if(MAGIC_DEBUG == 0)
-          {
-            c->blockingBlink(&purple);
-            MAGIC_DEBUG = 1;
-          }
-        else
-          {
-            c->blockingBlink(&yellow);
-            MAGIC_DEBUG = 0;
-          }
+        z = magicFace;
+        magicFace = 0;
       }
-      
-      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_PURPLE ||
-        (magicVariable == 1))
-      {
-        int z = i;
-        if(magicVariable)
-        {
-          z = magicFace;
-          magicFace = 0;
-        }
-        magicVariable = 0;
-        c->goToPlaneParallel(z);
-      }
-      
-      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_27)
-      {
-        //resultBehavior = SOLO_LIGHT_TRACK;
-        if((c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_27) &&
-           (c->faces[i].returnNeighborCommand(2) == TAGCOMMAND_27) &&
-           (c->faces[i].returnNeighborCommand(6) == TAGCOMMAND_27))
- 
-           {
-            
-              relayBehavior(c, SOLO_LIGHT_TRACK);
-           }
-        
-      }
-      
-      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_23)
-      {
-        for(int times = 0; times < 5; times++)
-        {
-          Serial.println("sleep");
-          delay(500);
-        }
-      }
-      
-      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_13_ESPOFF)
-      {
-        for(int times = 0; times < 5; times++)
-        {
-          Serial.println("espoff");
-          delay(500);
-        }
-      }
-      if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_19)
-      {
-
-      }
-   }
-return(neighbors);
+      magicVariable = 0;
+      c->goToPlaneParallel(z);
+    }
+    
+    if(c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_27)
+      wifiDelay(100);
+    
+    else if(c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_23) 
+      c->shutDown();
+    
+    else if(c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_13_ESPOFF)
+      c->shutDownESP();
+    
+    else if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_19)
+      wifiDelay(100);
+  }
+  return(neighbors);
 }
 
 /*********************************************************
@@ -1041,6 +985,7 @@ Behavior checkForBehaviors(Cube* c, Behavior behavior)
   }
   return(behavior);
 }
+
 //
 //void printDebugThings(Cube* c, Behavior behaviorToReturnFinal)
 //{ 
