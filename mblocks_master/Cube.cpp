@@ -192,7 +192,7 @@ bool Cube::moveBLDCACCEL(bool forwardReverse, int current, int lengthOfTime)
  */
 {
   this->processState(); // update IMU's and "topFace" 
-  delay(200);
+  wifiDelay(200);
   int faceUpBeginning = this->returnTopFace();
   bool succeed = false;
   int shakingThreshold = 10000;
@@ -216,10 +216,9 @@ bool Cube::moveBLDCACCEL(bool forwardReverse, int current, int lengthOfTime)
   Serial.println("bldcstop b"); // this actually tells the Cube to start rolling
   int shakingAmmount = wifiDelayWithMotionDetection(3000);
   Serial.println("bldcstop");
-  delay(100);
   if(MAGIC_DEBUG) {Serial.print("We detected this ammount of Shaking: ");Serial.println(shakingAmmount);}
   this->processState();
-  delay(100);
+  wifiDelay(100);
   if((this->returnTopFace() == faceUpBeginning) || (this->returnTopFace() == -1)) // If the same face is pointing up... or it failed
   {
     if(shakingAmmount > shakingThreshold) // if we shook a bunch... but same face is up...
@@ -228,7 +227,6 @@ bool Cube::moveBLDCACCEL(bool forwardReverse, int current, int lengthOfTime)
     }
     else
     {
-      this->superSpecialBlink(&red, 40);
       this->superSpecialBlink(&red, 40);
     }
     /*
@@ -241,7 +239,6 @@ bool Cube::moveBLDCACCEL(bool forwardReverse, int current, int lengthOfTime)
   else
   {
     this->superSpecialBlink(&green, 40);
-    this->superSpecialBlink(&green, 40);
     succeed = true;
   }
   
@@ -250,38 +247,57 @@ bool Cube::moveBLDCACCEL(bool forwardReverse, int current, int lengthOfTime)
 }
 
 bool Cube::moveOnLattice(Motion* motion)
+/*
+ * This program attempts to perform a lattice move.
+ * The possible moves include the following:
+ * ** See Defines.cpp for more information **
+ * Motion traverse_F     
+ * Motion traverse_R
+ * 
+ * Motion cornerClimb_F
+ * Motion cornerClimb_R
+ * 
+ * Motion shake_F 
+ * Motion softShake_F
+ * 
+ * Motion explode_F
+ * Motion explode_R
+ * 
+ * Motion rollDouble_F
+ * Motion rollDouble_R
+ * 
+ * Usage... c->moveOnLattice(&cornerClimb_F);
+ * returns true or false if it thinks that the move was successful
+ */
 {
   if(MAGIC_DEBUG){Serial.println("moveIASimple(Motion* motion)");}
   
   this->processState(); // update IMU's and "topFace" 
-  if(this->isValidPlane() == true)
+  if(this->isValidPlane() == true) // checks to make sure we are in one of the 3 valid planes
   {
     // Figure out our current state...
-    int faceUpBeginning = this->returnTopFace();
+    int faceUpBeginning = this->returnTopFace(); // record what our initial top face is
     bool succeed = false;
   
     // Actually send the action to Kyles Board...
     String iaString = "ia " + String(motion->for_rev)+ " " + String(motion->rpm) + " " + String(motion->current) + " " + String(motion->brakeTime) + " e 15";
-    this->printString(iaString);
-    delay(motion->timeout);
+    this->printString(iaString); // print the command to kyles Board
+    wifiDelay(motion->timeout); // wait for the action to complete
   
     // we are now waiting, and collecting data
     wifiDelayWithMotionDetection(3000);
   
     // Check to see our NEW state...
     this->processState();
-    delay(100);  
     // If UP face is the same... we say we failed =(
     if(this->returnTopFace() == faceUpBeginning)
     {
-      this->superSpecialBlink(&red, 40);
       this->superSpecialBlink(&red, 40);
     }
     
     //if up face is different we say we succeeded!!!
     else
     {
-      this->superSpecialBlink(&green, 40);
       this->superSpecialBlink(&green, 40);
       succeed = true;
     }
@@ -295,8 +311,6 @@ bool Cube::moveOnLattice(Motion* motion)
   }
 }
 
-
-
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 //////////////////// *NEIGHBOR RELATED////////////////////////////////////////////////
@@ -305,10 +319,13 @@ bool Cube::moveOnLattice(Motion* motion)
 
 int Cube::numberOfNeighbors(int index, bool doIlightFace)
 /*
+ * This function returns an integer number corresponding to how many 
+ * neighbors that it thinks that it has.
  * 
+ * if doIlightFace is TRUE, it will light up each face that it thinks that it has a neighbor on
  */
 {
-  int neighbors = 0;
+  int neighbors = 0; // initialize a empty integer
   for(int face = 0; face < 6; face++)
     {
     if((this->faces[face].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) ||
@@ -318,7 +335,7 @@ int Cube::numberOfNeighbors(int index, bool doIlightFace)
       if(doIlightFace) 
       {
         this->lightFace(face,&green);
-        delay(200);
+        wifiDelay(200);
       }
     }
   }
@@ -344,15 +361,9 @@ int Cube::whichFaceHasNeighbor(int index)
  * 
  * Yeah I am sure there is a fancier way to do this...
  * but I don't want to think about it right at this moment.
- * 
  */
 {
-  int faceToReturn = -1;
-  int secondFaceToReturn = -1;
-  int thirdFaceToReturn = -1;
-  int fourthFaceToReturn = -1;
-  int fifthFaceToReturn = -1;
-  int sixthFaceToReturn = -1;
+  int facesNeighbors[6] = {-1, -1, -1, -1, -1, -1}; 
   
   int facesCount = 0;
   for(int face = 0; face < 6; face++)
@@ -361,33 +372,11 @@ int Cube::whichFaceHasNeighbor(int index)
        (this->faces[face].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE))
     {
       facesCount++;
-      if(facesCount == 1)
-        faceToReturn = face;
-        
-      else if(facesCount == 2)
-        secondFaceToReturn = face;
-      else if(facesCount == 3)
-        thirdFaceToReturn = face;
-      else if(facesCount == 4)
-        fourthFaceToReturn = face;
-      else if(facesCount == 4)
-        fifthFaceToReturn = face;
-      else if(facesCount == 4)
-        sixthFaceToReturn = face;
+      if(facesCount > 0)
+        facesNeighbors[facesCount-1] = face;
     }
   }
-if(index == 0)
-  return(faceToReturn); 
-else if(index == 1)
-  return(secondFaceToReturn); 
-else if(index == 2)
-  return(thirdFaceToReturn); 
-else if(index == 3)
-  return(fourthFaceToReturn); 
-else if(index == 4)
-  return(fifthFaceToReturn); 
-else if(index == 5)
-  return(sixthFaceToReturn); 
+return(facesNeighbors[index]);
 }
 
 ////////

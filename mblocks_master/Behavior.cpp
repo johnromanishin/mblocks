@@ -11,9 +11,9 @@
 //=============================================================================================
 Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior)
 {
-  int attempts = 5;
+  int messagesRead = 5;
   Behavior resultBehavior = currentBehavior;
-  while(!jsonCircularBuffer.empty() && attempts > 0) // while there are still messages, and we haven't tried 5 times
+  while(!jsonCircularBuffer.empty() && messagesRead > 0) // while there are still messages, and we haven't tried 5 times
   {
     StaticJsonBuffer<700> jb; // Create a buffer to store our Jason Objects...
     JsonObject& root = jb.parseObject(jsonCircularBuffer.pop());
@@ -32,6 +32,10 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior)
       /*
        * If the command we received is "blink" we then quickly blink the cube's face LED's
        */
+      if(receivedCMD == "update")
+      {
+        
+      }
       if(receivedCMD == "blink")
       {
         for(int i = 0; i < 6; i++)
@@ -44,7 +48,6 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior)
           c->faces[i].turnOffFaceLEDs(); 
         }
       }
-
       /*
        * If the first element is a digit, we light up LED's and wait
        */
@@ -99,7 +102,7 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior)
         Serial.println(messageString);
       }
     }
-    attempts--;
+    messagesRead--;
   }
   return(resultBehavior);
 }
@@ -131,18 +134,25 @@ Behavior relayBehavior(Cube* c, Behavior behaviorToRelay, int cubeToRelayTo, int
 //================================================================
 Behavior demo(Cube* c)
 {
+  Serial.println("hey!");
   long loopCounter = 0;
   Behavior nextBehavior = DEMO;
   while(nextBehavior == DEMO) // loop until something changes the next behavior
   {
-    //nextBehavior = basicUpkeep_DEMO_ONLY(c, nextBehavior);
+    nextBehavior = basicUpkeep_DEMO_ONLY(c, nextBehavior);
     nextBehavior = checkForBasicWifiCommands(c, nextBehavior);
     wifiDelay(100);
+    Serial.print("First Neighbor is on face...");
+    Serial.println(c->whichFaceHasNeighbor(0));
+    Serial.print("Second Neighbor is on face...");
+    Serial.println(c->whichFaceHasNeighbor(1));
+    Serial.print("Third Neighbor is on face...");
+    Serial.println(c->whichFaceHasNeighbor(2));
   }
   return nextBehavior;
 }
 
-Behavior basicUpkeep_DEMO_ONLY(Cube* c, Behavior inputBehavior, bool updateFaceLEDs)
+Behavior basicUpkeep_DEMO_ONLY(Cube* c, Behavior inputBehavior)
 /*
  * Then it checks the wifi BUFFER and checks the magnetic tags
  * for actionable configurations
@@ -884,17 +894,17 @@ int checkForMagneticTagsStandard(Cube* c)
       c->goToPlaneParallel(z);
     }
     
-    if(c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_27)
+    if(c->faces[face].returnNeighborCommand(0)      == TAGCOMMAND_27)
       wifiDelay(100);
-    
+
+    else if(c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_19)
+      wifiDelay(100);
+      
     else if(c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_23) 
       c->shutDown();
     
     else if(c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_13_ESPOFF)
       c->shutDownESP();
-    
-    else if(c->faces[i].returnNeighborCommand(0) == TAGCOMMAND_19)
-      wifiDelay(100);
   }
   return(neighbors);
 }

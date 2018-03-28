@@ -115,7 +115,7 @@ int checkForMagneticTagsDEMO(Cube* c);
 
 int processLightDigits(Cube* c);
 
-Behavior basicUpkeep_DEMO_ONLY(Cube* c, Behavior inputBehavior, bool updateFaceLEDs);
+Behavior basicUpkeep_DEMO_ONLY(Cube* c, Behavior inputBehavior);
 
 String behaviorsToCmd(Behavior inputBehavior);
 

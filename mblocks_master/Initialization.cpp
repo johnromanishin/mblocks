@@ -39,7 +39,8 @@ void initializeCube()
   initializeWifiMesh();
   wifiDelay(200);
   int count = 0;
-  while(!checkIfConnected) // check to see if face boards are connected
+  Serial.println("madeithere...");
+  while(!checkIfConnected()) // check to see if face boards are connected
   {
     whatToDoIfIamNotConnectedAtBeginning(); // assuming we are not connected...
                                             // we reset things.
@@ -50,6 +51,7 @@ void initializeCube()
         {Serial.println("sleep"); delay(500);} // Go to sleep...
     }
   }
+  if(MAGIC_DEBUG) Serial.println("Leaving itializeCube");
 }
 
 bool checkIfConnected()
@@ -113,6 +115,7 @@ void initializeHardware()
     }
   }
   disableAutoReset(); // this disables a feature which would reset this board if it didn't send a special message...
+  delay(100);
   digitalWrite(Switch, HIGH); // turns on power to the face Boards
 }
 
@@ -211,6 +214,7 @@ int get_battery_voltage()
  */
 void lookUpCalibrationValues()
 {
+  if(MAGIC_DEBUG) Serial.println("Entering lookUpCalibrationValues()");
   switch (ESP.getChipId()) 
   {
     //********************************
@@ -221,7 +225,7 @@ void lookUpCalibrationValues()
       TRAVERSE_RPM_R = 69696;
       TRAVERSE_CURRENT_F = 69696;
       TRAVERSE_CURRENT_R = 6969;
-      GlobalMaxAccel = 123456789;    // ** FIX BAT 
+      GlobalMaxAccel = 12345;    // ** FIX BAT 
       
       CC_RPM_F = 999999;
       CC_RPM_R = 999999;
@@ -515,9 +519,10 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
       break;   
-       
     break;
   }
+  if(MAGIC_DEBUG) Serial.println("Exiting lookUpCalibrationValues()");
+
 }
 
 void loadMotionData(Motion* motion, int RPM, int Current, int brakeTime)

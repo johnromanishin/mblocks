@@ -20,22 +20,24 @@ painlessMesh  mesh; // instantiates the class "mesh" which handles the wireless 
 // axCoreBuffer(ARRAY_SIZEOF(this->axCoreData), this->axCoreData),
 
 // CircularBuffer<int> axCoreBuffer(ARRAY_SIZEOF(this->axCoreData), this->axCoreData),
-String jsonBufferSpace[700];
-CircularBuffer<String, true> jsonCircularBuffer(700, jsonBufferSpace);
+String jsonBufferSpace[400];
+CircularBuffer<String, true> jsonCircularBuffer(ARRAY_SIZEOF(jsonBufferSpace), jsonBufferSpace);
 
 bool calc_delay = false;
 SimpleList<uint32_t> nodes;
-void sendMessage() ; // Prototype
+void sendMessage(); // Prototype
 
 void initializeWifiMesh()
 {
-    mesh.init(MESH_SSID, MESH_PASSWORD, MESH_PORT);
-    mesh.onReceive(&receivedCallback);
-    mesh.onNewConnection(&newConnectionCallback);
-    mesh.onChangedConnections(&changedConnectionCallback);
-    mesh.onNodeTimeAdjusted(&nodeTimeAdjustedCallback);
-    mesh.onNodeDelayReceived(&delayReceivedCallback);
-    randomSeed(analogRead(A0));
+  if(MAGIC_DEBUG) Serial.println("Beginning initializeWifiMesh");
+  mesh.init(MESH_SSID, MESH_PASSWORD, MESH_PORT);
+  mesh.onReceive(&receivedCallback);
+  mesh.onNewConnection(&newConnectionCallback);
+  mesh.onChangedConnections(&changedConnectionCallback);
+  mesh.onNodeTimeAdjusted(&nodeTimeAdjustedCallback);
+  mesh.onNodeDelayReceived(&delayReceivedCallback);
+  randomSeed(analogRead(A0));
+  if(MAGIC_DEBUG) Serial.println("Exiting initializeWifiMesh");
 }
 
 bool sendMessage(String message)
@@ -78,11 +80,13 @@ void changedConnectionCallback()
 //  calc_delay = true;
 }
 
-void nodeTimeAdjustedCallback(int32_t offset) {
+void nodeTimeAdjustedCallback(int32_t offset) 
+{
   //Serial.printf("Adjusted time %u. Offset = %d\n", mesh.getNodeTime(), offset);
 }
 
-void delayReceivedCallback(uint32_t from, int32_t delay) {
+void delayReceivedCallback(uint32_t from, int32_t delay) 
+{
   //Serial.printf("Delay to node %u is %d us\n", from, delay);
 }
 
