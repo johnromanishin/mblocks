@@ -1,3 +1,5 @@
+//human interaction on the front end of the server block
+
 #include "Interaction.h" 
 #include <Arduino.h>   
 #include <Wire.h>                 // Arduino's implementation of the i2c wireless protocal

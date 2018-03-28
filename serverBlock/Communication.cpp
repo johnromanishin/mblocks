@@ -51,7 +51,6 @@ bool sendBroadcastMessage(String message)
 
 void receivedCallback(uint32_t from, String & msg)
 {
-  //Serial.println(msg);
   jsonCircularBuffer.push(msg);
 }
 
@@ -83,74 +82,46 @@ void delayReceivedCallback(uint32_t from, int32_t delay) {
 }
 
 
-void makeThemBlink(int cubeToRelayTo)
+void makeThemBlink(int recipientCube)
 {
   //======Temporarily Generated a Broadcast message =========
   StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
   JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
   //^class type||^ Root         ^class method                   
   root["type"] = "cmd";
-  root["targetID"] = cubeToRelayTo;
+  root["targetID"] = recipientCube;
   root["senderID"] = getCubeIDFromEsp(ESP.getChipId());
   root["cmd"] = "blink";
   //^ "key"   |  ^ "Value"
   String str; // generate empty string
   root.printTo(str); // print to JSON readable string...
   //======== End Generating of Broadcast message ==========
-  mesh.sendBroadcast(str);
+  
+  if (recipientCube == -1){
+    mesh.sendBroadcast(str);
+  }
+  // THIS NEXT LINE WON'T WORK UNTIL RECIPIENTCUBE'S ADDRESS LOOKUP IS BUILT OUT AND USED
+  // else mesh.sendSingle(recipientCube, str);
 }
 
-void countdown(int numberToSend, int cubeToRelayTo)
+void requestStatus(int recipientCube)
 {
   //======Temporarily Generated a Broadcast message =========
-  StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
+  StaticJsonBuffer<256> jsonBuffer; //Space Allocated to store json instance
   JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
   //^class type||^ Root         ^class method                   
   root["type"] = "cmd";
-  root["targetID"] = cubeToRelayTo;
-  root["senderID"] = getCubeIDFromEsp(ESP.getChipId());
-  root["cmd"] = String(numberToSend);
-  //^ "key"   |  ^ "Value"
-  String str; // generate empty string
-  root.printTo(str); // print to JSON readable string...
-  //======== End Generating of Broadcast message ==========
-  mesh.sendBroadcast(str);
-}
-
-void requestUpdate(int cubeToRelayTo)
-{
-  //======Temporarily Generated a Broadcast message =========
-  StaticJsonBuffer<100> jsonBuffer; //Space Allocated to store json instance
-  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
-  //^class type||^ Root         ^class method                   
-  root["type"] = "cmd";
-  root["targetID"] = cubeToRelayTo;
+  root["targetID"] = recipientCube;
   root["senderID"] = getCubeIDFromEsp(ESP.getChipId());
   root["cmd"] = "update";
   //^ "key"   |  ^ "Value"
   String str; // generate empty string
   root.printTo(str); // print to JSON readable string...
   //======== End Generating of Broadcast message ==========
-  mesh.sendBroadcast(str);
+  
+  if (recipientCube == -1){
+    mesh.sendBroadcast(str);
+  }
+  // THIS NEXT LINE WON'T WORK UNTIL RECIPIENTCUBE'S ADDRESS LOOKUP IS BUILT OUT AND USED
+  // else mesh.sendSingle(recipientCube, str);
 }
-
-bool messageSingle(uint32_t dest, String str)
-{
-  if(mesh.sendSingle(dest, str))
-  {
-    return(true);
-  }
-  else
-  {
-    return(false);
-  }
-}    
-
-//   String newmsg = "Angle: " + String(c.coreMagnetAngleBuffer.access(0) - initialMagnetReadingOffset)
-//   + " core.ax: " + String(c.axCoreBuffer.access(0))
-//   + " core.ay: " + String(c.ayCoreBuffer.access(0))
-//   + " core.az: " + String(c.azCoreBuffer.access(0))
-//   + " Frame.ax: " + String(c.axFrameBuffer.access(0))
-//   + " Frame.ay: " + String(c.ayFrameBuffer.access(0))
-//   + " Frame.az: " + String(c.azFrameBuffer.access(0))
-//   + " CoreMagAGC: " + String(c.coreMagnetStrengthBuffer.access(0));

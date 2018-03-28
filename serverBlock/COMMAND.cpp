@@ -6,8 +6,8 @@
 #include "Communication.h"
 #include "Defines.h"
 
-#define Parameters 10;
-#define numberOfCubes 18;
+#define Parameters 10
+#define numberOfCubes 18
 //  cubes[Parameters][NumberofCubes]
 //
 // Cube Number          0     1     2     ...NumberofCubes
@@ -37,8 +37,3 @@ int returnCubeInformation(int cubeID, int parameter)
 {
   return(cubeDataArray[cubeID][parameter]);
 }
-
-
-
-
-
