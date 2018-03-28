@@ -11,5 +11,5 @@
 6. Develop Calibration calibration
 7. Test arduino JSon Wifi stuff
 8. Test infrared tracking
-9. 
+9. figure out what’s going on
 10. 
