@@ -38,32 +38,25 @@ Face::Face()
 //  this->IOExpanderState[0] = (this->IOExpanderState[1] = byte(0xff));
 //}
 
-bool Face::updateFace(bool blinkLEDs)
+bool Face::updateFace()
 {
   bool updateSuccess = false;
-  if(blinkLEDs == true) // this is true if we are trying to communicate through light blinking...
-  {
   updateSuccess = (this->enableSensors() &&
                    this->updateAmbient(true) &&
                    this->turnOnFaceLEDs(0,0,1,0) &&
                    this->updateMagneticBarcode() && // actually reads magnetic valuess
                    this->turnOffFaceLEDs());
-  }
-  else
-  {
-  updateSuccess = (this->enableSensors() &&
-                   this->updateAmbient(true) &&
-                   this->updateMagneticBarcode()); // actually reads magnetic valuess
-  }
-  this->neighborPresenceBuffer.push(this->processTag()); // actually processes Tag... adds 
+ 
+  this->neighborPresenceBuffer.push(this->processTag()); // actually processes Tag... adds whether there is anything to a buffer...
   
   if(this->returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE)
   {
     this->blinkRingDigit(2, 3);
     magicTheLight = true;
   }
+  
   // if we are connected... and we are supposed to check for light, wait 2 seconds to try to find a message
-  if((this->returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) && blinkLEDs) // checks for lightdigits...
+  if(this->returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) // checks for lightdigits...
   {
     for(int i = 0; i < 121; i++) // take 120 light samples
       this->updateAmbient(false);

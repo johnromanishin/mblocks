@@ -27,24 +27,33 @@
 //  TAGTYPE_COMMAND
 //} TagType;
 
-//typedef struct Tag
-//{
-//  TagType type;   //
-//  int angle ; // Either -1, 0, 1, 2 or 3 - corresponding to 90 deg angle
-//  int id; // ID or message code attached to tag
-//  int face; // face number (0,1,2,3,4,5) associated with a cube
-//  int strength; // Validitity of the tag, basically just agc1+agc2
-//  TagCommand command; // Text of command or behavior to go to... if it exists
-//} Tag;
+typedef struct Tag
+/*
+ * Magnetic Tags are essentially like special barcodes which the module is able to read through its
+ * magnetic sensors embedded on each face. These barcodes are a little bit "hackey" but the work
+ * well eneough in order to detect other modules, or specialized command "tags"
+ */
+{
+  TagType type;   
+  /* 0 = not a valid tag
+   * 1 = Regular Cube Attached
+   * 2 = Passive Cube Attached
+   * 3 = COMMAND tag
+   */ 
+  int angle ; // Either -1, 0, 1, 2 or 3 - corresponding to 90 deg angle
+  int id; // ID or message code attached to tag
+  int face; // face number (0,1,2,3,4,5) associated with a cube
+  int strength; // Validitity of the tag, basically just agc1+agc2
+  TagCommand command; // Text of command or behavior to go to... if it exists
+} Tag;
 
 class Face
 { 
   private:
     // Cube attributes
-    byte IOExpanderState[2];
-    int versionOffset = 31; // Adapts the i2c address for faceVersion == 0;
+    byte IOExpanderState[2]; // this stores 16 BITS which correspond to the outputs of the IO expander
     const int ambientSensorAddress = 0x39; // i2c address for ambient light sensor on face version == 1;
-    int faceMagnetAddresses[2];
+    int faceMagnetAddresses[2]; // addresses for the AS5048 Magentic encoders on each face...
     
     void getMagnetEncoderAddresses(int* target)
     {
@@ -89,9 +98,9 @@ class Face
     int neighborLightDigitData[10];
     
       // Circular Buffers for Magnetic Tag Variables
-    CircularBuffer<TagType>     neighborTypeBuffer;
-    CircularBuffer<TagCommand>  neighborCommandBuffer;
-    CircularBuffer<int>         neighborIDBuffer;
+    CircularBuffer<TagType>     neighborTypeBuffer;     // This stores the type of the tag on this face
+    CircularBuffer<TagCommand>  neighborCommandBuffer;  // this stores the "command" associated with the tag... if any.
+    CircularBuffer<int>         neighborIDBuffer;       
     CircularBuffer<int>         neighborFaceBuffer;
     CircularBuffer<int>         neighborAngleBuffer;
     CircularBuffer<bool>        neighborPresenceBuffer;
@@ -102,12 +111,12 @@ class Face
     Face();   
     Face(int expanderAddress);
 //*******************************************************************************************************************
-    bool updateFace(bool blinkLEDs = true); // Enables sensors, Updates ambient values, updates magnetic sensors, neighbors...
+    bool updateFace(); // Enables sensors, Updates ambient values, updates magnetic sensors, neighbors...
 //*******************************************************************************************************************
 
       // Public Variables
     const int r_0 = 13; // Pins on PCF7585 IO expander on each face.
-    const int g_0 = 11; //...
+    const int g_0 = 11; // corner RGB pins... directly drive LED's
     const int b_0 = 12;
     const int r_1 = 9;
     const int g_1 = 8;
@@ -119,7 +128,7 @@ class Face
     const int EN1 = 3;
     const int EN2 = 4; // ... Pins on PCF7585 IO expander on each face.
     
-    int IOExpanderAddress;
+    int IOExpanderAddress; // address for the input expander on this particular face
     
       // Utility Commands
     bool updateIOExpander();
@@ -169,23 +178,7 @@ class Face
 void activateLightSensor(int address);
 int readMagnetSensorAngle(int i2cAddress);
 int readMagnetSensorFieldStrength(int i2cAddress);
-int magnetSensorRead(int i2cAddress, byte dataRegisterAddress);
-
-typedef struct Tag
-{
-  TagType type;   
-  /* 0 = not a valid tag
-   * 1 = Regular Cube Attached
-   * 2 = Passive Cube Attached
-   * 3 = COMMAND tag
-   */ 
-  int angle ; // Either -1, 0, 1, 2 or 3 - corresponding to 90 deg angle
-  int id; // ID or message code attached to tag
-  int face; // face number (0,1,2,3,4,5) associated with a cube
-  int strength; // Validitity of the tag, basically just agc1+agc2
-  TagCommand command; // Text of command or behavior to go to... if it exists
-} Tag;
-
+int magnetSensorRead(int i2cAddress, byte dataRegisterAddress);\
 void analyzeTag(int angle1, int agc1, int angle2, int agc2, Tag*);
 int returnFaceNumber(int magDigit);
 

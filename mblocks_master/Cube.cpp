@@ -58,33 +58,42 @@ bool Cube::update()
   
   for(int i = 0; i< FACES; i++)
     {
-      delay(3); // we wait a bit to allow the i2c switches to switch, so that we don't get collisions on the bus
-      this->faces[i].updateFace();  // updateFace updates light and Magnetic sensors  
+      delay(3); // we wait a bit to allow the i2c switches to switch, so that we don't get collisions on the I2C bus
+      this->faces[i].updateFace();  // updateFupdatesace  light and Magnetic sensors  
       delay(3);
     }
   return(true);
 }
 
 bool Cube::processState()
+/* This Function updates the cube's Information about its physical state
+ *  that can be determined by its accelerometers.
+ *  This works by first attempting to update both the frame and the core IMU values.
+ *  
+ *  Then we update which face is pointed up (this->topFace)
+ *  and which face is "forward" (In the movement direction if we apply a forward movement)
+ */
 {
-  bool succeed = false;
-  if(this->updateBothIMUs())
+  bool succeed = false; // This variable stores the status of the updateBothImu command
+  if(this->updateBothIMUs() == true) // this runs the code to check on the two MPU6050 accelerometers
   {
-    delay(1);
+    wifiDelay(4);
     succeed = true;
   }
-  else
+  else // This means that one or both of the acellerometers are not functioning correctly
   {
-    delay(200);
-    if(this->updateBothIMUs() || (this->cubeID > 60))
+    wifiDelay(200); // We wait a little while(While checking on WIFI stuff) to figure out WHAT IS GOING ON
+    if((this->updateBothIMUs() == true) || (this->cubeID > 60)) // Try to update the two IMUS, if the cubeID is larger than 
+                                                                // 60, then it isn't a real cube, so we say that the update 
+                                                                // succedded just so we can keep going...
     {
       succeed = true;
     }
-    else
+    else // this means we have failed TWICE to properly update both IMU's
     {
        {
          wifiDelay(300);
-         this->resetI2C();
+         this->resetI2C(); // We try to reset the I2C bus, since this could very well be the problem
          wifiDelay(300);
          if(this->updateBothIMUs() == true)
          {
@@ -93,8 +102,9 @@ bool Cube::processState()
        }
     }
   }    
-  this->determineTopFace();
-  this->determineForwardFace();
+  this->determineTopFace();     // This checks the gravity vector of the frame, to determine which face (IF ANY) is pointed vertically updwards
+  this->determineForwardFace(); // this combines the internal state of the core (Which plane it is in) with the TOP FACE to 
+                                //figure out which face it will move towards
   return(succeed);
 }
 
@@ -108,39 +118,45 @@ bool Cube::roll(bool forwardReverse, int rpm)
  * This function is intended to be used when a cube is NOT on a lattice
  * It will roll around the environment, defaults to FORWARD with 6000 RPM
  * it returns TRUE and Blinks Green if it thinks it moved Substantially
- * and returns FALSE and Blinks REd if it thinkgs it did not move...
+ * and returns FALSE and Blinks REd if it thinks that it did not move...
  */
 {
   this->processState(); // update IMU's and "topFace" 
-  int timeToDelayBeforeBrake = (1700 + (rpm-6000));
-  int faceUpBeginning = this->returnTopFace();
-  bool succeed = false;
-  int shakingThreshold = 10000;
-  String CW_CCW;
+  int timeToDelayBeforeBrake = (1700 + (rpm-6000)); // wait long eneough for flywheel to get to speed
+  int faceUpBeginning = this->returnTopFace(); // record which face is pointing upwards when we start...
+  bool succeed = false; // start out with the assumption that we haven't moved
+  int shakingThreshold = 10000; // this variable repeatedly checks the GYRO readings while it should be moving to 
+                                // see if we moved, but ended up in the same face anyway
+  String CW_CCW; // this is an empty string which checks whether we move in a clockwise or a counter-clockwise direction
   
-  if(forwardReverse == false)
+  if(forwardReverse == false) // if the input arguement is false, we move in reverse...
   {
-    this->superSpecialBlink(&yellow, 50);
+    this->superSpecialBlink(&yellow, 50); // blink just for fun!
     CW_CCW = " r "; // set the direction to "reverse" if forwardReverse is negatuve
   }
-  else
+  else // alternativly if forwardReverse is true... we move forward...
   {
-    this->superSpecialBlink(&teal, 50);
+    this->superSpecialBlink(&teal, 50); // blinks just for funzies!
     CW_CCW = " f ";
   }
   
-  String stringToPrint = "bldcspeed" + CW_CCW + String(rpm); // generate String for motor
-  this->printString(stringToPrint);
+  String stringToPrint = "bldcspeed" + CW_CCW + String(rpm); // generate String to print on the serial port to the motor controller PCBa
+  this->printString(stringToPrint); // we use the function "printString" since it checks for an acknowledgement to our string...
   
-  delay(timeToDelayBeforeBrake); // motor is now getting up to speed...
+  wifiDelay(timeToDelayBeforeBrake); // motor is now getting up to speed...
 
   this->printString("bldcstop b");
-  int shakingAmmount = wifiDelayWithMotionDetection(3000);
+  int shakingAmmount = wifiDelayWithMotionDetection(3400); // this delays for the specified time, but also periodically adds the 
+                                                           // values of the gyroscopes, and then returns the sum at the end.
   
-  if(MAGIC_DEBUG) {Serial.print("We detected this ammount of Shaking: ");Serial.println(shakingAmmount);}
+  if(MAGIC_DEBUG) 
+  {
+    Serial.print("We detected this ammount of Shaking: ");
+    Serial.println(shakingAmmount);
+  }
   
-  this->processState();
-  delay(100);
+  this->processState(); // process state again, now we would know if the "TOPFACE" has changed...
+  wifiDelay(100);
   if((this->returnTopFace() == faceUpBeginning) || (this->returnTopFace() == -1)) // If the same face is pointing up... or it failed
   {
     if(shakingAmmount > shakingThreshold) // if we shook a bunch... but same face is up...
@@ -149,7 +165,7 @@ bool Cube::roll(bool forwardReverse, int rpm)
     }
     else
     {
-      this->superSpecialBlink(&red, 40);
+      this->superSpecialBlink(&red, 40); // blink red so the human knows that something went wrong...
       this->superSpecialBlink(&red, 40);
     }
     /*
@@ -162,15 +178,18 @@ bool Cube::roll(bool forwardReverse, int rpm)
   else
   {
     this->superSpecialBlink(&green, 40);
-    this->superSpecialBlink(&green, 40);
     succeed = true;
   }
   
-  this->moveSuccessBuffer.push(succeed);
+  this->moveSuccessBuffer.push(succeed); // store the results in a buffer, so that if we fail to move repeatedly, we know something is wrong...
   return(succeed);
 }
 
 bool Cube::moveBLDCACCEL(bool forwardReverse, int current, int lengthOfTime)
+/*
+ * This function is designed to use the electrical acceleration of the modules
+ * so that they can move in unstructured environments...
+ */
 {
   this->processState(); // update IMU's and "topFace" 
   delay(200);
@@ -230,7 +249,7 @@ bool Cube::moveBLDCACCEL(bool forwardReverse, int current, int lengthOfTime)
   return(succeed);
 }
 
-bool Cube::moveIASimple(Motion* motion)
+bool Cube::moveOnLattice(Motion* motion)
 {
   if(MAGIC_DEBUG){Serial.println("moveIASimple(Motion* motion)");}
   
@@ -743,6 +762,15 @@ void Cube::shutDown()
   }
 }   
 
+void Cube::shutDownESP()
+// Turns the entire cube off by printing "sleep" to the slave board
+{
+  while(1)
+  {
+    Serial.println("espoff");delay(1000);
+  }
+}  
+
 int Cube::returnTopFace(int index)
 {
   return(this->topFaceBuffer.access(index));
@@ -859,7 +887,7 @@ bool Cube::printString(String stringToPrint, int waitTime)
   Serial.println(stringToPrint); // tries to print the string...
   if(this->anythingOnSerial(waitTime) == false) // if we see characters comming back withing waittime, we assume success...
   {
-    this->blinkRingAll(20, 2);
+    this->blinkRingAll(20, 2); // just for fun blink a ring...
     Serial.println(stringToPrint);
     if(this->anythingOnSerial(waitTime) == false) 
     {
@@ -901,7 +929,6 @@ bool Cube::anythingOnSerial(int waitTime)
   }
   return(false);
 }
-
 
 
 ////////////////////////////////////////////////////////////////////////////////////
