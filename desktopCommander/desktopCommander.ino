@@ -12,6 +12,7 @@
 #include "Communication.h"
 #include "Defines.h"
 #include <VL6180X.h>
+#include "COMMAND.h"
 
 // Header Files
 char storage[512]; // This creates storage space for decoding serial messages
@@ -46,12 +47,14 @@ void loop()
   if(rangeValue < 50)
   {
     sendBroadcastMessage(createJsonStringFlood(-1, "sleep"));
+    Serial.println("Putting the cubes to sleep...");
   }
-  //messageSingle(2139793359);
-  
-  makeThemBlink(99);
-  countdown(mainLoopCounter, 99);
-  wifiDelay(1000);
+  else if(rangeValue < 150 && rangeValue > 50)
+  {
+    sendBroadcastMessage(createJsonStringFlood(-1, "blink"));
+    //Serial.println("Putting the cubes to sleep...");
+  }
+  wifiDelay(100);
   mainLoopCounter++;
   if(mainLoopCounter == 7)
   {
@@ -70,7 +73,47 @@ String createJsonStringFlood(int targetID, String cmd)
   //^ "key"   |  ^ "Value"
   String strang = "";
   root.printTo(strang);
-return(strang);
+  return(strang);
+}
+
+
+
+
+checkForBasicWifiCommands()
+{
+  int attempts = 5;
+  while(!jsonCircularBuffer.empty() && attempts > 0) // while there are still messages, and we haven't tried 5 times
+  {
+    StaticJsonBuffer<700> jb; // Create a buffer to store our Jason Objects...
+    JsonObject& root = jb.parseObject(jsonCircularBuffer.pop());
+    if(root["targetID"] == 69)        // or if message is brodcast
+    {
+      // At this point, we have determined that the message is for us... so now we try to decode the contents
+      String receivedCMD = root["cmd"]; // this extracts the contents of "cmd" and puts it into a local variable
+      if(receivedCMD == "update")
+      {
+        
+      }
+
+      /*
+       * If the first element is a digit, we light up LED's and wait
+       */
+      //  else if(isDigit(receivedCMD[0]))
+      //  {
+      //  int targetFace = receivedCMD.toInt();
+      
+      if() // cubeID's over 40 means it is attached by a cable... not a real cube // so we print
+      {
+        String targetID = root["targetID"];
+        String receivedCMD = root["cmd"];
+        String senderID = root["senderID"];
+        String messageString = "Message: From: " + senderID + " to: " + targetID + " Command is: " + receivedCMD;// + " Command is: ";
+        Serial.println(messageString);
+      }
+    }
+    attempts--;
+  }
+  return(resultBehavior);
 }
 
 //    StaticJsonBuffer<200> jsonBuffer; //Space Allocated to store json instance
@@ -81,8 +124,8 @@ return(strang);
 //    root["senderID"] = getCubeIDFromEsp(ESP.getChipId());
 //    root["cmd"] = "update";
 //    //^ "key"   |  ^ "Value"
-    //String str = "yo"; // generate empty string
-    //root.printTo(str); // print to JSON readable string...
+//    String str = "yo"; // generate empty string
+//    root.printTo(str); // print to JSON readable string...
 
     
 //Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior)

@@ -51,7 +51,7 @@ bool sendBroadcastMessage(String message)
 
 void receivedCallback(uint32_t from, String & msg)
 {
-  Serial.println(msg);
+  //Serial.println(msg);
   jsonCircularBuffer.push(msg);
 }
 

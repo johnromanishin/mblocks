@@ -14,7 +14,9 @@ int initializeRangeSensor()
 
 int readRangeSensor()
 {
-  Serial.println("Attemting to read sensor: ");
-  return(sensor.readRangeSingle());
+  int value = sensor.readRangeSingle();
+  //Serial.print("Attemting to read sensor: ");
+  //Serial.println(value);
+  return(value);
 }
 
