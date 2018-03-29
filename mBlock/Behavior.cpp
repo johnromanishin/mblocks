@@ -979,33 +979,28 @@ String behaviorsToCmd(Behavior inputBehavior)
 
 Behavior checkForBehaviors(Cube* c, Behavior behavior)
 {
-  //c->behaviorBuffer.push(behavior); // adds the behavior into a buffer
-  if (behavior == SOLO_LIGHT_TRACK)
-    behavior = soloSeekLight(c);
-  else if (behavior == DUO_LIGHT_TRACK)
-    behavior = duoSeekLight(c);
-  else if (behavior == MULTI_LIGHT_TRACK)
-    behavior = multiSeekLight(c);
-  else if (behavior == FOLLOW_ARROWS)
-    behavior = followArrows(c);
-  else if (behavior == CLIMB)
-    behavior = climb(c);
-  else if (behavior == CHILLING)
-    behavior = chilling(c);
-  else if (behavior == ATTRACTIVE)
-    behavior = attractive(c);
-  else if (behavior == DEMO)
-    behavior = demo(c);
-  else if (behavior == SLEEP)
-    behavior = sleep(c);
-  else if (behavior == PRE_SOLO_LIGHT)
-    behavior = Pre_Solo_Light(c);
-  else
-  {
-    //Serial.println("ERROR: unknown behavior.  Reverting to \"CHILLING\"");
-    behavior = CHILLING;
+  switch (behavior) {
+    case CHILLING:
+      return chilling(c);
+    case SOLO_LIGHT_TRACK:
+      return soloSeekLight(c);
+    case DUO_LIGHT_TRACK:
+      return duoSeekLight(c);
+    case MULTI_LIGHT_TRACK:
+      return multiSeekLight(c);
+    case FOLLOW_ARROWS:
+      return followArrows(c);
+    case CLIMB:
+      return climb(c);
+    case ATTRACTIVE:
+      return attractive(c);
+    case DEMO:
+      return demo(c);
+    case SLEEP:
+      return sleep(c);
+    case PRE_SOLO_LIGHT:
+      return Pre_Solo_Light(c);
   }
-  return (behavior);
 }
 
 void blinkFaceLeds(Cube* c, int waitTime)
