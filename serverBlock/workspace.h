@@ -3,7 +3,7 @@
 //    //^class type||^ Root         ^class method                   
 //    root["type"] = "cmd";
 //    root["targetID"] = 55;
-//    root["senderID"] = getCubeIDFromEsp(ESP.getChipId());
+//    root["senderID"] = getCubeIDFromEsp(mesh.getNodeId());
 //    root["cmd"] = "update";
 //    //^ "key"   |  ^ "Value"
 //    String str = "yo"; // generate empty string

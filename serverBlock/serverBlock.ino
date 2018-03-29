@@ -27,8 +27,6 @@ void setup() // Actually the main loop...
   initializeWifiMesh();
   initializeRangeSensor();
   Serial.println("Hey, just getting started");
-  Serial.print("ESP Chip ID: ");
-  Serial.println(ESP.getChipId());
   Serial.print("WIFI ID: ");
   Serial.println(mesh.getNodeId());
   espconn_tcp_set_max_con(6);

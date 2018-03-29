@@ -90,7 +90,7 @@ void makeThemBlink(int recipientCube)
   //^class type||^ Root         ^class method                   
   root["type"] = "cmd";
   root["targetID"] = recipientCube;
-  root["senderID"] = getCubeIDFromEsp(ESP.getChipId());
+  root["senderID"] = getCubeIDFromEsp(mesh.getNodeId());
   root["cmd"] = "blink";
   //^ "key"   |  ^ "Value"
   String str; // generate empty string
@@ -113,7 +113,7 @@ void requestStatus(int recipientCube)
   //^class type||^ Root         ^class method                   
   root["type"] = "cmd";
   root["targetID"] = recipientCube;
-  root["senderID"] = getCubeIDFromEsp(ESP.getChipId());
+  root["senderID"] = getCubeIDFromEsp(mesh.getNodeId());
   root["cmd"] = "update";
   //^ "key"   |  ^ "Value"
   String str; // generate empty string
