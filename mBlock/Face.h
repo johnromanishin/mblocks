@@ -149,7 +149,7 @@ class Face
     //bool updateReflectivity();
     bool updateMagneticBarcode(); // Reads both magnet sensors,
     bool isThereNeighbor(); // true == yes! // false == NO
-    int processLightData();
+    int processLightData(int samplesTaken);
     void blinkOutMessage(int digit); 
     void blinkRingDigit(int digit, int numberOfTimes);
 
@@ -164,7 +164,7 @@ class Face
     
     int returnAmbientValue(int index);
     void forceUpdateAmbientValue(int value); // used to simplify sorting...
-    int returnReflectivityValue(int index);
+   // int returnReflectivityValue(int index);
     //
     bool returnNeighborPresence(int index);
     int returnNeighborID(int index);

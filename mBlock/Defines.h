@@ -34,6 +34,7 @@ PlaneEnum stringToPlaneEnum(String inputString);
  * the special magnetic tags. Commands are designated by having the two magnetic Values
  * to be about the same value, i.e. Both digits are 27, or one is 26 and the other is 27
  */
+ 
 typedef enum TagCommand
 {
   TAGCOMMAND_NONE,
@@ -147,6 +148,7 @@ int getCubeIDFromEsp(int);
 #define SCL 14    //  Managed by the wire.begin in initializeCube() 
 /////////////////////////////////////////////////////////////////////
 //extern int faceVersion; // This 
+extern String Mode;
 extern int GlobalCubeID;
 extern int GlobalPlaneAccel;
 extern bool magicTheLight;

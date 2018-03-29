@@ -31,7 +31,7 @@ void setup() // starts up the various electronic hardware...
   initializeCube(); // Runs this code once to setup input/outputs, communication networks...
                     // (Wifi, i2c, serial) and instantiates classes and calibration values
   c.update(); // populates initial readings for variables such as which face is up, and # of neighbors
-  c.updateCubeID(GlobalCubeID); // updated variable c.cubeID from initialization loop up table...
+  c.updateCubeID(GlobalCubeID, mesh.getNodeId()); // updated variable c.cubeID from initialization loop up table...
   c.superSpecialBlink(&purple, 100);
   c.superSpecialBlink(&blue, 100);
   c.superSpecialBlink(&white, 100);
@@ -41,8 +41,10 @@ void setup() // starts up the various electronic hardware...
 
 void loop() // Main Loop... Just continually loops, most of the action happens in checkForBehaviors...
 {
+  if(MAGIC_DEBUG) Serial.println("Running Main loop Once...");
   behavior = checkForBehaviors(&c, behavior);
-  if(millis() < c.shutDownTime)
+  mesh.update();
+  if(millis() > c.shutDownTime)
   {
     c.blockingBlink(&red);
     c.shutDown();

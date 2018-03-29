@@ -11,6 +11,7 @@
 //=============================================================================================
 Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
 {
+  if(MAGIC_DEBUG) Serial.println("CheckingForWifi Commands...");
   int messagesRead = 5;
   Behavior resultBehavior = currentBehavior;
   while(!jsonCircularBuffer.empty() && messagesRead > 0) // while there are still messages, and we haven't tried 5 times
@@ -35,7 +36,7 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
        */
       if(receivedCMD == "update")
       {
-        
+        //Serial.println("Preparing Update!");
       }
       
       /*  If the command is "blink" then we will really quickly blink the face LED's
@@ -52,7 +53,11 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
       {
         wifiLightChange(c, receivedCMD.toInt(), true); // true turns off the lights afterwards
       }
-
+      
+      else if(receivedCMD == "lightSeek")
+      {
+        Mode = "lightSeek";
+      }
       /* cubeID's over 40 means it is attached by a cable... not a real cube // so we print
        */
        
@@ -70,83 +75,48 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
   return(resultBehavior);
 }
 
-Behavior relayBehavior(Cube* c, Behavior behaviorToRelay, int cubeToRelayTo, int timesToRelay)
-{
-  //======Temporarily Generated a Broadcast message =========
-  StaticJsonBuffer<264> jsonBuffer; //Space Allocated to store json instance
-  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
-  //^class type||^ Root         ^class method                   
-  root["type"] = "cmd";
-  root["cubeID"] = cubeToRelayTo;
-  root["cmd"] = behaviorsToCmd(behaviorToRelay);
-  //^ "key"   |  ^ "Value"
-  String str; // generate empty string
-  root.printTo(str); // print to JSON readable string...
-  //======== End Generating of Broadcast message ==========
-  
-  for(int i = 0; i < timesToRelay; i++);
-  {
-    mesh.sendBroadcast(str);
-    wifiDelay(400);
-  }
-  return(behaviorToRelay);
-}
-
 //================================================================
 //==========================DEMO==============================
 //================================================================
 Behavior demo(Cube* c)
 {
-  Serial.println("hey!");
-  long loopCounter = 0;
+  if(MAGIC_DEBUG) Serial.println("Beginning DEMO Behaviour");
+  int loopCounter = 0;
   Behavior nextBehavior = DEMO;
   while(nextBehavior == DEMO) // loop until something changes the next behavior
   {
-    nextBehavior = basicUpkeep_DEMO_ONLY(c, nextBehavior);
-    nextBehavior = checkForWifiCommands(c, nextBehavior);
+    nextBehavior = basicUpkeep(c, nextBehavior);
     wifiDelay(100);
   }
+  if(MAGIC_DEBUG) {Serial.print("nextBehavior is... ");Serial.println(behaviorsToCmd(nextBehavior));}
   return nextBehavior;
 }
 
-Behavior basicUpkeep_DEMO_ONLY(Cube* c, Behavior inputBehavior)
-/*
- * Then it checks the wifi BUFFER and checks the magnetic tags
- * for actionable configurations
- */
-{
-  // update sensors, numberOfNeighbors, and check wifi commands...
-  c->update(); // actually read all of the sensors
-  //int numberOfNeighborz = checkForMagneticTagsDEMO(c);
-  if(c->returnTopFace(0) != c->returnTopFace(1)) // checking to see if there is a change in its own orientation
-  {
-    Serial.print("trying to send wifi Message");
-    wifiTargetFace(c, c->returnTopFace(0), -1);
-  }
-  return(inputBehavior);
-}
-
-void wifiTargetFace(Cube* c, int faceToSend, int recipientCube)
-{
-  //======Temporarily Generated a Broadcast message =========
-  StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
-  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
-             //^class type||^ Root   ^class method                   
-  root["type"] = "cmd";
-  root["cubeID"] = recipientCube;
-  root["cmd"] = String(faceToSend);
-  //^ "key"   |  ^ "Value"
-  String str; // generate empty string
-  root.printTo(str); // print to JSON readable string...
-  //======== End Generating of Broadcast message ==========
-  mesh.sendBroadcast(str);
-}
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
-
 
 Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
+{
+  c->update(); // actually read all of the sensors
+  Behavior newBehavior = checkForWifiCommands(c, inputBehavior);
+  if(MAGIC_DEBUG) {Serial.print("nextBehavior is... ");Serial.println(behaviorsToCmd(newBehavior));}
+  int numberOfNeighborz = checkForMagneticTagsStandard(c);
+  if(MAGIC_DEBUG) {Serial.print("nextBehavior is... ");Serial.println(behaviorsToCmd(newBehavior));}
+  if(Mode == "lightSeek")
+  {
+    Serial.println("WTF");
+    return(LightTrackingStateMachine(c, newBehavior));
+  }
+  else if(true)
+  {
+    wifiDelay(10);
+  }
+  return(newBehavior);
+}
+
+Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior)
+
 /*
  * This function does basic state machine switching
  * It (1) Updates the sensors, including magnetic sensors
@@ -156,10 +126,10 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
  * for actionable configurations
  */
 {
-  if(MAGIC_DEBUG) Serial.println("Beginning basicUpKeep");
+  if(MAGIC_DEBUG) Serial.println("Starting LightTrackingStateMachine");
+  Behavior newBehavior = inputBehavior; //basicUpkeep(Cube* c, Behavior inputBehavior)
+
   // update sensors, numberOfNeighbors, and check wifi commands...
-  c->update(); // actually read all of the sensors
-  Behavior newBehavior = checkForWifiCommands(c, inputBehavior);
   int numberOfNeighborz = checkForMagneticTagsStandard(c);
 
   // Check for Light Digits
@@ -813,7 +783,7 @@ int checkForMagneticTagsStandard(Cube* c)
  */
 {
   int neighbors = 0; // running count of how many actual cube neighbors we have...
-  if(MAGIC_DEBUG) {Serial.println("Checking for MAGNETIC TAGS");}
+  if(MAGIC_DEBUG) {Serial.println("Checking for MAGNETIC TAGS...");}
   for(int face = 0; face < 6; face++)
   { 
     /* This gets activated if we are attached to an actual cube or passive cube
@@ -831,10 +801,8 @@ int checkForMagneticTagsStandard(Cube* c)
       }
     }
     
-    /*
-     * The following is the behavior we want to trigger if we see a specific
-     * tag.
-     */
+    /* The following is the behavior we want to trigger if we see a specific
+     * tag.*/
     if(c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_SLEEP)
       wifiDelay(100);
     
@@ -857,8 +825,10 @@ int checkForMagneticTagsStandard(Cube* c)
     else if(c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_19)
       wifiDelay(100);
       
-    else if(c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_23) 
+    else if(c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_23)
+    { 
       c->shutDown();
+    }
     
     else if(c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_13_ESPOFF)
       c->shutDownESP();
@@ -887,6 +857,7 @@ Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior)
  *   returns that behavior. If the string doesn't match, it returns
  */
 {
+  if(MAGIC_DEBUG) Serial.println("Running cmdToBehaviours");
   Behavior behaviorToReturn = defaultBehavior;
        if(cmd == "solo_light_track")    {behaviorToReturn = SOLO_LIGHT_TRACK;}
   else if(cmd == "duo_light_track")     {behaviorToReturn = DUO_LIGHT_TRACK;}
@@ -894,6 +865,7 @@ Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior)
   else if(cmd == "chilling")            {behaviorToReturn = CHILLING;}
   else if(cmd == "climb")               {behaviorToReturn = CLIMB;}
   else if(cmd == "attractive")          {behaviorToReturn = ATTRACTIVE;}
+  else if(cmd == "demo")                {behaviorToReturn = DEMO;}
   else if(cmd == "shut_down")           {behaviorToReturn = SHUT_DOWN;}
   else if(cmd == "sleep")               {behaviorToReturn = SLEEP;}
   else if(cmd == "multi_light_track")   {behaviorToReturn = MULTI_LIGHT_TRACK;}
@@ -914,12 +886,13 @@ String behaviorsToCmd(Behavior inputBehavior)
   else if(inputBehavior == FOLLOW_ARROWS)         {stringToReturn = "follow_arrows";}
   else if(inputBehavior == CHILLING)              {stringToReturn = "chilling";}
   else if(inputBehavior == CLIMB)                 {stringToReturn = "climb";}
+  else if(inputBehavior == DEMO)                  {stringToReturn = "demo";}
   else if(inputBehavior == ATTRACTIVE)            {stringToReturn = "attractive";}
   else if(inputBehavior == SHUT_DOWN)             {stringToReturn = "shut_down";}
   else if(inputBehavior == SLEEP)                 {stringToReturn = "sleep";}
   else if(inputBehavior == MULTI_LIGHT_TRACK)     {stringToReturn = "multi_light_track";}
   else if(inputBehavior == PRE_SOLO_LIGHT)        {stringToReturn = "pre_solo_light";}
-return(stringToReturn);
+  return(stringToReturn);
 }
 
 Behavior checkForBehaviors(Cube* c, Behavior behavior)
@@ -1006,7 +979,64 @@ switch (number)
     c->lightCube(&off);
   }
 }       
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////NOTES////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Behavior basicUpkeep_DEMO_ONLY(Cube* c, Behavior inputBehavior)
+///*
+// * Then it checks the wifi BUFFER and checks the magnetic tags
+// * for actionable configurations
+// */
+//{
+//  // update sensors, numberOfNeighbors, and check wifi commands...
+//  c->update(); // actually read all of the sensors
+//  //int numberOfNeighborz = checkForMagneticTagsDEMO(c);
+//  if(c->returnTopFace(0) != c->returnTopFace(1)) // checking to see if there is a change in its own orientation
+//  {
+//    Serial.print("trying to send wifi Message");
+//    wifiTargetFace(c, c->returnTopFace(0), -1);
+//  }
+//  return(inputBehavior);
+//}
+
 //
+//void wifiTargetFace(Cube* c, int faceToSend, int recipientCube)
+//{
+//  //======Temporarily Generated a Broadcast message =========
+//  StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
+//  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
+//             //^class type||^ Root   ^class method                   
+//  root["type"] = "cmd";
+//  root["cubeID"] = recipientCube;
+//  root["cmd"] = String(faceToSend);
+//  //^ "key"   |  ^ "Value"
+//  String str; // generate empty string
+//  root.printTo(str); // print to JSON readable string...
+//  //======== End Generating of Broadcast message ==========
+//  mesh.sendBroadcast(str);
+//}
+
+
+
 //void printDebugThings(Cube* c, Behavior behaviorToReturnFinal)
 //{ 
 //  Serial.println("-------------------------------------------");

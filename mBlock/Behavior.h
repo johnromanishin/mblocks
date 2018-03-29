@@ -6,6 +6,28 @@
 #include "CBuff.h"
 #include "Defines.h"
 #include "Communication.h" // Includes wifi
+
+Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior);
+
+Behavior basicUpkeep(Cube* c, Behavior currentBehavior);
+
+Behavior checkForBehaviors(Cube* c, Behavior behavior);
+
+int checkForMagneticTagsStandard(Cube* c);
+int processLightDigits(Cube* c);
+
+int checkForMagneticTagsDEMO(Cube* c);
+
+// WIFI RELATED
+String generateUpdateMessage(Cube* c);
+
+
+////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////// State Machine Switching Controllers ///////////////////
+////////////////////////////////////////////////////////////////////////////////////
+Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior);
+
+
 ////////////////////////////////////////////////////////////////////////////////////
 // I. Behaviors involving non lattice connected Cubes or small mobile assemblies////
 ////////////////////////////////////////////////////////////////////////////////////
@@ -88,31 +110,11 @@ Behavior climb(Cube* c);
  * b.
  */
 
-// WIFI RELATED
-void wifiTargetFace(Cube* c, int faceToSend, int recipientCube = -1);
-Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior);
-Behavior relayBehavior(Cube* c, Behavior behaviorToRelay, int cubeToRelayTo = -1, int timesToRelay = 4);
-//String generateUpdateMessage(Cube* c);
-
-
  //==================Utilities===============================
 void blinkFaceLeds(Cube* c, int waitTime = 50); // blinks LED's Once for a default time of 50ms
 void wifiLightChange(Cube*c, int number, bool turnOff = true); // this turns the lights to a specific color based on the received integer 
-//
-
-int checkForMagneticTagsStandard(Cube* c);
-
-Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior);
-Behavior checkForBehaviors(Cube* c, Behavior behavior);
-
-Behavior basicUpkeep(Cube* c, Behavior currentBehavior);
-
-int checkForMagneticTagsDEMO(Cube* c);
-
-int processLightDigits(Cube* c);
-
-Behavior basicUpkeep_DEMO_ONLY(Cube* c, Behavior inputBehavior);
-
 String behaviorsToCmd(Behavior inputBehavior);
+Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior);
+void wifiTargetFace(Cube* c, int faceToSend, int recipientCube = -1);
 
 #endif

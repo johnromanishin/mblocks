@@ -209,10 +209,10 @@ bool Cube::moveBLDCACCEL(bool forwardReverse, int current, int lengthOfTime)
     this->blockingBlink(&teal);
     CW_CCW = " f ";
   }
-  delay(20);
+  wifiDelay(20);
   stringToPrint = "bldcaccel" + CW_CCW + String(current) + singleSpace + String(lengthOfTime); // generate String for motor
   Serial.println(stringToPrint); // this actually tells the thing to move.
-  delay(200+lengthOfTime);
+  wifiDelay(200+lengthOfTime);
   Serial.println("bldcstop b"); // this actually tells the Cube to start rolling
   int shakingAmmount = wifiDelayWithMotionDetection(3000);
   Serial.println("bldcstop");
@@ -496,16 +496,16 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
   }
   this->lightPlaneRing(targetCorePlane); // blink the desired plane to go into...
   Serial.println("sma retractcurrent 1050");
-  delay(800);
+  wifiDelay(800);
   bool succeed = false;
   this->printString("sma retract 7500");
   int beginTime = millis();
-  delay(500);
+  wifiDelay(500);
   while((this->findPlaneStatus(false) != targetCorePlane) && ((millis()-beginTime) < 8300))
   {
     PlaneEnum likelyStatus = this->currentPlaneBuffer.access(0);
     if(likelyStatus == PLANEMOVING)
-      delay(300);
+      wifiDelay(300);
       
     String bldcaccelString = "bldcaccel f " + String(GlobalPlaneAccel) + " 800";
     
@@ -513,18 +513,18 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
        bldcaccelString = "bldcaccel f " + String(GlobalPlaneAccel) + " 500";
        
     Serial.println(bldcaccelString);
-    delay(1000);
+    wifiDelay(1000);
     
     if(this->findPlaneStatus(false) == targetCorePlane)
     {
       Serial.println("bldcstop");
-      delay(1000);
+      wifiDelay(1000);
     }
     else
     {
       Serial.println("bldcstop b");
     }
-    delay(1800);
+    wifiDelay(1800);
   }
   
   while((millis()-beginTime) < 8000)
@@ -603,7 +603,7 @@ PlaneEnum Cube::findPlaneStatus(bool reset)
   }
   else                       // if it fails, flip power switch
   {
-    delay(30);
+    wifiDelay(30);
     if(reset) // if the input parameter tells us that we should reset the i2c...
       {
         this->resetI2C();
@@ -826,7 +826,7 @@ int Cube::wifiDelayWithMotionDetection(int delayTime) //**WIP
       }
     }
     mesh.update();
-    delay(50);
+    wifiDelay(50);
   }
   if((motionSum == 0) || (updateCount == 0))
   {
@@ -1204,11 +1204,14 @@ int oppositeFace(int face)
   else{return(-1);}
 }
 
-void Cube::updateCubeID(int idNUM)
+void Cube::updateCubeID(int idNUM, long wifiAddress)
 {
   this->cubeID = idNUM;
+  this->cubeWifiAddress = wifiAddress;
   Serial.print("My New cubeID is: ");
-  Serial.println(idNUM);
+  Serial.println(this->cubeID);
+  Serial.print("and my wifiAddress is: ");
+  Serial.println(this->cubeWifiAddress);
   if(GlobalCubeID > 50) // stationay cube
   {
     Serial.print("Printing Debugging Information");
@@ -1235,9 +1238,9 @@ bool Cube::blockingBlink(Color* inputColor, int howManyTimes, int waitTime)
   for(int times = 0; times < howManyTimes; times++)
   {
     this->lightCube(inputColor);
-    delay(waitTime);
+    wifiDelay(waitTime);
     this->lightCube(&off);
-    delay(waitTime);
+    wifiDelay(waitTime);
   }
 }
 

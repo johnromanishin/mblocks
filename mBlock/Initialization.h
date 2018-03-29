@@ -9,7 +9,7 @@
 void initializeCube();      // This function runs lots of the calibration and initialization functions 
 void shutDownMasterBoard(); // basically this shuts the ENTIRE BOARD DOWN...
 bool checkIfConnected();    // checks to see if it can find any of the face boards on the I2C bus...
-void lookUpCalibrationValues(); // uses a switch/case to populate individually calibrated motion numbers
+void lookUpCalibrationValues(long wifiID); // uses a switch/case to populate individually calibrated motion numbers
 void initializeHardware();  // this starts up all of the busses like I2C, Serial, etc... And sets pin values
 void disableAutoReset();    // this disables a feature by communicating with the master board
 void whatToDoIfIamNotConnectedAtBeginning();  // this runs when the board can't find any of the face boards connected to it

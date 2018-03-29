@@ -58,11 +58,12 @@ bool Face::updateFace()
   // if we are connected... and we are supposed to check for light, wait 2 seconds to try to find a message
   if(this->returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) // checks for lightdigits...
   {
-    for(int i = 0; i < 121; i++) // take 120 light samples
+    int numberOfSamplesToTake = 30;
+    for(int i = 0; i < numberOfSamplesToTake; i++) // take 30 light samples
       this->updateAmbient(false);
-    this->neighborLightDigitBuffer.push(this->processLightData()); // add the lightDigit to the buffer
-    if(magicTheLight)
-        this->turnOnFaceLEDs(1,1,1,1);
+    this->neighborLightDigitBuffer.push(this->processLightData(numberOfSamplesToTake)); // add the lightDigit to the buffer
+    if(magicTheLight == true)
+      this->turnOnFaceLEDs(1,1,1,1);
   }
   else
   {
@@ -234,62 +235,27 @@ this->readAmbient(activate);
 return(true);
 }
 
-int Face::processLightData()
-/*  This code will process 60, or possibly... 100 samples of light data, 
- *  
- *        for each sample, it will break it up into sections of 20 samples so...
- *        0.... 23 | 24.... 47 | 48 ... 71 | 72... 95 | 96 ... 119 
- *index       0         1            2          3         4
- *
- *for each of these sections it will count total duty cycle...
- *or absolute number of # High
- *
- *and map them to the following bins
- *0-3   Periods High = 0
- *4-7   periods High = 1
- *8-11  periods High = 2
- *12-15 periods High = 3
- *16-19 Periods High = 4
- *20-23 Periods High = 5
+int Face::processLightData(int samplesTaken)
+/*
+ * This code will sample the light sensor on any face and return the following
+ * 
+ * 2 = light mostly on
+ * 1 = light on some of the time
+ * 0 = did not see any light
  */
 {
-  int results[6] = {0,0,0,0,0,0};
-  int endResult = -1;
-  int index = 0;
+  int endResult = 0;
   int tempResult = 0;
   int thresholdValue = 3700;
-
-  for(int binIndex = 0; binIndex < 5; binIndex++)
+  for(int indexx = 0; indexx < samplesTaken; indexx++)
   {
-    tempResult = 0;
-    for(int sample = 0; sample < 24; sample++)
-      {
-        if(this->returnAmbientValue(index) > thresholdValue)
-          tempResult++;
-        index++;
-      }
-    if(tempResult < 4)
-      results[0]++;
-    else if((tempResult > 3)  && (tempResult < 8))
-      results[1]++;
-    else if((tempResult > 7)  && (tempResult < 12))
-      results[2]++;
-    else if((tempResult > 11) && (tempResult < 16))
-      results[3]++;
-    else if((tempResult > 15) && (tempResult < 20))
-      results[4]++;
-    else if(tempResult > 19)
-      results[5]++;
+    if(this->returnAmbientValue(indexx) > thresholdValue)
+      tempResult++;
   }
-
-  for(int tempIndex = 0; tempIndex < 6; tempIndex++) // go through the six bins from results[6]
-  {
-  
-    if(results[tempIndex] > 2) // if we see 3 of the same number... we consider it a success... Voting based...
-      endResult = tempIndex;
-  }
-//Serial.print("We Found the Following Result... from the LIGHT DIGIT CHECK: ");
-//Serial.println(endResult);
+  if(tempResult > 20)
+    endResult = 2;
+  else if(tempResult > 10)
+    endResult = 1;
   return(endResult);
 }
 
@@ -311,7 +277,7 @@ void Face::blinkOutMessage(int digit)
   }
   while((millis()-startTime) < digit*100) // while the timer is still going
   {
-    delay(5);
+    wifiDelay(5);
   }
   this->turnOffFaceLEDs();
   return;
@@ -325,15 +291,15 @@ void Face::blinkRingDigit(int digit, int numberOfTimes)
     for(int i = 0; i < numberOfTimes; i++)
     {
       this->turnOnFaceLEDs(1, 0, 0, 0);
-      delay(delayTime);
+      wifiDelay(delayTime);
       this->turnOnFaceLEDs(0, 1, 0, 0);
-      delay(delayTime);
+      wifiDelay(delayTime);
       this->turnOnFaceLEDs(0, 0, 1, 0);
-      delay(delayTime);
+      wifiDelay(delayTime);
       this->turnOnFaceLEDs(0, 0, 0, 1);
-      delay(delayTime);
+      wifiDelay(delayTime);
       this->turnOffFaceLEDs();
-      delay(delayTime);
+      wifiDelay(delayTime);
     }
   }
   else if(digit == 2) //2/5
@@ -341,15 +307,15 @@ void Face::blinkRingDigit(int digit, int numberOfTimes)
     for(int i = 0; i < numberOfTimes; i++)
       {
         this->turnOnFaceLEDs(1, 1, 0, 0);
-        delay(delayTime);
+        wifiDelay(delayTime);
         this->turnOnFaceLEDs(0, 1, 1, 0);
-        delay(delayTime);
+        wifiDelay(delayTime);
         this->turnOnFaceLEDs(0, 0, 1, 1);
-        delay(delayTime);
+        wifiDelay(delayTime);
         this->turnOnFaceLEDs(1, 0, 0, 1);
-        delay(delayTime);
+        wifiDelay(delayTime);
         this->turnOffFaceLEDs();
-        delay(delayTime);
+        wifiDelay(delayTime);
       }
   }
   else if(digit == 3) //2/5
@@ -357,15 +323,15 @@ void Face::blinkRingDigit(int digit, int numberOfTimes)
     for(int i = 0; i < numberOfTimes; i++)
       {
         this->turnOnFaceLEDs(1, 1, 1, 0);
-        delay(delayTime);
+        wifiDelay(delayTime);
         this->turnOnFaceLEDs(0, 1, 1, 1);
-        delay(delayTime);
+        wifiDelay(delayTime);
         this->turnOnFaceLEDs(1, 0, 1, 1);
-        delay(delayTime);
+        wifiDelay(delayTime);
         this->turnOnFaceLEDs(1, 1, 0, 1);
-        delay(delayTime);
+        wifiDelay(delayTime);
         this->turnOffFaceLEDs();
-        delay(delayTime);
+        wifiDelay(delayTime);
       }
   }
   else if(digit == 4) //2/5
@@ -373,9 +339,9 @@ void Face::blinkRingDigit(int digit, int numberOfTimes)
     for(int i = 0; i < numberOfTimes; i++)
       {
         this->turnOnFaceLEDs(1, 1, 1, 1);
-        delay(delayTime*4);
+        wifiDelay(delayTime*4);
         this->turnOffFaceLEDs();
-        delay(delayTime);
+        wifiDelay(delayTime);
       }
   }
   else if(digit == 5) //5/5
@@ -383,7 +349,7 @@ void Face::blinkRingDigit(int digit, int numberOfTimes)
     for(int i = 0; i < numberOfTimes; i++)
       {
         this->turnOnFaceLEDs(1, 1, 1, 1);
-        delay(delayTime*5);
+        wifiDelay(delayTime*5);
       }
   }
 this->turnOffFaceLEDs();
@@ -410,10 +376,10 @@ int Face::returnAmbientValue(int index)
   return(this->ambientBuffer.access(index));
 }
 
-int Face::returnReflectivityValue(int index)
-{
-  return(this->reflectivityBuffer.access(index));
-}
+//int Face::returnReflectivityValue(int index)
+//{
+//  return(this->reflectivityBuffer.access(index));
+//}
 
 int Face::returnMagnetStrength_A(int index)
 {
@@ -509,7 +475,7 @@ bool Face::setPinHigh(int pin)
 bool Face::isThereNeighbor()
 {
   this->enableSensors();
-  delay(20);
+  wifiDelay(20);
   int mag_A = readMagnetSensorFieldStrength(this->faceMagnetAddresses[0]);
   int mag_B = readMagnetSensorFieldStrength(this->faceMagnetAddresses[1]);
   this->disableSensors();
@@ -532,7 +498,7 @@ bool Face::updateMagneticBarcode()
  */
 {
   this->getMagnetEncoderAddresses(this->faceMagnetAddresses);
-  delay(10);
+  wifiDelay(10);
   float AMS5048_scaling_factor = 45.5111;
 
   int angle_A  = round(readMagnetSensorAngle(this->faceMagnetAddresses[0])/AMS5048_scaling_factor);

@@ -15,7 +15,7 @@
  * ** PEI GREEN   **              *               *             *                *                 *               *              *              *               *    2017-12-17      *                                      
  * ** PEI ORANGE  **              *               *    XX       *  X             *                 *               *              *              *               *                    *                                              
  * ** PEI PURPLE  **              *               *             *                *                 *               *    X         *              *               *                    *                                                                                          
- * ** PEI RED     **              *               *             *                *                 *               *              *              *               *                    *
+ * ** PEI RED     **    WIFI      *               *             *                *                 *               *              *              *               *                    *
  * ** PEI YELLOW  **              *               *    X        *                *                 *               *              *     X        *               *                    *                
  * ** PEI BROWN   **              *               *    X        *                *                 *               *              *              *               *    2017-12-21      *
  * ** PEI BLUE    **              *               *    X        *                *                 *               *              *              *               *                    *
@@ -34,9 +34,9 @@
 void initializeCube()
 {
   initializeHardware();
-  lookUpCalibrationValues();
+  long wifiID = initializeWifiMesh();
+  lookUpCalibrationValues(wifiID);
   actuallyLoadMotionData();
-  initializeWifiMesh();
   wifiDelay(200);
   int count = 0;
   Serial.println("madeithere...");
@@ -212,13 +212,13 @@ int get_battery_voltage()
  * 
  * Updates global variables with values according to the esp.getchipid
  */
-void lookUpCalibrationValues()
+void lookUpCalibrationValues(long wifiID)
 {
   if(MAGIC_DEBUG) Serial.println("Entering lookUpCalibrationValues()");
-  switch (ESP.getChipId()) 
+  switch (wifiID)  // used to be ESP.getChipID
   {
     //********************************
-    case 9086927: // This is the cube on the BIG Breadboard
+    case 2139793359: //9086927 This is the cube on the BIG Breadboard
       GlobalCubeID = 99;
       
       TRAVERSE_RPM_F = 6969;
@@ -233,11 +233,11 @@ void lookUpCalibrationValues()
       CC_CURRENT_R = 999999;
       CC_BRAKETIME_F = 999;
       CC_BRAKETIME_R = 999;
- 
+       
       break;
     //********************************
     
-    case 13374829:   // Cube on Smaller Breadboard
+    case 955:   //13374829 Cube on Smaller Breadboard
       GlobalCubeID = 98;
       
       TRAVERSE_RPM_F = 999;
@@ -256,7 +256,7 @@ void lookUpCalibrationValues()
     //*********Real Cubes*************
     //********************************
     
-    case 959839:   // PEI BLACK DB:9D:99:1A:BA:23
+    case 839:   //959839 PEI BLACK DB:9D:99:1A:BA:23
       GlobalCubeID = 16;
       
       TRAVERSE_RPM_F = 6000;
@@ -274,7 +274,7 @@ void lookUpCalibrationValues()
       break;
       
     //********************************
-    case 959694: // PEI PURPLE | FA:AA:25:19:C7:DF
+    case 94: //959694 PEI PURPLE | FA:AA:25:19:C7:DF
       GlobalCubeID = 14;
       
       GlobalPlaneAccel = 2000;
@@ -291,7 +291,7 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 10;
       break;
     //********************************
-    case 960348: // PEI GREEN | EC:47:A9:35:1F:02
+    case 348: //960348 PEI GREEN | EC:47:A9:35:1F:02
       GlobalCubeID = 15;
       
       TRAVERSE_RPM_F = 6500;
@@ -307,7 +307,7 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 10;
       break;
 
-    case 960242: // PEI ORANGE E6:F6:05:69:08:F2
+    case 242: //960242 PEI ORANGE E6:F6:05:69:08:F2
       GlobalCubeID = 7;
       
       TRAVERSE_RPM_F = 7000;
@@ -323,7 +323,7 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 10;
       break;
       
-    case 8576514: // PC BLACK  E3:6B:C6:CE:DA:31
+    case 6514: //8576514 PC BLACK  E3:6B:C6:CE:DA:31
       GlobalCubeID = 9;
       
       TRAVERSE_RPM_F = 6500;
@@ -339,7 +339,7 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 10;
       break;  
 
-    case 959709: // PC YELLOW  - FB:0D:8F:2C:3B:B4
+    case 509: //959709 PC YELLOW  - FB:0D:8F:2C:3B:B4
       GlobalCubeID = 8;
       
       TRAVERSE_RPM_F = 6500;
@@ -356,7 +356,7 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 10;
       break;
 
-     case 8577103: // PC ORANGE  - E6:E5:82:26:C7:8B
+     case 603: //8577103 PC ORANGE  - E6:E5:82:26:C7:8B
       GlobalCubeID = 11;
       GlobalPlaneAccel = 3000;
       
@@ -373,7 +373,7 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 10;
       break;
       
-     case 10229112: // PC PURPLE  - DF:DF:3C:A0:F1:77
+     case 12: //10229112 PC PURPLE  - DF:DF:3C:A0:F1:77
       GlobalCubeID = 2;
       GlobalPlaneAccel = 3000;
       
@@ -390,7 +390,7 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 10;
       break;  
 
-    case 960662: // PEI BROWN  - F1:E8:71:B2:99:B5
+    case 62: //960662 PEI BROWN  - F1:E8:71:B2:99:B5
       GlobalCubeID = 1;
       
       TRAVERSE_RPM_F = 6500;
@@ -407,7 +407,7 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 13;
       break; 
       
-    case 960558: // PEI BLUE  f7:AE:59:2B:D9:4D
+    case 960: //960558 PEI BLUE  f7:AE:59:2B:D9:4D
       GlobalCubeID = 10;
       
       TRAVERSE_RPM_F = 7000;
@@ -423,7 +423,7 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 11;
       break; 
       
-    case 960043: // PEI YELLOW  CC:F1:4F:AF:64:A8
+    case 96: //960043 PEI YELLOW  CC:F1:4F:AF:64:A8
       GlobalCubeID = 12;
       
       TRAVERSE_RPM_F = 7500;
@@ -439,7 +439,7 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 20;
       break;   
       
-     case 960427: // PEI RED  D0:D5:6F:CB:32:4C
+     case 2131666859: //960427 PEI RED  D0:D5:6F:CB:32:4C
       GlobalCubeID = 5;
       
       TRAVERSE_RPM_F = 6500;
@@ -455,7 +455,7 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 5;
       break;   
       
-    case 15044359: // ORANGE PC RED  CD:2B:5E:AB:3E:F3
+    case 244: //15044359 ORANGE PC RED  CD:2B:5E:AB:3E:F3
       GlobalCubeID = 3;
       
       TRAVERSE_RPM_F = 6500;
@@ -471,7 +471,7 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 7;
       break;   
       
-  case 8577715: // PC Brown  C5:FF:AB:04:3B:9D
+  case 345: //8577715 PC Brown  C5:FF:AB:04:3B:9D
       GlobalCubeID = 6;
       
       TRAVERSE_RPM_F = 6500;
@@ -487,7 +487,7 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 10;
       break;
        
-    case 15044426: // PC Blue  D8:9C:4D:EA:27:65
+    case 3534: //15044426 PC Blue  D8:9C:4D:EA:27:65
       GlobalCubeID = 13;
       
       TRAVERSE_RPM_F = 6500;
@@ -503,7 +503,7 @@ void lookUpCalibrationValues()
       CC_BRAKETIME_R = 5;
       break;   
       
-    case 8575308: // PC Green : ED:A6:6A:8E:1B:58
+    case 5234: //8575308 PC Green : ED:A6:6A:8E:1B:58
       GlobalCubeID = 4;
       GlobalPlaneAccel = 2500;
       

@@ -58,7 +58,7 @@ class Cube
     int cubeID = 0; // this is the shortened ID number (1-16) of the cubes that have been built
 
     // Functions
-    void updateCubeID(int idNUM); // this uses a lookup table to populate the cubeID based on a table of mac addresses in defines.h file
+    void updateCubeID(int idNUM, long wifiAddress); // this uses a lookup table to populate the cubeID based on a table of mac addresses in defines.h file
     void disconnectI2C(); // turns off the I2C Bus
     void reconnectI2C();  // turns the I2C bus back on
     void resetI2C();      // does (disconnect) and the (connect) of the i2C
@@ -124,6 +124,7 @@ class Cube
     void shutDown();                   // Turns off the entire cube
     void shutDownESP();
     long cubeMAC = ESP.getChipId();
+    long cubeWifiAddress = 0;
     //
     //CircularBuffer<Behavior> behaviorBuffer;
     CircularBuffer<PlaneEnum> currentPlaneBuffer;

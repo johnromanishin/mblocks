@@ -11,9 +11,11 @@
 extern painlessMesh mesh; // This is the class for the wireless mesh, usage is mesh.function()
 extern CircularBuffer<String, true> jsonCircularBuffer; // we store received messages in a circular buffer
 
-void initializeWifiMesh();
+long initializeWifiMesh();
 bool sendMessage(String message);
+bool sendSingleMessage(int cubeID, String message);
 void receivedCallback(uint32_t from, String & msg);
+
 void newConnectionCallback(uint32_t nodeId);
 void changedConnectionCallback();
 void nodeTimeAdjustedCallback(int32_t offset);
