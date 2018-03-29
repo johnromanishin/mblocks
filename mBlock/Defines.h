@@ -25,6 +25,30 @@ typedef enum PlaneEnum
   PLANEERROR  // Error - maybe I2C bus is disconnected?
 } PlaneEnum;
 
+String planeEnumToString(PlaneEnum thePlaneNow)
+{
+  String ResultString = "";
+  if(       thePlaneNow == PLANE0123)   {ResultString = "PLANE0123";}
+  else if ( thePlaneNow == PLANE0425)   {ResultString = "PLANE0425";}
+  else if ( thePlaneNow == PLANE1453)   {ResultString = "PLANE1453";}
+  else if ( thePlaneNow == PLANENONE)   {ResultString = "PLANENONE";}
+  else if ( thePlaneNow == PLANEMOVING) {ResultString = "PLANEMOVING";}
+  else if ( thePlaneNow == PLANEERROR)  {ResultString = "PLANEERROR";}
+  return(ResultString);
+}
+
+PlaneEnum stringToPlaneEnum(String inputString)
+{
+  PlaneEnum ResultPlaneEnum = PLANEERROR;
+  if(       inputString == "PLANE0123") {ResultPlaneEnum = PLANE0123;}
+  else if ( inputString == "PLANE0425")   {ResultPlaneEnum = PLANE0425;}
+  else if ( inputString == "PLANE1453")   {ResultPlaneEnum = PLANE1453;}
+  else if ( inputString == "PLANENONE")   {ResultPlaneEnum = PLANENONE;}
+  else if ( inputString == "PLANEMOVING") {ResultPlaneEnum = PLANEMOVING;}
+  else if ( inputString == "PLANEERROR")  {ResultPlaneEnum = PLANEERROR;}
+  return(ResultPlaneEnum);
+}
+
 /*
  * TagCommands are different types of "commands" that can be contained within 
  * the special magnetic tags. Commands are designated by having the two magnetic Values

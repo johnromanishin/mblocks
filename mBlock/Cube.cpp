@@ -1435,16 +1435,24 @@ return(true);
 }
 
 void Cube::superSpecialBlink(Color* inputColor, int delayTime)
+/*
+ * This function blinks each corner of the cube in series, going from corner
+ * 1 to corner 8, turns it on, then turns it off, used for debugging.
+ */
 {
   for(int corner = 0; corner < 8; corner++)
   {
     this->lightCorner(corner, inputColor);
-    delay(delayTime);
+    wifiDelay(delayTime);
   }
   this->lightCube(&off);
 }
 
 void Cube::blinkRingAll(int delayLength, int numberOfTimes)
+/*
+ * This function blinks the white face LED's on each face in a circular patturn
+ * Used for Debugging
+ */
 {
   for(int face = 0; face < FACES; face++)
   {
@@ -1465,12 +1473,12 @@ void Cube::lightPlaneRing(PlaneEnum corePlane)
       this->faces[1].turnOnFaceLEDs(1, 0, 1, 0);
       this->faces[2].turnOnFaceLEDs(1, 0, 1, 0);
       this->faces[3].turnOnFaceLEDs(1, 0, 1, 0);
-      delay(100);
+      wifiDelay(100);
       this->faces[0].turnOnFaceLEDs(0, 1, 0, 1);
       this->faces[1].turnOnFaceLEDs(0, 1, 0, 1);
       this->faces[2].turnOnFaceLEDs(0, 1, 0, 1);
       this->faces[3].turnOnFaceLEDs(0, 1, 0, 1);
-      delay(100);
+      wifiDelay(100);
       this->faces[0].turnOffFaceLEDs();
       this->faces[1].turnOffFaceLEDs();
       this->faces[2].turnOffFaceLEDs();
@@ -1485,12 +1493,12 @@ void Cube::lightPlaneRing(PlaneEnum corePlane)
       this->faces[4].turnOnFaceLEDs(1, 0, 1, 0);
       this->faces[2].turnOnFaceLEDs(1, 0, 1, 0);
       this->faces[5].turnOnFaceLEDs(1, 0, 1, 0);
-      delay(100);
+      wifiDelay(100);
       this->faces[0].turnOnFaceLEDs(0, 1, 0, 1);
       this->faces[4].turnOnFaceLEDs(0, 1, 0, 1);
       this->faces[2].turnOnFaceLEDs(0, 1, 0, 1);
       this->faces[5].turnOnFaceLEDs(0, 1, 0, 1);
-      delay(100);
+      wifiDelay(100);
       this->faces[0].turnOffFaceLEDs();
       this->faces[4].turnOffFaceLEDs();
       this->faces[2].turnOffFaceLEDs();
@@ -1505,12 +1513,12 @@ void Cube::lightPlaneRing(PlaneEnum corePlane)
       this->faces[4].turnOnFaceLEDs(1, 0, 1, 0);
       this->faces[3].turnOnFaceLEDs(1, 0, 1, 0);
       this->faces[5].turnOnFaceLEDs(1, 0, 1, 0);
-      delay(100);
+      wifiDelay(100);
       this->faces[1].turnOnFaceLEDs(0, 1, 0, 1);
       this->faces[4].turnOnFaceLEDs(0, 1, 0, 1);
       this->faces[5].turnOnFaceLEDs(0, 1, 0, 1);
       this->faces[3].turnOnFaceLEDs(0, 1, 0, 1);
-      delay(100);
+      wifiDelay(100);
       this->faces[1].turnOffFaceLEDs();
       this->faces[4].turnOffFaceLEDs();
       this->faces[5].turnOffFaceLEDs();
@@ -1519,15 +1527,15 @@ void Cube::lightPlaneRing(PlaneEnum corePlane)
   }
   else if(corePlane == PLANENONE)
   {
-    delay(10);
+    wifiDelay(10);
   }
   else if(corePlane == PLANEERROR)
   {
-    delay(10);
+    wifiDelay(10);
   }
   else if(corePlane == PLANEMOVING)
   {
-    delay(10);
+    wifiDelay(10);
   }
 }
 
@@ -1566,7 +1574,6 @@ void Cube::setFaceLEDsAtEdge(int primaryFace, int adjacentFace)
 String Cube::returnCurrentPlane_STRING()
 {
  // typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING, PLANEERROR} PlaneEnum;
- 
   String ResultString;
   PlaneEnum thePlaneNow = this->currentPlaneBuffer.access(0);
   if(       thePlaneNow == PLANE0123)   {ResultString = "PLANE0123";}

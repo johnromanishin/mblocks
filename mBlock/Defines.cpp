@@ -1,3 +1,13 @@
+/*
+ * 
+ * This Contains Three Main Sections
+ * 0. Database Matching cubeID's to WIFI ID's
+ * 1. Misc. Global Variables
+ * 2. Motion Definitions
+ * 3. Color Definitions
+ * 4. PlaneEnums
+ */
+
 #include "Defines.h"
 #include "Communication.h"
 
@@ -156,7 +166,7 @@ int faceArrowPointsTo(int readingFace, int connectionAngle)
   return(faceRotations[readingFace][connectionAngle]);
 }
 
-//                      Face you want to move towards | other face in plane
+//    Face you want to move towards | other face in plane
 
 /*
  * This lookup table tells the module to either move Clockwise (+1) 
@@ -189,7 +199,7 @@ int faceClockiness(int faceTowards, int faceReference)
   return(result);
 }
 // PLANE0123, PLANE0425, PLANE1453, PLANENONE
-//PLANE0123, PLANE0425, PLANE1453, PLANENONE
+// PLANE0123, PLANE0425, PLANE1453, PLANENONE
 // 0--------,1---------,2---------,3---------,4---------,5---------
 const PlaneEnum facePlanes[FACES][FACES] =
 {
@@ -211,3 +221,5 @@ const int faceRotations[FACES][4] =
   {2, 3, 0, 1},  // FACE 4
   {1, 0, 3, 2}   // FACE 5
 };
+
+// Functions

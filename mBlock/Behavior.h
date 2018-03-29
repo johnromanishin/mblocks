@@ -5,18 +5,7 @@
 #include "Face.h"
 #include "CBuff.h"
 #include "Defines.h"
-#include "Communication.h"        // Includes wifi
-
-//typedef enum Behavior // ACTUAL CODE IS in DEFINES.h
-//{
-//    SOLO_LIGHT_TRACK,
-//    DUO_LIGHT_TRACK,
-//    FOLLOW_ARROWS,
-//    CHILLING,
-//    CLIMB,
-//    ATTRACTIVE,
-//} Behavior;
-
+#include "Communication.h" // Includes wifi
 ////////////////////////////////////////////////////////////////////////////////////
 // I. Behaviors involving non lattice connected Cubes or small mobile assemblies////
 ////////////////////////////////////////////////////////////////////////////////////
@@ -105,7 +94,12 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior);
 Behavior relayBehavior(Cube* c, Behavior behaviorToRelay, int cubeToRelayTo = -1, int timesToRelay = 4);
 
  //==================Utilities===============================
+void blinkFaceLeds(Cube* c, int waitTime = 50); // blinks LED's Once for a default time of 50ms
+void wifiLightChange(Cube*c, int number, bool turnOff = true); // this turns the lights to a specific color based on the received integer 
+//
+
 int checkForMagneticTagsStandard(Cube* c);
+
 Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior);
 Behavior checkForBehaviors(Cube* c, Behavior behavior);
 

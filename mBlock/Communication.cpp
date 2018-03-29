@@ -98,3 +98,17 @@ void delayReceivedCallback(uint32_t from, int32_t delay)
 //   + " Frame.ay: " + String(c.ayFrameBuffer.access(0))
 //   + " Frame.az: " + String(c.azFrameBuffer.access(0))
 //   + " CoreMagAGC: " + String(c.coreMagnetStrengthBuffer.access(0));
+
+//
+////======Temporarily Generated a Broadcast message =========
+//  StaticJsonBuffer<264> jsonBuffer; //Space Allocated to store json instance
+//  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
+//  //^class type||^ Root         ^class method                   
+//  root["type"] = "cmd";
+//  root["cubeID"] = cubeToRelayTo;
+//  root["cmd"] = behaviorsToCmd(behaviorToRelay);
+//  //^ "key"   |  ^ "Value"
+//  String str; // generate empty string
+//  root.printTo(str); // print to JSON readable string...
+//  //======== End Generating of Broadcast message ==========
+//  

@@ -100,11 +100,3 @@ T CircularBuffer<T, useTailParam>::access(int index)
  * cb.access(0);  <--- returns 43
  * cb.access(1);  <--- returns 53
  */
-/**
- * int bufspace[128];
- * CircularBuffer<int> cb(128, &bufspace[0]);
- * cb.push(53);
- * cb.push(43);
- * cb.access(0);  <--- returns 43
- * cb.access(1);  <--- returns 53
- */

@@ -9,7 +9,7 @@
 //=============================================================================================
 //=============================WIFI Checking  CHECKING=========================================
 //=============================================================================================
-Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior)
+Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
 {
   int messagesRead = 5;
   Behavior resultBehavior = currentBehavior;
@@ -20,80 +20,43 @@ Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior)
     if((root["targetID"] == getCubeIDFromEsp(ESP.getChipId())) || // If message matches your ID
        (root["targetID"] == -1))                                  // or if message is brodcast
     {
-      // At this point, we have determined that the message is for us... so now we try to decode the contents
-      String receivedCMD = root["cmd"]; // this extracts the contents of "cmd" and puts it into a local variable
-
-      /* checks to see if the recieved message matches a behavior... 
-       *  If it doesn't we default to the currentBehavior
+      /* At this point, we have determined that the message is for us... so now we try to decode the contents
+       * this extracts the contents of "cmd" and puts it into a local variable
        */
-       
-      resultBehavior = cmdToBehaviors(receivedCMD, currentBehavior);                                                                      
+      String receivedCMD = root["cmd"]; 
 
-      /*
-       * If the command we received is "blink" we then quickly blink the cube's face LED's
+      /*  checks to see if the recieved message matches a behavior... 
+       *  If it doesn't we default to the currentBehavior
+       */     
+      resultBehavior = cmdToBehaviors(receivedCMD, currentBehavior); 
+       
+      /*  If the command is "update" then we are going to generate a message containing relevant information                                                 
+       *   and then send it over the wifi channel
        */
       if(receivedCMD == "update")
       {
         
       }
-      if(receivedCMD == "blink")
-      {
-        for(int i = 0; i < 6; i++)
-        {
-          c->faces[i].turnOnFaceLEDs(0,1,0,1); 
-        }
-        wifiDelay(50);
-        for(int i = 0; i < 6; i++)
-        {
-          c->faces[i].turnOffFaceLEDs(); 
-        }
-      }
-      /*
-       * If the first element is a digit, we light up LED's and wait
+      
+      /*  If the command is "blink" then we will really quickly blink the face LED's
+       *  This can be used to visually verify which cubes are actually connectd to the wifi mesh
+       *  and are working properly
+       */
+      else if(receivedCMD == "blink")
+        blinkFaceLeds(c, 50);
+
+      /*  A simple way to turn the cube to various colors works by receiving a message
+       *  that is just an integer, it will change to a color depending on the integer
        */
       else if(isDigit(receivedCMD[0]))
       {
-        int targetFace = receivedCMD.toInt();
-        switch (targetFace) 
-        {
-        //********************************
-        //case -1: // This is the cube on the BIG Breadboard
-        //c->lightCube(&off);
-        //break;
-        case 0: 
-          c->lightCube(&green);
-          wifiDelay(500);
-          c->lightCube(&off);
-          break;
-        case 1: 
-          c->lightCube(&blue);
-          wifiDelay(500);
-          c->lightCube(&off);
-          break;
-        case 2: 
-          c->lightCube(&red);
-          wifiDelay(500);
-          c->lightCube(&off);
-          break;
-        case 3: 
-          c->lightCube(&teal);
-          wifiDelay(500);
-          c->lightCube(&off);
-          break;
-        case 4: 
-          c->lightCube(&purple);
-          wifiDelay(500);
-          c->lightCube(&off);
-          break;
-        case 5: 
-          c->lightCube(&yellow);
-          wifiDelay(500);
-          c->lightCube(&off);
-          break;
-        }
+        wifiLightChange(c, receivedCMD.toInt(), true); // true turns off the lights afterwards
       }
-      
-      if(c->cubeID > 40) // cubeID's over 40 means it is attached by a cable... not a real cube // so we print
+
+      /* cubeID's over 40 means it is attached by a cable... not a real cube // so we print
+       */
+       
+      if(c->cubeID > 40) 
       {
         String targetID = root["targetID"];
         String receivedCMD = root["cmd"];
@@ -140,14 +103,8 @@ Behavior demo(Cube* c)
   while(nextBehavior == DEMO) // loop until something changes the next behavior
   {
     nextBehavior = basicUpkeep_DEMO_ONLY(c, nextBehavior);
-    nextBehavior = checkForBasicWifiCommands(c, nextBehavior);
+    nextBehavior = checkForWifiCommands(c, nextBehavior);
     wifiDelay(100);
-    Serial.print("First Neighbor is on face...");
-    Serial.println(c->whichFaceHasNeighbor(0));
-    Serial.print("Second Neighbor is on face...");
-    Serial.println(c->whichFaceHasNeighbor(1));
-    Serial.print("Third Neighbor is on face...");
-    Serial.println(c->whichFaceHasNeighbor(2));
   }
   return nextBehavior;
 }
@@ -202,7 +159,7 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
   if(MAGIC_DEBUG) Serial.println("Beginning basicUpKeep");
   // update sensors, numberOfNeighbors, and check wifi commands...
   c->update(); // actually read all of the sensors
-  Behavior newBehavior = checkForBasicWifiCommands(c, inputBehavior);
+  Behavior newBehavior = checkForWifiCommands(c, inputBehavior);
   int numberOfNeighborz = checkForMagneticTagsStandard(c);
 
   // Check for Light Digits
@@ -996,6 +953,59 @@ Behavior checkForBehaviors(Cube* c, Behavior behavior)
   return(behavior);
 }
 
+void blinkFaceLeds(Cube* c, int waitTime)
+{
+  for(int i = 0; i < 6; i++)
+  {
+    c->faces[i].turnOnFaceLEDs(0,1,0,1); 
+  }
+  wifiDelay(50);
+  for(int i = 0; i < 6; i++)
+  {
+    c->faces[i].turnOffFaceLEDs(); 
+  }
+}
+
+void wifiLightChange(Cube* c, int number, bool turnOff)
+{
+int waitTime = 500;
+switch (number) 
+  {
+  //********************************
+  case 0: 
+    c->lightCube(&white);
+    wifiDelay(waitTime);
+    break;
+  case 1: 
+    c->lightCube(&yellow);
+    wifiDelay(waitTime);
+    break;
+  case 2: 
+    c->lightCube(&red);
+    wifiDelay(waitTime);
+    break;
+  case 3: 
+    c->lightCube(&purple);
+    wifiDelay(waitTime);
+    break;
+  case 4: 
+    c->lightCube(&blue);
+    wifiDelay(waitTime);
+    break;
+  case 5: 
+    c->lightCube(&green);
+    wifiDelay(waitTime);
+    break;
+  case 6: 
+    c->lightCube(&teal);
+    wifiDelay(waitTime);
+    break;
+  }
+  if(turnOff)
+  {
+    c->lightCube(&off);
+  }
+}       
 //
 //void printDebugThings(Cube* c, Behavior behaviorToReturnFinal)
 //{ 
