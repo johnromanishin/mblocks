@@ -44,12 +44,24 @@ void loop()
     //Serial.println("BIG BAD BREADBOARD CUBE IS UP AND RUNNING!!");
   }
   int rangeValue = readRangeSensor();
-  if (rangeValue < 50)
+  if (rangeValue < 20)
   {
     sendBroadcastMessage(createJsonStringFlood(-1, "sleep"));
     Serial.println("Putting the cubes to sleep...");
   }
-  else if (rangeValue < 150 && rangeValue > 50)
+  else if (rangeValue > 20 && rangeValue < 50)
+  {
+    sendBroadcastMessage(createJsonStringFlood(-1, "lightSeek"));
+    //Serial.println("Putting the cubes to sleep...");
+  }
+  
+  else if (rangeValue > 50 && rangeValue < 100)
+  {
+    sendBroadcastMessage(createJsonStringFlood(-1, "attractive"));
+    //Serial.println("Putting the cubes to sleep...");
+  }
+  
+  else if (rangeValue > 100 && rangeValue < 200)
   {
     sendBroadcastMessage(createJsonStringFlood(-1, "blink"));
     //Serial.println("Putting the cubes to sleep...");

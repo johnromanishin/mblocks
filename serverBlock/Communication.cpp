@@ -99,6 +99,7 @@ void makeThemBlink(int recipientCube)
   
   if (recipientCube == -1){
     mesh.sendBroadcast(str);
+    wifiDelay(300);
   }
   // THIS NEXT LINE WON'T WORK UNTIL RECIPIENTCUBE'S ADDRESS LOOKUP IS BUILT OUT AND USED
   // else mesh.sendSingle(recipientCube, str);
