@@ -2,10 +2,12 @@
 #include <ESP8266WiFi.h>
 #include <painlessMesh.h> // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
 #include <ArduinoJson.h>
+
 #include "Communication.h"
 #include "Cube.h"
 #include "espconn.h"
 #include "CBuff.h"
+#include "Face.h"
 
 #define   BLINK_PERIOD    3000000 // microseconds until cycle repeat
 #define   BLINK_DURATION  100000  // microseconds LED is on for
@@ -90,25 +92,17 @@ void delayReceivedCallback(uint32_t from, int32_t delay)
   //Serial.printf("Delay to node %u is %d us\n", from, delay);
 }
 
-//   String newmsg = "Angle: " + String(c.coreMagnetAngleBuffer.access(0) - initialMagnetReadingOffset)
-//   + " core.ax: " + String(c.axCoreBuffer.access(0))
-//   + " core.ay: " + String(c.ayCoreBuffer.access(0))
-//   + " core.az: " + String(c.azCoreBuffer.access(0))
-//   + " Frame.ax: " + String(c.axFrameBuffer.access(0))
-//   + " Frame.ay: " + String(c.ayFrameBuffer.access(0))
-//   + " Frame.az: " + String(c.azFrameBuffer.access(0))
-//   + " CoreMagAGC: " + String(c.coreMagnetStrengthBuffer.access(0));
-
-//
-////======Temporarily Generated a Broadcast message =========
+//String generateUpdateMessage(Cube* c)
+//{
 //  StaticJsonBuffer<264> jsonBuffer; //Space Allocated to store json instance
 //  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
 //  //^class type||^ Root         ^class method                   
-//  root["type"] = "cmd";
-//  root["cubeID"] = cubeToRelayTo;
-//  root["cmd"] = behaviorsToCmd(behaviorToRelay);
+//  root["type"] = "update";
+//  root["cubeID"] = c->cubeID;
+//  root["topFace"] = c->returnTopFace(0);
+//  //root["plane"]
 //  //^ "key"   |  ^ "Value"
 //  String str; // generate empty string
-//  root.printTo(str); // print to JSON readable string...
-//  //======== End Generating of Broadcast message ==========
-//  
+//  return(root.printTo(str)) // print to JSON readable string...
+//}
+

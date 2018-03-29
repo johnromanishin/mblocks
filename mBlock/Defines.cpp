@@ -210,7 +210,31 @@ const PlaneEnum facePlanes[FACES][FACES] =
   { PLANE0425, PLANE1453, PLANE0425, PLANE1453, PLANENONE, PLANENONE},   // 4
   { PLANE0425, PLANE1453, PLANE0425, PLANE1453, PLANENONE, PLANENONE}    // 5
 };
- 
+
+String planeEnumToString(PlaneEnum thePlaneNow)
+{
+  String resultString = "";
+  if(       thePlaneNow == PLANE0123)   {resultString = "PLANE0123";}
+  else if ( thePlaneNow == PLANE0425)   {resultString = "PLANE0425";}
+  else if ( thePlaneNow == PLANE1453)   {resultString = "PLANE1453";}
+  else if ( thePlaneNow == PLANENONE)   {resultString = "PLANENONE";}
+  else if ( thePlaneNow == PLANEMOVING) {resultString = "PLANEMOVING";}
+  else if ( thePlaneNow == PLANEERROR)  {resultString = "PLANEERROR";}
+  return(resultString);
+}
+
+PlaneEnum stringToPlaneEnum(String inputString)
+{
+  PlaneEnum resultPlaneEnum = PLANEERROR;
+  if(       inputString == "PLANE0123")   {resultPlaneEnum = PLANE0123;}
+  else if ( inputString == "PLANE0425")   {resultPlaneEnum = PLANE0425;}
+  else if ( inputString == "PLANE1453")   {resultPlaneEnum = PLANE1453;}
+  else if ( inputString == "PLANENONE")   {resultPlaneEnum = PLANENONE;}
+  else if ( inputString == "PLANEMOVING") {resultPlaneEnum = PLANEMOVING;}
+  else if ( inputString == "PLANEERROR")  {resultPlaneEnum = PLANEERROR;}
+  return(resultPlaneEnum);
+}
+
 const int faceRotations[FACES][4] =
 {
 // 0  1  2  3 ---------ANGLES---

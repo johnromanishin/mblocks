@@ -4,7 +4,9 @@
 #include <painlessMesh.h>  // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
 #include <Arduino.h>
 #include <ArduinoJson.h>
+
 #include "CBuff.h"
+
 
 extern painlessMesh mesh; // This is the class for the wireless mesh, usage is mesh.function()
 extern CircularBuffer<String, true> jsonCircularBuffer; // we store received messages in a circular buffer
@@ -21,6 +23,15 @@ void delayReceivedCallback(uint32_t from, int32_t delay);
 //void checkForMessage(Cube* c, String message);
 
 #endif
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////NOTES////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 // DEBUG MESSAGES
@@ -93,3 +104,28 @@ void delayReceivedCallback(uint32_t from, int32_t delay);
 //    else if(likelyStatus == PLANEMOVING){Serial.println("PLANEMOVING");}
 //    else if(likelyStatus == PLANEERROR) {Serial.println("PLANEERROR");}
 //  }
+
+
+
+//   String newmsg = "Angle: " + String(c.coreMagnetAngleBuffer.access(0) - initialMagnetReadingOffset)
+//   + " core.ax: " + String(c.axCoreBuffer.access(0))
+//   + " core.ay: " + String(c.ayCoreBuffer.access(0))
+//   + " core.az: " + String(c.azCoreBuffer.access(0))
+//   + " Frame.ax: " + String(c.axFrameBuffer.access(0))
+//   + " Frame.ay: " + String(c.ayFrameBuffer.access(0))
+//   + " Frame.az: " + String(c.azFrameBuffer.access(0))
+//   + " CoreMagAGC: " + String(c.coreMagnetStrengthBuffer.access(0));
+
+
+////======Temporarily Generated a Broadcast message =========
+//  StaticJsonBuffer<264> jsonBuffer; //Space Allocated to store json instance
+//  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
+//  //^class type||^ Root         ^class method                   
+//  root["type"] = "cmd";
+//  root["cubeID"] = cubeToRelayTo;
+//  root["cmd"] = behaviorsToCmd(behaviorToRelay);
+//  //^ "key"   |  ^ "Value"
+//  String str; // generate empty string
+//  root.printTo(str); // print to JSON readable string...
+//  //======== End Generating of Broadcast message ==========
+//  

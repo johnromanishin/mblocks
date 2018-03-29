@@ -92,6 +92,8 @@ Behavior climb(Cube* c);
 void wifiTargetFace(Cube* c, int faceToSend, int recipientCube = -1);
 Behavior checkForBasicWifiCommands(Cube* c, Behavior currentBehavior);
 Behavior relayBehavior(Cube* c, Behavior behaviorToRelay, int cubeToRelayTo = -1, int timesToRelay = 4);
+//String generateUpdateMessage(Cube* c);
+
 
  //==================Utilities===============================
 void blinkFaceLeds(Cube* c, int waitTime = 50); // blinks LED's Once for a default time of 50ms
