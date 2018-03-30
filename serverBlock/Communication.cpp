@@ -48,6 +48,18 @@ bool sendBroadcastMessage(String message)
 //  }
 }
 
+bool sendMessage(int cubeID, String msg)
+{
+  if(cubeID == -1)
+  {
+    return(mesh.sendBroadcast(msg));
+  }
+  else
+  {
+    uint32_t address = getAddressFromCubeID(cubeID);
+    return(mesh.sendSingle(address, msg));
+  }
+}
 
 void receivedCallback(uint32_t from, String & msg)
 {
@@ -142,28 +154,32 @@ void requestStatus(int recipientCube)
   // else mesh.sendSingle(recipientCube, str);
 }
 
-void sendStatus(int recipientCube)
+void sendStatus(int cubeID)
 {
   //======Temporarily Generated a Broadcast message =========
   StaticJsonBuffer<256> jsonBuffer; //Space Allocated to store json instance
   JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
   //^class type||^ Root         ^class method                   
   root["type"] = "status";
-  root["targetID"] = recipientCube;
+  root["targetID"] = cubeID;
   root["senderID"] = getCubeIDFromEsp(mesh.getNodeId());
   root["upface"] = ""; // probably need to write a getUpFace method in Cube class
   root["neighbors"] = ""; // this should be the serialization of 
-                          // the connection table; may want to separate out the angle from the face, 
-                          // and the face from the cube
+  root["f1"] = " ";
+  root["f2"] = " "; 
+  root["f3"] = " ";
+  root["f4"] = " ";
+  root["f5"] = " ";
+  root["f6"] = " "; 
+  // the connection table; may want to separate out the angle from the face, 
+  // and the face from the cube
 
   //^ "key"   |  ^ "Value"
   String str; // generate empty string
   root.printTo(str); // print to JSON readable string...
   //======== End Generating of Broadcast message ==========
   
-  if (recipientCube == -1){
+  if (cubeID == -1){
     mesh.sendBroadcast(str);
   }
-  // THIS NEXT LINE WON'T WORK UNTIL RECIPIENTCUBE'S ADDRESS LOOKUP IS BUILT OUT AND USED
-//   else mesh.sendSingle(recipientCube, str);
 }

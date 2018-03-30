@@ -37,23 +37,10 @@ void setup() // Actually the main loop...
 //the real loop is "while(1)" in the void setup() Function
 void loop()
 {
-  uint32_t address = 2133796284;
-  String striing = "hey Bro";
-  delay(1000);
-  if(mesh.sendSingle(address, striing))
-  {
-    Serial.println("TRUE");
-    //delay(1000);
-  }
-  else
-  {
-    Serial.println("FALSE");
-  }
-  if (mesh.isConnected(address))
-  {
-    //Serial.println("BIG BAD BREADBOARD CUBE IS UP AND RUNNING!!");
-  }
+  sendMessage(14, "hey Bro");
+
   int rangeValue = readRangeSensor();
+  
   if (rangeValue < 20)
   {
     //sendBroadcastMessage(createJsonStringFlood(-1, "sleep"));
