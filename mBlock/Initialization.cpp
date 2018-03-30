@@ -212,13 +212,15 @@ int get_battery_voltage()
  * 
  * Updates global variables with values according to the esp.getchipid
  */
+
+
 void lookUpCalibrationValues(long wifiID)
 {
   if(MAGIC_DEBUG) Serial.println("Entering lookUpCalibrationValues()");
   switch (wifiID)  // used to be ESP.getChipID
   {
     //********************************
-    case 2139793359: //9086927 This is the cube on the BIG Breadboard
+    case 2133796284: // 9086927 This is the cube on the BIG Breadboard
       GlobalCubeID = 99;
       
       TRAVERSE_RPM_F = 6969;
@@ -237,7 +239,7 @@ void lookUpCalibrationValues(long wifiID)
       break;
     //********************************
     
-    case 955:   //13374829 Cube on Smaller Breadboard
+    case 955:   // 13374829 Cube on Smaller Breadboard
       GlobalCubeID = 98;
       
       TRAVERSE_RPM_F = 999;

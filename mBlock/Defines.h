@@ -4,6 +4,20 @@
 #include <Arduino.h>
 #include "Communication.h"
 
+
+/// ESP ID to CUBE MAP ////
+uint32_t getAddressFromCubeID(int CubeID);
+
+typedef struct EspToCubeMapping
+{
+  int esp;
+  int cube;
+} EspToCubeMapping;
+
+int getEspIDFromCube(int);
+int getCubeIDFromEsp(int);
+
+
 /*
  * Plane Enums are the possible states that the internal robot can be in
  * in regards to the frame. Functions involving PlaneEnums involve 
@@ -121,16 +135,6 @@ extern Motion explode_R;
 
 extern Motion rollDouble_F;
 extern Motion rollDouble_R;
-
-/// ESP ID to CUBE MAP ////
-typedef struct EspToCubeMapping
-{
-  int esp;
-  int cube;
-} EspToCubeMapping;
-
-int getEspIDFromCube(int);
-int getCubeIDFromEsp(int);
 
 //typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING, PLANEERROR} PlaneEnum;
 
