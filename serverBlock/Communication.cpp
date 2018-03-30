@@ -108,13 +108,37 @@ void makeThemBlink(int recipientCube)
 void requestStatus(int recipientCube)
 {
   //======Temporarily Generated a Broadcast message =========
-  StaticJsonBuffer<256> jsonBuffer; //Space Allocated to store json instance
+  StaticJsonBuffer<128> jsonBuffer; //Space Allocated to store json instance
   JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
   //^class type||^ Root         ^class method                   
   root["type"] = "cmd";
   root["targetID"] = recipientCube;
   root["senderID"] = getCubeIDFromEsp(mesh.getNodeId());
-  root["cmd"] = "update";
+  root["cmd"] = "sendstatus";
+  //^ "key"   |  ^ "Value"
+  String str; // generate empty string
+  root.printTo(str); // print to JSON readable string...
+  //======== End Generating of Broadcast message ==========
+  
+  if (recipientCube == -1){
+    mesh.sendBroadcast(str);
+  }
+  // THIS NEXT LINE WON'T WORK UNTIL RECIPIENTCUBE'S ADDRESS LOOKUP IS BUILT OUT AND USED
+  // else mesh.sendSingle(recipientCube, str);
+}
+
+void sendStatus(int recipientCube)
+{
+  //======Temporarily Generated a Broadcast message =========
+  StaticJsonBuffer<256> jsonBuffer; //Space Allocated to store json instance
+  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
+  //^class type||^ Root         ^class method                   
+  root["type"] = "status";
+  root["targetID"] = recipientCube;
+  root["senderID"] = getCubeIDFromEsp(mesh.getNodeId());
+  root["upface"] = ""; // probably need to write a getUpFace method in Cube class
+  root["neighbors"] = ""; // this should be the serialization of the connection table; may want to separate out the angle from the face, and the face from the cube
+
   //^ "key"   |  ^ "Value"
   String str; // generate empty string
   root.printTo(str); // print to JSON readable string...
