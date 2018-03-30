@@ -37,31 +37,43 @@ void setup() // Actually the main loop...
 //the real loop is "while(1)" in the void setup() Function
 void loop()
 {
-  if (mesh.isConnected(2139793359))
+  uint32_t address = 2133796284;
+  String striing = "hey Bro";
+  delay(1000);
+  if(mesh.sendSingle(address, striing))
+  {
+    Serial.println("TRUE");
+    //delay(1000);
+  }
+  else
+  {
+    Serial.println("FALSE");
+  }
+  if (mesh.isConnected(address))
   {
     //Serial.println("BIG BAD BREADBOARD CUBE IS UP AND RUNNING!!");
   }
   int rangeValue = readRangeSensor();
   if (rangeValue < 20)
   {
-    sendBroadcastMessage(createJsonStringFlood(-1, "sleep"));
+    //sendBroadcastMessage(createJsonStringFlood(-1, "sleep"));
     Serial.println("Putting the cubes to sleep...");
   }
   else if (rangeValue > 20 && rangeValue < 50)
   {
-    sendBroadcastMessage(createJsonStringFlood(-1, "lightSeek"));
+    //sendBroadcastMessage(createJsonStringFlood(-1, "lightSeek"));
     //Serial.println("Putting the cubes to sleep...");
   }
   
   else if (rangeValue > 50 && rangeValue < 100)
   {
-    sendBroadcastMessage(createJsonStringFlood(-1, "attractive"));
+    //sendBroadcastMessage(createJsonStringFlood(-1, "attractive"));
     //Serial.println("Putting the cubes to sleep...");
   }
   
   else if (rangeValue > 100 && rangeValue < 200)
   {
-    sendBroadcastMessage(createJsonStringFlood(-1, "blink"));
+    //sendBroadcastMessage(createJsonStringFlood(-1, "blink"));
     //Serial.println("Putting the cubes to sleep...");
   }
   wifiDelay(100);
@@ -71,22 +83,6 @@ void loop()
     mainLoopCounter = 0;
   }
 }
-
-String createJsonStringFlood(int targetID, String cmd)
-{
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& root = jsonBuffer.createObject();
-  //^class type||^ Root         ^class method
-  root["type"] = "cmd";
-  root["targetID"] = targetID;
-  root["cmd"] = cmd;
-  //^ "key"   |  ^ "Value"
-  String strang = "";
-  root.printTo(strang);
-  return (strang);
-}
-
-
 
 
 //checkForBasicWifiCommands()

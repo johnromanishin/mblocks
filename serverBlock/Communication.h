@@ -18,7 +18,6 @@ void changedConnectionCallback();
 void nodeTimeAdjustedCallback(int32_t offset);
 void delayReceivedCallback(uint32_t from, int32_t delay);
 
-void makeThemBlink(int cubeToRelayTo);
 void countdown(int numberToSend, int cubeToRelayTo);
 void requestStatus(int cubeToRelayTo);
 void messageSingle(uint32_t dest);

@@ -3,6 +3,8 @@
 #include <painlessMesh.h> // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
 #include "Communication.h"
 
+uint32_t getAddressFromCubeID(int CubeID);
+
 /// ESP ID to CUBE MAP ////
 typedef struct EspToCubeMapping
 {

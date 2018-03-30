@@ -124,191 +124,192 @@ uint32_t getAddressFromCubeID(int CubeID)
     case 16:
       break;
   }
-  EspToCubeMapping espCubeMap[] =
-  {
-    // Sparkfun Thing's
-    {2133796284, 98}, //9086927 || 2139793359 ||  Test Mblock
-    {885790061, 99}, //13374829 || 885790061  ||  Test Server
-    // PEI Cubes (Yellow-white Frames) - more mechanically durable
-    {3, 16},   //959839 PEI BLACK DB:9D:99:1A:BA:23
-    {4, 1},    //960662 PEI BROWN  - F1:E8:71:B2:99:B5
-    {5, 14},   //959694 PEI PURPLE | FA:AA:25:19:C7:DF
-    {6, 10},   //960558 PEI BLUE  f7:AE:59:2B:D9:4D
-    {7, 15},   //960348 PEI GREEN
-    {8, 12},   //960043 PEI YELLOW  CC:F1:4F:AF:64:A8
-    {9, 7},    //960242 PEI ORANGE E6:F6:05:69:08:F2
-    {2131666859, 5},    //960427 PEI RED  D0:D5:6F:CB:32:4C
-    // Polycarbonate Cubes - Clear Plastic - or orange Plastic...
-    {75, 9},   //8576514 PC BLACK  E3:6B:C6:CE:DA:31
-    {76, 8},    //959709 PC YELLOW  - FB:0D:8F:2C:3B:B4
-    {74, 11},  //8577103 PC ORANGE  - E6:E5:82:26:C7:8B
-    {73, 2},  //10229112 PC PURPLE  - DF:DF:3C:A0:F1:77
-    {999, 6},   //8577715 PC Brown  C5:FF:AB:04:3B:9D
-    {45, 13}, //15044426 PC Blue  D8:9C:4D:EA:27:65
-    {34, 4},   //8575308 PC Green : ED:A6:6A:8E:1B:58
-    {36, 3}   //15044359 ORANGE PC RED  CD:2B:5E:AB:3E:F3
-  };
-  //  {9086927,   3}     // ESP thing "A" with orange board (magID 3)
-  //{15044359, 3}: // ORANGE PC RED  CD:2B:5E:AB:3E:F3
+}
+EspToCubeMapping espCubeMap[] =
+{
+  // Sparkfun Thing's
+  {2133796284, 98}, //9086927 || 2139793359 ||  Test Mblock
+  {885790061, 99}, //13374829 || 885790061  ||  Test Server
+  // PEI Cubes (Yellow-white Frames) - more mechanically durable
+  {3, 16},   //959839 PEI BLACK DB:9D:99:1A:BA:23
+  {4, 1},    //960662 PEI BROWN  - F1:E8:71:B2:99:B5
+  {5, 14},   //959694 PEI PURPLE | FA:AA:25:19:C7:DF
+  {6, 10},   //960558 PEI BLUE  f7:AE:59:2B:D9:4D
+  {7, 15},   //960348 PEI GREEN
+  {8, 12},   //960043 PEI YELLOW  CC:F1:4F:AF:64:A8
+  {9, 7},    //960242 PEI ORANGE E6:F6:05:69:08:F2
+  {2131666859, 5},    //960427 PEI RED  D0:D5:6F:CB:32:4C
+  // Polycarbonate Cubes - Clear Plastic - or orange Plastic...
+  {75, 9},   //8576514 PC BLACK  E3:6B:C6:CE:DA:31
+  {76, 8},    //959709 PC YELLOW  - FB:0D:8F:2C:3B:B4
+  {74, 11},  //8577103 PC ORANGE  - E6:E5:82:26:C7:8B
+  {73, 2},  //10229112 PC PURPLE  - DF:DF:3C:A0:F1:77
+  {999, 6},   //8577715 PC Brown  C5:FF:AB:04:3B:9D
+  {45, 13}, //15044426 PC Blue  D8:9C:4D:EA:27:65
+  {34, 4},   //8575308 PC Green : ED:A6:6A:8E:1B:58
+  {36, 3}   //15044359 ORANGE PC RED  CD:2B:5E:AB:3E:F3
+};
+//  {9086927,   3}     // ESP thing "A" with orange board (magID 3)
+//{15044359, 3}: // ORANGE PC RED  CD:2B:5E:AB:3E:F3
 
-  int getEspIDFromCube(int toCheckID)
+int getEspIDFromCube(int toCheckID)
+{
+  int idex;
+  int foundit = 0;
+  for (idex = 0; idex < (sizeof(espCubeMap) / sizeof(espCubeMap[0])); idex++)
   {
-    int idex;
-    int foundit = 0;
-    for (idex = 0; idex < (sizeof(espCubeMap) / sizeof(espCubeMap[0])); idex++)
+    if (toCheckID == espCubeMap[idex].cube)
     {
-      if (toCheckID == espCubeMap[idex].cube)
-      {
-        foundit = 1;
-        break;
-      }
+      foundit = 1;
+      break;
     }
-
-    if (!foundit)
-      return -1;
-    else
-      return espCubeMap[idex].esp;
   }
 
-  int getCubeIDFromEsp(int espID)
+  if (!foundit)
+    return -1;
+  else
+    return espCubeMap[idex].esp;
+}
+
+int getCubeIDFromEsp(int espID)
+{
+  int idex;
+  int foundit = 0;
+  for (idex = 0; idex < (sizeof(espCubeMap) / sizeof(espCubeMap[0])); idex++)
   {
-    int idex;
-    int foundit = 0;
-    for (idex = 0; idex < (sizeof(espCubeMap) / sizeof(espCubeMap[0])); idex++)
+    if (espID == espCubeMap[idex].esp)
     {
-      if (espID == espCubeMap[idex].esp)
-      {
-        foundit = 1;
-        break;
-      }
+      foundit = 1;
+      break;
     }
-
-    if (!foundit)
-      return -1;
-    else
-      return espCubeMap[idex].cube;
   }
 
-  /**
-     For the ith face, faceRotations[i][0] will tell which face the intrisic arrow points towards.
-     faceRotations[i][1] tells which face the arrow rotated 90 degrees counter-clockwise from the
-     intrinsic arrow points towards.  face[rotations[i][2] give the 180-degree face.
+  if (!foundit)
+    return -1;
+  else
+    return espCubeMap[idex].cube;
+}
 
-     For cubes
-  */
+/**
+   For the ith face, faceRotations[i][0] will tell which face the intrisic arrow points towards.
+   faceRotations[i][1] tells which face the arrow rotated 90 degrees counter-clockwise from the
+   intrinsic arrow points towards.  face[rotations[i][2] give the 180-degree face.
 
-  PlaneEnum returnPlane(int face1, int face2)
+   For cubes
+*/
+
+PlaneEnum returnPlane(int face1, int face2)
+{
+  return (facePlanes[face1][face2]);
+}
+
+int faceArrowPointsTo(int readingFace, int connectionAngle)
+{
+  return (faceRotations[readingFace][connectionAngle]);
+}
+
+//    Face you want to move towards | other face in plane
+
+/*
+   This lookup table tells the module to either move Clockwise (+1)
+   or Counter-clockwise (-1) or invalid selection (0).
+
+   Useage: First arguement is the face we want to move TOWARDS
+           Second face is the face we are moving FROM
+*/
+const int faceClockinessMatrix[FACES][FACES] =
+{
+  //0,   1,   2,   3,   4,  5 // This is the face we want to move towards
+  { 0,   1,   0,  -1,  -1,   1},   // 0
+  { -1,   0,   1,   0,   1,  -1},  // 1
+  { 0,  -1,   0,   1,   1,  -1},   // 2
+  { 1,   0,  -1,   0,  -1,   1},   // 3
+  { 1,  -1,  -1,   1,   0,   0},   // 4
+  { -1,   1,   1,  -1,   0,   0}   // 5
+};
+
+int faceClockiness(int faceTowards, int faceReference)
+{
+  int result = 0;
+  if ((faceTowards > -1) && (faceTowards < 6))
   {
-    return (facePlanes[face1][face2]);
-  }
-
-  int faceArrowPointsTo(int readingFace, int connectionAngle)
-  {
-    return (faceRotations[readingFace][connectionAngle]);
-  }
-
-  //    Face you want to move towards | other face in plane
-
-  /*
-     This lookup table tells the module to either move Clockwise (+1)
-     or Counter-clockwise (-1) or invalid selection (0).
-
-     Useage: First arguement is the face we want to move TOWARDS
-             Second face is the face we are moving FROM
-  */
-  const int faceClockinessMatrix[FACES][FACES] =
-  {
-    //0,   1,   2,   3,   4,  5 // This is the face we want to move towards
-    { 0,   1,   0,  -1,  -1,   1},   // 0
-    { -1,   0,   1,   0,   1,  -1},  // 1
-    { 0,  -1,   0,   1,   1,  -1},   // 2
-    { 1,   0,  -1,   0,  -1,   1},   // 3
-    { 1,  -1,  -1,   1,   0,   0},   // 4
-    { -1,   1,   1,  -1,   0,   0}   // 5
-  };
-
-  int faceClockiness(int faceTowards, int faceReference)
-  {
-    int result = 0;
-    if ((faceTowards > -1) && (faceTowards < 6))
+    if ((faceReference > -1) && (faceReference < 6))
     {
-      if ((faceReference > -1) && (faceReference < 6))
-      {
-        result = faceClockinessMatrix[faceReference][faceTowards];
-      }
+      result = faceClockinessMatrix[faceReference][faceTowards];
     }
-    return (result);
   }
-  // PLANE0123, PLANE0425, PLANE1453, PLANENONE
-  // PLANE0123, PLANE0425, PLANE1453, PLANENONE
-  // 0--------,1---------,2---------,3---------,4---------,5---------
-  const PlaneEnum facePlanes[FACES][FACES] =
-  {
-    { PLANENONE, PLANE0123, PLANENONE, PLANE0123, PLANE0425, PLANE0425},   // 0
-    { PLANE0123, PLANENONE, PLANE0123, PLANENONE, PLANE1453, PLANE1453},   // 1
-    { PLANENONE, PLANE0123, PLANENONE, PLANE0123, PLANE0425, PLANE0425},   // 2
-    { PLANE0123, PLANENONE, PLANE0123, PLANENONE, PLANE1453, PLANE1453},   // 3
-    { PLANE0425, PLANE1453, PLANE0425, PLANE1453, PLANENONE, PLANENONE},   // 4
-    { PLANE0425, PLANE1453, PLANE0425, PLANE1453, PLANENONE, PLANENONE}    // 5
-  };
+  return (result);
+}
+// PLANE0123, PLANE0425, PLANE1453, PLANENONE
+// PLANE0123, PLANE0425, PLANE1453, PLANENONE
+// 0--------,1---------,2---------,3---------,4---------,5---------
+const PlaneEnum facePlanes[FACES][FACES] =
+{
+  { PLANENONE, PLANE0123, PLANENONE, PLANE0123, PLANE0425, PLANE0425},   // 0
+  { PLANE0123, PLANENONE, PLANE0123, PLANENONE, PLANE1453, PLANE1453},   // 1
+  { PLANENONE, PLANE0123, PLANENONE, PLANE0123, PLANE0425, PLANE0425},   // 2
+  { PLANE0123, PLANENONE, PLANE0123, PLANENONE, PLANE1453, PLANE1453},   // 3
+  { PLANE0425, PLANE1453, PLANE0425, PLANE1453, PLANENONE, PLANENONE},   // 4
+  { PLANE0425, PLANE1453, PLANE0425, PLANE1453, PLANENONE, PLANENONE}    // 5
+};
 
-  String planeEnumToString(PlaneEnum thePlaneNow)
-  {
-    String resultString = "";
-    if (       thePlaneNow == PLANE0123)   {
-      resultString = "PLANE0123";
-    }
-    else if ( thePlaneNow == PLANE0425)   {
-      resultString = "PLANE0425";
-    }
-    else if ( thePlaneNow == PLANE1453)   {
-      resultString = "PLANE1453";
-    }
-    else if ( thePlaneNow == PLANENONE)   {
-      resultString = "PLANENONE";
-    }
-    else if ( thePlaneNow == PLANEMOVING) {
-      resultString = "PLANEMOVING";
-    }
-    else if ( thePlaneNow == PLANEERROR)  {
-      resultString = "PLANEERROR";
-    }
-    return (resultString);
+String planeEnumToString(PlaneEnum thePlaneNow)
+{
+  String resultString = "";
+  if (       thePlaneNow == PLANE0123)   {
+    resultString = "PLANE0123";
   }
-
-  PlaneEnum stringToPlaneEnum(String inputString)
-  {
-    PlaneEnum resultPlaneEnum = PLANEERROR;
-    if (       inputString == "PLANE0123")   {
-      resultPlaneEnum = PLANE0123;
-    }
-    else if ( inputString == "PLANE0425")   {
-      resultPlaneEnum = PLANE0425;
-    }
-    else if ( inputString == "PLANE1453")   {
-      resultPlaneEnum = PLANE1453;
-    }
-    else if ( inputString == "PLANENONE")   {
-      resultPlaneEnum = PLANENONE;
-    }
-    else if ( inputString == "PLANEMOVING") {
-      resultPlaneEnum = PLANEMOVING;
-    }
-    else if ( inputString == "PLANEERROR")  {
-      resultPlaneEnum = PLANEERROR;
-    }
-    return (resultPlaneEnum);
+  else if ( thePlaneNow == PLANE0425)   {
+    resultString = "PLANE0425";
   }
+  else if ( thePlaneNow == PLANE1453)   {
+    resultString = "PLANE1453";
+  }
+  else if ( thePlaneNow == PLANENONE)   {
+    resultString = "PLANENONE";
+  }
+  else if ( thePlaneNow == PLANEMOVING) {
+    resultString = "PLANEMOVING";
+  }
+  else if ( thePlaneNow == PLANEERROR)  {
+    resultString = "PLANEERROR";
+  }
+  return (resultString);
+}
 
-  const int faceRotations[FACES][4] =
-  {
-    // 0  1  2  3 ---------ANGLES---
-    {5, 1, 4, 3},  // FACE 0
-    {5, 2, 4, 0},  // FACE 1
-    {1, 5, 3, 4},  // FACE 2
-    {5, 0, 4, 2},  // FACE 3
-    {2, 3, 0, 1},  // FACE 4
-    {1, 0, 3, 2}   // FACE 5
-  };
+PlaneEnum stringToPlaneEnum(String inputString)
+{
+  PlaneEnum resultPlaneEnum = PLANEERROR;
+  if (       inputString == "PLANE0123")   {
+    resultPlaneEnum = PLANE0123;
+  }
+  else if ( inputString == "PLANE0425")   {
+    resultPlaneEnum = PLANE0425;
+  }
+  else if ( inputString == "PLANE1453")   {
+    resultPlaneEnum = PLANE1453;
+  }
+  else if ( inputString == "PLANENONE")   {
+    resultPlaneEnum = PLANENONE;
+  }
+  else if ( inputString == "PLANEMOVING") {
+    resultPlaneEnum = PLANEMOVING;
+  }
+  else if ( inputString == "PLANEERROR")  {
+    resultPlaneEnum = PLANEERROR;
+  }
+  return (resultPlaneEnum);
+}
 
-  // Functions
+const int faceRotations[FACES][4] =
+{
+  // 0  1  2  3 ---------ANGLES---
+  {5, 1, 4, 3},  // FACE 0
+  {5, 2, 4, 0},  // FACE 1
+  {1, 5, 3, 4},  // FACE 2
+  {5, 0, 4, 2},  // FACE 3
+  {2, 3, 0, 1},  // FACE 4
+  {1, 0, 3, 2}   // FACE 5
+};
+
+// Functions

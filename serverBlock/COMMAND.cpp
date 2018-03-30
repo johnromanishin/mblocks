@@ -31,6 +31,7 @@ int cubeDataArray[Parameters][numberOfCubes] = {};
 void updateCubeInformation(int cubeID, int parameter, int valueToAdd)
 {
   cubeDataArray[cubeID][parameter] = valueToAdd;
+ 
 }
 
 int returnCubeInformation(int cubeID, int parameter)

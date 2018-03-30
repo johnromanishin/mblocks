@@ -82,28 +82,43 @@ void delayReceivedCallback(uint32_t from, int32_t delay) {
 }
 
 
-void makeThemBlink(int recipientCube)
-{
-  //======Temporarily Generated a Broadcast message =========
-  StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
-  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
-  //^class type||^ Root         ^class method                   
-  root["type"] = "cmd";
-  root["targetID"] = recipientCube;
-  root["senderID"] = getCubeIDFromEsp(mesh.getNodeId());
-  root["cmd"] = "blink";
-  //^ "key"   |  ^ "Value"
-  String str; // generate empty string
-  root.printTo(str); // print to JSON readable string...
-  //======== End Generating of Broadcast message ==========
-  
-  if (recipientCube == -1){
-    mesh.sendBroadcast(str);
-    wifiDelay(300);
-  }
-  // THIS NEXT LINE WON'T WORK UNTIL RECIPIENTCUBE'S ADDRESS LOOKUP IS BUILT OUT AND USED
-  // else mesh.sendSingle(recipientCube, str);
-}
+//void makeThemBlink(int recipientCube)
+//{
+//  //======Temporarily Generated a Broadcast message =========
+//  StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
+//  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
+//  //^class type||^ Root         ^class method  
+//  root["WHAT THE FUCK"] = "WHA";                 
+//  root["type"] = "cmd";
+//  root["targetID"] = recipientCube;
+//  root["senderID"] = 55; //getCubeIDFromEsp(mesh.getNodeId());
+//  root["cmd"] = "blink";
+//  //^ "key"   |  ^ "Value"
+//  String str; // generate empty string
+//  root.printTo(str); // print to JSON readable string...
+//  //======== End Generating of Broadcast message ==========
+//  
+//  if (recipientCube == -1){
+//    mesh.sendBroadcast(str);
+//    wifiDelay(300);
+//  }
+//  // THIS NEXT LINE WON'T WORK UNTIL RECIPIENTCUBE'S ADDRESS LOOKUP IS BUILT OUT AND USED
+//  // else mesh.sendSingle(recipientCube, str);
+//}
+
+//void (int targetID, String cmd)
+//{
+//  StaticJsonBuffer<200> jsonBuffer;
+//  JsonObject& root = jsonBuffer.createObject();
+//  //^class type||^ Root         ^class method
+//  root["type"] = "cmd";
+//  root["targetID"] = targetID;
+//  root["cmd"] = cmd;
+//  //^ "key"   |  ^ "Value"
+//  String strang = "";
+//  root.printTo(strang);
+//  return (strang);
+//}
 
 void requestStatus(int recipientCube)
 {
@@ -137,7 +152,9 @@ void sendStatus(int recipientCube)
   root["targetID"] = recipientCube;
   root["senderID"] = getCubeIDFromEsp(mesh.getNodeId());
   root["upface"] = ""; // probably need to write a getUpFace method in Cube class
-  root["neighbors"] = ""; // this should be the serialization of the connection table; may want to separate out the angle from the face, and the face from the cube
+  root["neighbors"] = ""; // this should be the serialization of 
+                          // the connection table; may want to separate out the angle from the face, 
+                          // and the face from the cube
 
   //^ "key"   |  ^ "Value"
   String str; // generate empty string
@@ -148,5 +165,5 @@ void sendStatus(int recipientCube)
     mesh.sendBroadcast(str);
   }
   // THIS NEXT LINE WON'T WORK UNTIL RECIPIENTCUBE'S ADDRESS LOOKUP IS BUILT OUT AND USED
-  // else mesh.sendSingle(recipientCube, str);
+//   else mesh.sendSingle(recipientCube, str);
 }
