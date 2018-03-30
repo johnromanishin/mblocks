@@ -87,8 +87,8 @@ extern int CC_BRAKETIME_R = 12;
 EspToCubeMapping espCubeMap[] =
 {
   // Sparkfun Thing's
-  {2133796284, 99}, //9086927 || 2139793359 ||  This is the cube on the BIG Breadboard
-  {885790061, 98}, //13374829 || 885790061  ||  Smaller breadboard...
+  {2133796284, 98}, //9086927 || 2139793359 ||  Test Mblock
+  {885790061, 99}, //13374829 || 885790061  ||  Test Server
   // PEI Cubes (Yellow-white Frames) - more mechanically durable
   {3, 16},   //959839 PEI BLACK DB:9D:99:1A:BA:23
   {4, 1},    //960662 PEI BROWN  - F1:E8:71:B2:99:B5
