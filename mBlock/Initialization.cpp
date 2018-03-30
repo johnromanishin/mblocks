@@ -522,7 +522,6 @@ void lookUpCalibrationValues(long wifiID)
     break;
   }
   if(MAGIC_DEBUG) Serial.println("Exiting lookUpCalibrationValues()");
-
 }
 
 void loadMotionData(Motion* motion, int RPM, int Current, int brakeTime)

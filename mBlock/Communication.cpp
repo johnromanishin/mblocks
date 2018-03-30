@@ -67,6 +67,7 @@ bool sendMessage(String message)
 
 void receivedCallback(uint32_t from, String & msg)
 {
+  if(MAGIC_DEBUG) Serial.println(msg);
   jsonCircularBuffer.push(msg);
 }
 
