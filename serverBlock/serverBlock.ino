@@ -37,7 +37,7 @@ void setup() // Actually the main loop...
 //the real loop is "while(1)" in the void setup() Function
 void loop()
 {
-  sendMessage(14, "hey Bro");
+  //sendMessage(14, "hey Bro");
 
   int rangeValue = readRangeSensor();
   
@@ -60,7 +60,7 @@ void loop()
   
   else if (rangeValue > 100 && rangeValue < 200)
   {
-    //sendBroadcastMessage(createJsonStringFlood(-1, "blink"));
+    makeThemBlink(-1);
     //Serial.println("Putting the cubes to sleep...");
   }
   wifiDelay(100);

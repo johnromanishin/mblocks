@@ -23,6 +23,9 @@ void delayReceivedCallback(uint32_t from, int32_t delay);
 void countdown(int numberToSend, int cubeToRelayTo);
 void requestStatus(int cubeToRelayTo);
 void messageSingle(uint32_t dest);
+
+void makeThemBlink(int recipientCube);
+
 //void checkForMessage(Cube* c, String message);
 
 #endif
