@@ -114,7 +114,6 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
   }
   if (Mode == "lightSeek")
   {
-    Serial.println("WTF");
     return (LightTrackingStateMachine(c, newBehavior));
   }
   else if (true)

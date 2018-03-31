@@ -27,7 +27,19 @@ CircularBuffer<String, true> jsonCircularBuffer(ARRAY_SIZEOF(jsonBufferSpace), j
 
 bool calc_delay = false;
 SimpleList<uint32_t> nodes;
-void sendMessage(); // Prototype
+
+bool sendMessage(int cubeID, String msg)
+{
+  if(cubeID == -1)
+  {
+    return(mesh.sendBroadcast(msg));
+  }
+  else
+  {
+    uint32_t address = getAddressFromCubeID(cubeID);
+    return(mesh.sendSingle(address, msg));
+  }
+}
 
 long initializeWifiMesh()
 {
@@ -43,32 +55,14 @@ long initializeWifiMesh()
   if(MAGIC_DEBUG) Serial.println("Exiting initializeWifiMesh");
 }
 
-bool sendSingleMessage(int cubeID, String message)
-{
-  uint32_t messageAddress = getEspIDFromCube(cubeID);
-  return(mesh.sendSingle(messageAddress, message));
-}
-
-bool sendMessage(String message)
-{
-  String msg = ""; // create empty string
-  msg = message;   // assign contents of "message"
-  bool error = mesh.sendBroadcast(msg);
-//
-//  if (calc_delay) {
-//    SimpleList<uint32_t>::iterator node = nodes.begin();
-//    while (node != nodes.end()) {
-//      mesh.startDelayMeas(*node);
-//      node++;
-//    }
-//    calc_delay = false;
-//  }
-}
-
 void receivedCallback(uint32_t from, String & msg)
 {
-  Serial.print("Message Received from: ");Serial.println(from);
-  if(MAGIC_DEBUG) Serial.println(msg);
+  if(MAGIC_DEBUG)
+  {
+    Serial.print("Message Received from: ");
+    Serial.println(from);
+  }
+  
   jsonCircularBuffer.push(msg);
 }
 

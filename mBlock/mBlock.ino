@@ -26,7 +26,7 @@ Behavior behavior = DEMO; // initial Behavior Cube implements
 
 void setup() // starts up the various electronic hardware...
 {
-  int timerCounter = millis(); // records when everything started
+  //int timerCounter = millis(); // records when everything started
   bool shutDown = false;
   initializeCube(); // Runs this code once to setup input/outputs, communication networks...
                     // (Wifi, i2c, serial) and instantiates classes and calibration values
