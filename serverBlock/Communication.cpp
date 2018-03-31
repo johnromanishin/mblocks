@@ -14,7 +14,7 @@
 
 painlessMesh  mesh;
 
-String jsonBufferSpace[500];
+String jsonBufferSpace[50];
 CircularBuffer<String, true> jsonCircularBuffer(500, jsonBufferSpace);
 
 bool calc_delay = false;
@@ -63,6 +63,7 @@ bool sendMessage(int cubeID, String msg)
 
 void receivedCallback(uint32_t from, String & msg)
 {
+  Serial.println(msg);
   jsonCircularBuffer.push(msg);
 }
 
@@ -111,20 +112,6 @@ void makeThemBlink(int recipientCube)
   sendMessage(recipientCube, str);
 }
 
-//void (int targetID, String cmd)
-//{
-//  StaticJsonBuffer<200> jsonBuffer;
-//  JsonObject& root = jsonBuffer.createObject();
-//  //^class type||^ Root         ^class method
-//  root["type"] = "cmd";
-//  root["targetID"] = targetID;
-//  root["cmd"] = cmd;
-//  //^ "key"   |  ^ "Value"
-//  String strang = "";
-//  root.printTo(strang);
-//  return (strang);
-//}
-
 void requestStatus(int recipientCube)
 {
   //======Temporarily Generated a Broadcast message =========
@@ -133,9 +120,9 @@ void requestStatus(int recipientCube)
   //^class type||^ Root         ^class method                   
   root["type"] = "cmd";
   root["targetID"] = recipientCube;
-  root["senderID"] = getCubeIDFromEsp(mesh.getNodeId());
-  root["cmd"] = "sendstatus";
-  //^ "key"   |  ^ "Value"
+  root["senderID"] = getAddressFromCubeID(mesh.getNodeId());
+  root["cmd"] = "status";
+  //^ "key"   |  ^ "Value"s
   String str; // generate empty string
   root.printTo(str); // print to JSON readable string...
   //======== End Generating of Broadcast message ==========

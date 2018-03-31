@@ -38,7 +38,7 @@ void setup() // Actually the main loop...
 void loop()
 {
   //sendMessage(14, "hey Bro");
-
+  processWifiMessages();
   int rangeValue = readRangeSensor();
   
   if (rangeValue < 20)
@@ -72,40 +72,46 @@ void loop()
 }
 
 
-//checkForBasicWifiCommands()
-//{
-//  int attempts = 5;
-//  while (!jsonCircularBuffer.empty() && attempts > 0) // while there are still messages, and we haven't tried 5 times
-//  {
-//    StaticJsonBuffer<700> jb; // Create a buffer to store our Jason Objects...
-//    JsonObject& root = jb.parseObject(jsonCircularBuffer.pop());
-//    if (root["targetID"] == 69)       // or if message is brodcast
-//    {
-//      // At this point, we have determined that the message is for us... so now we try to decode the contents
-//      String receivedCMD = root["cmd"]; // this extracts the contents of "cmd" and puts it into a local variable
-//      if (receivedCMD == "update")
-//      {
-//
-//      }
-//
-//      /*
-//         If the first element is a digit, we light up LED's and wait
-//      */
-//      //  else if(isDigit(receivedCMD[0]))
-//      //  {
-//      //  int targetFace = receivedCMD.toInt();
-//
-//      if () // cubeID's over 40 means it is attached by a cable... not a real cube // so we print
-//      {
-//        String targetID = root["targetID"];
-//        String receivedCMD = root["cmd"];
-//        String senderID = root["senderID"];
-//        String messageString = "Message: From: " + senderID + " to: " + targetID + " Command is: " + receivedCMD;// + " Command is: ";
-//        Serial.println(messageString);
-//      }
-//    }
-//    attempts--;
-//  }
-//  return (resultBehavior);
-//}
+void processWifiMessages()
+{
+  int attempts = 5;
+  while (!jsonCircularBuffer.empty() && attempts > 0) // while there are still messages, and we haven't tried 5 times
+  {
+    StaticJsonBuffer<400> jb; // Create a buffer to store our Jason Objects...
+    JsonObject& root = jb.parseObject(jsonCircularBuffer.pop());
+    if (root["targetID"] == 99)       // or if message is brodcast
+    {
+      // At this point, we have determined that the message is for us... so now we try to decode the contents
+      String receivedCMD = root["cmd"]; // this extracts the contents of "cmd" and puts it into a local variable
+      if (receivedCMD == "update")
+      {
+        Serial.println("hey");
+        String noNebro = root["targetID"];
+        String copiedNoNebro = noNebro;
+        if(copiedNoNebro.toInt() > 0)
+        {
+           Serial.print("The connect cube has: ");Serial.print(noNebro);Serial.println(" Neighbros");
+        }
+      }
+
+      /*
+         If the first element is a digit, we light up LED's and wait
+      */
+      //  else if(isDigit(receivedCMD[0]))
+      //  {
+      //  int targetFace = receivedCMD.toInt();
+
+      if (true) // cubeID's over 40 means it is attached by a cable... not a real cube // so we print
+      {
+        String targetID = root["targetID"];
+        String receivedCMD = root["cmd"];
+        String senderID = root["senderID"];
+        String messageString = "Message: From: " + senderID + " to: " + targetID + " Command is: " + receivedCMD;// + " Command is: ";
+        Serial.println(messageString);
+      }
+    }
+    attempts--;
+  }
+ // return (true);
+}
 
