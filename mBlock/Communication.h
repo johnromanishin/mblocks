@@ -5,27 +5,28 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
+#include "Defines.h"
 #include "CBuff.h"
+#include "Cube.h"
+//#include "Face.h"
+
+// Wifi Infrastructure
 extern painlessMesh mesh; // This is the class for the wireless mesh, usage is mesh.function()
-
-///// Sending Messages
-
-
-
-///// 
 extern CircularBuffer<String, true> jsonCircularBuffer; // we store received messages in a circular buffer
-bool sendMessage(int cubeID, String msg);
-
 long initializeWifiMesh();
-bool sendMessage(String message);
-bool sendSingleMessage(int cubeID, String message);
 void receivedCallback(uint32_t from, String & msg);
 
+///// Sending Messages Utilities
+bool sendMessage(int cubeID, String msg);
+
+// Commonly Used
+bool sendStatusMessage(Cube* c, int serverNumber);
+
+///// 
 void newConnectionCallback(uint32_t nodeId);
 void changedConnectionCallback();
 void nodeTimeAdjustedCallback(int32_t offset);
 void delayReceivedCallback(uint32_t from, int32_t delay);
-
 
 //void checkForMessage(Cube* c, String message);
 

@@ -85,8 +85,9 @@ Behavior demo(Cube* c)
   Behavior nextBehavior = DEMO;
   while (nextBehavior == DEMO) // loop until something changes the next behavior
   {
+    sendStatusMessage(c, 99);
     nextBehavior = basicUpkeep(c, nextBehavior);
-    wifiDelay(100);
+    wifiDelay(500);
   }
   if (MAGIC_DEBUG) {
     Serial.print("nextBehavior is... ");

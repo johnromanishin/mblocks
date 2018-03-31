@@ -2,8 +2,6 @@
 #define DEFINES
 
 #include <Arduino.h>
-#include "Communication.h"
-
 
 /// ESP ID to CUBE MAP ////
 uint32_t getAddressFromCubeID(int CubeID);

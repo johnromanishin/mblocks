@@ -4,10 +4,10 @@
 #include <ArduinoJson.h>
 
 #include "Communication.h"
-#include "Cube.h"
+//#include "Cube.h"
 #include "espconn.h"
 #include "CBuff.h"
-#include "Face.h"
+//#include "Face.h"
 
 #define   BLINK_PERIOD    3000000 // microseconds until cycle repeat
 #define   BLINK_DURATION  100000  // microseconds LED is on for
@@ -17,12 +17,8 @@
 
 painlessMesh  mesh; // instantiates the class "mesh" which handles the wireless messages
 
-// CircularBuffer<int> axCoreBuffer;
-// int axCoreData[10];
-// axCoreBuffer(ARRAY_SIZEOF(this->axCoreData), this->axCoreData),
-
 // CircularBuffer<int> axCoreBuffer(ARRAY_SIZEOF(this->axCoreData), this->axCoreData),
-String jsonBufferSpace[400];
+String jsonBufferSpace[40];
 CircularBuffer<String, true> jsonCircularBuffer(ARRAY_SIZEOF(jsonBufferSpace), jsonBufferSpace);
 
 bool calc_delay = false;
@@ -62,9 +58,28 @@ void receivedCallback(uint32_t from, String & msg)
     Serial.print("Message Received from: ");
     Serial.println(from);
   }
-  
   jsonCircularBuffer.push(msg);
 }
+
+
+bool sendStatusMessage(Cube* c, int serverNumber)
+{
+  Serial.println("sending status message");
+  StaticJsonBuffer<264> jsonBuffer; //Space Allocated to store json instance
+  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
+  //^class type||^ Root         ^class method                   
+  root["type"] = "update";
+  root["targetID"] = serverNumber;
+  root["cubeID"] = c->cubeID;
+  root["neighbors"] = c->numberOfNeighbors();
+  root["topFace"] = c->returnTopFace(0);
+  //root["plane"]
+  //^ "key"   |  ^ "Value"
+  String str; // generate empty string
+  root.printTo(str); // print to JSON readable string...
+  sendMessage(serverNumber, str);
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////

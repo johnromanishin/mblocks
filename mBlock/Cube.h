@@ -70,7 +70,7 @@ class Cube
 //************* MOST IMPORTANT FUNCTION ****************************
     bool update(); // Updates almost everything on the cube...
 //*******************************************************************
-    int numberOfNeighbors(int index = 0, bool lightFace = true);
+    int numberOfNeighbors(int index = 0, bool lightFace = false);
     int numberOfNeighborsCheckNow(); //quickly checks the magnetic field sensors to see if there are any neighbors
     int whichFaceHasNeighbor(int index = 0); // returns the face number for the first neighboring face that it finds
     
