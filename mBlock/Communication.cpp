@@ -3,6 +3,8 @@
 #include <painlessMesh.h> // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
 #include <ArduinoJson.h>
 
+#include <string.h>
+
 #include "Communication.h"
 //#include "Cube.h"
 #include "espconn.h"
@@ -20,6 +22,8 @@ painlessMesh  mesh; // instantiates the class "mesh" which handles the wireless 
 // CircularBuffer<int> axCoreBuffer(ARRAY_SIZEOF(this->axCoreData), this->axCoreData),
 String jsonBufferSpace[40];
 CircularBuffer<String, true> jsonCircularBuffer(ARRAY_SIZEOF(jsonBufferSpace), jsonBufferSpace);
+
+uint32_t prevMID = 0;
 
 bool calc_delay = false;
 SimpleList<uint32_t> nodes;
@@ -58,16 +62,38 @@ void receivedCallback(uint32_t from, String & msg)
     Serial.print("Message Received from: ");
     Serial.println(from);
   }
-  jsonCircularBuffer.push(msg);
+
+  // Check and see if this message is a dupe by "manually" extracting the message
+  // id field.
+  char *s = msg.c_str();
+  int len = msg.length();
+  uint32_t mid = 0;
+  for(int i = 0; i < len; i++)
+  {
+    if((s[i] == '\"') && (!strncmp(&s[i] + 1, "mID\"", 4)))
+    {
+      mid = strtol(&s[i], NULL, 10);
+    }
+  }
+
+  Serial.printf("Extracted mid %i\r\n", mid);
+
+  if(mid != prevMID)
+  {
+    jsonCircularBuffer.push(msg);
+  }
+  prevMID = mid;
+
+  // XXXTODO: does the "send status message" happen implicitly?
 }
 
 
-bool sendStatusMessage(Cube* c, int serverNumber)
+void sendStatusMessage(Cube* c, int serverNumber)
 {
   Serial.println("sending status message");
   StaticJsonBuffer<264> jsonBuffer; //Space Allocated to store json instance
   JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
-  //^class type||^ Root         ^class method                   
+  //^class type||^ Root         ^class method
   root["type"] = "update";
   root["targetID"] = serverNumber;
   root["cubeID"] = c->cubeID;
@@ -96,7 +122,7 @@ bool sendStatusMessage(Cube* c, int serverNumber)
 //  //Serial.printf("--> startHere: New Connection, nodeId = %u\n", nodeId);
 //}
 //
-//void changedConnectionCallback() 
+//void changedConnectionCallback()
 //{
 ////  Serial.printf("Changed connections %s\n", mesh.subConnectionJson().c_str());
 ////  nodes = mesh.getNodeList();
@@ -110,12 +136,12 @@ bool sendStatusMessage(Cube* c, int serverNumber)
 ////  calc_delay = true;
 //}
 //
-//void nodeTimeAdjustedCallback(int32_t offset) 
+//void nodeTimeAdjustedCallback(int32_t offset)
 //{
 //  //Serial.printf("Adjusted time %u. Offset = %d\n", mesh.getNodeTime(), offset);
 //}
 //
-//void delayReceivedCallback(uint32_t from, int32_t delay) 
+//void delayReceivedCallback(uint32_t from, int32_t delay)
 //{
 //  //Serial.printf("Delay to node %u is %d us\n", from, delay);
 //}
@@ -128,7 +154,7 @@ bool sendStatusMessage(Cube* c, int serverNumber)
 //  //======Temporarily Generated a Broadcast message =========
 //  StaticJsonBuffer<264> jsonBuffer; //Space Allocated to store json instance
 //  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
-//  //^class type||^ Root         ^class method                   
+//  //^class type||^ Root         ^class method
 //  root["type"] = "cmd";
 //  root["cubeID"] = cubeToRelayTo;
 //  root["cmd"] = behaviorsToCmd(behaviorToRelay);
@@ -136,7 +162,7 @@ bool sendStatusMessage(Cube* c, int serverNumber)
 //  String str; // generate empty string
 //  root.printTo(str); // print to JSON readable string...
 //  //======== End Generating of Broadcast message ==========
-//  
+//
 //  for(int i = 0; i < timesToRelay; i++);
 //  {
 //    mesh.sendBroadcast(str);
@@ -149,7 +175,7 @@ bool sendStatusMessage(Cube* c, int serverNumber)
 //{
 //  StaticJsonBuffer<264> jsonBuffer; //Space Allocated to store json instance
 //  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
-//  //^class type||^ Root         ^class method                   
+//  //^class type||^ Root         ^class method
 //  root["type"] = "update";
 //  root["cubeID"] = c->cubeID;
 //  root["topFace"] = c->returnTopFace(0);
@@ -158,4 +184,3 @@ bool sendStatusMessage(Cube* c, int serverNumber)
 //  String str; // generate empty string
 //  return(root.printTo(str)) // print to JSON readable string...
 //}
-
