@@ -14,8 +14,36 @@
 
 painlessMesh  mesh;
 
-String jsonBufferSpace[50];
-CircularBuffer<String, true> jsonCircularBuffer(500, jsonBufferSpace);
+/**
+ * These variables hold messages that need to be sent, and recieved messages that need to be
+ * processed
+ */
+#define NUM_MESSAGES_TO_BUFFER_OUTBOX 8 	// This is the max number of messages that can simultaneously fit in the outbox for a given cube.
+																					// They are sent one-at-a-time
+std::pair<String, uint32_t> outboxMem[16][NUM_MESSAGES_TO_BUFFER_OUTBOX];
+CircularBuffer<std::pair<String, uint32_t>> outbox[16] =
+{
+  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[0]), &outboxMem[0]),
+  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[1]), &outboxMem[1]),
+  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[2]), &outboxMem[2]),
+  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[3]), &outboxMem[3]),
+  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[4]), &outboxMem[4]),
+  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[5]), &outboxMem[5]),
+  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[6]), &outboxMem[6]),
+  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[7]), &outboxMem[7]),
+  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[8]), &outboxMem[8]),
+  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[9]), &outboxMem[9]),
+  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[10]), &outboxMem[10]),
+  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[11]), &outboxMem[11]),
+  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[12]), &outboxMem[12]),
+  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[13]), &outboxMem[13]),
+  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[14]), &outboxMem[14]),
+  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[15]), &outboxMem[15])
+};
+
+#define NUM_MESSAGES_TO_BUFFER_INBOX 16
+std::pair<String, uint32_t> inboxMem[NUM_MESSAGE_TO_BUFFER_INBOX];
+CircularBuffer<std::pair<String, uint32_t>> inbox;
 
 bool calc_delay = false;
 SimpleList<uint32_t> nodes;
@@ -63,7 +91,8 @@ bool sendMessage(int cubeID, String msg)
 
 void receivedCallback(uint32_t from, String & msg)
 {
-  Serial.println(msg);
+  Serial.println("rx message");
+
   jsonCircularBuffer.push(msg);
 }
 
@@ -72,7 +101,7 @@ void newConnectionCallback(uint32_t nodeId)
   Serial.printf("--> startHere: New Connection, nodeId = %u\n", nodeId);
 }
 
-void changedConnectionCallback() 
+void changedConnectionCallback()
 {
 //  Serial.printf("Changed connections %s\n", mesh.subConnectionJson().c_str());
 //  nodes = mesh.getNodeList();
@@ -94,72 +123,74 @@ void delayReceivedCallback(uint32_t from, int32_t delay) {
   //Serial.printf("Delay to node %u is %d us\n", from, delay);
 }
 
-
-void makeThemBlink(int recipientCube)
+uint32_t advanceLfsr() // this call returns a message ID. these are not sequential.
 {
-  //======Temporarily Generated a Broadcast message =========
-  StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
-  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
-  //^class type||^ Root         ^class method  
-  root["type"] = "cmd";
-  root["targetID"] = recipientCube;
-  root["senderID"] = 55; //getCubeIDFromEsp(mesh.getNodeId());
-  root["cmd"] = "blink";
-  //^ "key"   |  ^ "Value"
-  String str; // generate empty string
-  root.printTo(str); // print to JSON readable string...
-  //======== End Generating of Broadcast message ==========
-  sendMessage(recipientCube, str);
+  static uint32_t lfsr = 0xfefefe;
+
+  uint32_t lsb = lfsr & 0x01u;
+  lfsr >>= 1;
+  if(lsb)
+  {
+    lfsr ^= (1u << 31) | (1u << 21) | (1u << 1) | (1u << 0);
+  }
+  return lfsr;
 }
 
-void requestStatus(int recipientCube)
+/**
+ * In the outbox, we need to keep track of each message that we are going to transmit
+ */
+typedef struct outboxLog
 {
-  //======Temporarily Generated a Broadcast message =========
-  StaticJsonBuffer<128> jsonBuffer; //Space Allocated to store json instance
-  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
-  //^class type||^ Root         ^class method                   
-  root["type"] = "cmd";
-  root["targetID"] = recipientCube;
-  root["senderID"] = getAddressFromCubeID(mesh.getNodeId());
-  root["cmd"] = "status";
-  //^ "key"   |  ^ "Value"s
-  String str; // generate empty string
-  root.printTo(str); // print to JSON readable string...
-  //======== End Generating of Broadcast message ==========
-  
-  if (recipientCube == -1){
-    mesh.sendBroadcast(str);
-  }
-  // THIS NEXT LINE WON'T WORK UNTIL RECIPIENTCUBE'S ADDRESS LOOKUP IS BUILT OUT AND USED
-  // else mesh.sendSingle(recipientCube, str);
+  String contents;
+  uint32_t mID;
+  uint32_t mDeadline;
+  uint32_t backoff;
 }
 
-void sendStatus(int cubeID)
+String newBlinkCommand()
+{
+  //====== Generate a Broadcast message =========
+  StaticJsonBuffer<256> jsonBuffer; //Space Allocated to construct json instance
+  JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
+  //jsonMsg is our output, but in JSON form
+  jsonMsg["mID"] = 	advanceLfsr;
+  jsonMsg["type"] = "cmd";
+  jsonMsg["sID"] = 	SERVER_ID;
+  jsonMsg["cmd"] = 	"blink";
+  String strMsg; // generate empty string
+  //strMsg is our output in String form
+  msg.printTo(strMsg); // print to JSON readable string...
+  return strMsg;
+}
+
+String newStatusCommand()
 {
   //======Temporarily Generated a Broadcast message =========
-  StaticJsonBuffer<256> jsonBuffer; //Space Allocated to store json instance
-  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
-  //^class type||^ Root         ^class method                   
-  root["type"] = "status";
-  root["targetID"] = cubeID;
-  root["senderID"] = getCubeIDFromEsp(mesh.getNodeId());
-  root["upface"] = ""; // probably need to write a getUpFace method in Cube class
-  root["neighbors"] = ""; // this should be the serialization of 
-  root["f1"] = " ";
-  root["f2"] = " "; 
-  root["f3"] = " ";
-  root["f4"] = " ";
-  root["f5"] = " ";
-  root["f6"] = " "; 
-  // the connection table; may want to separate out the angle from the face, 
-  // and the face from the cube
+  StaticJsonBuffer<256> jsonBuffer; //Space Allocated to construct json instance
+  JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
+  //jsonMsg is our output, but in JSON form
+  jsonMsg["mID"] = 	advanceLfsr;
+  jsonMsg["type"] = "cmd";
+  jsonMsg["sID"] = 	SERVER_ID
+  jsonMsg["cmd"] = 	"statReq";
+  String strMsg; // generate empty string
+  //strMsg is our output in String form
+  jsonMsg.printTo(strMsg); // print to JSON readable string...
+  return strMsg;
+}
 
-  //^ "key"   |  ^ "Value"
-  String str; // generate empty string
-  root.printTo(str); // print to JSON readable string...
-  //======== End Generating of Broadcast message ==========
-  
-  if (cubeID == -1){
-    mesh.sendBroadcast(str);
-  }
+String newMoveCommand()
+{
+  //======Temporarily Generated a Broadcast message =========
+  StaticJsonBuffer<256> jsonBuffer; //Space Allocated to construct json instance
+  JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
+  //jsonMsg is our output, but in JSON form
+  jsonMsg["mID"] = 	advanceLfsr;
+  jsonMsg["type"] = "cmd";
+  jsonMsg["sID"] = 	SERVER_ID
+  jsonMsg["cmd"] = 	"statReq";
+  String strMsg; // generate empty string
+  //strMsg is our output in String form
+  jsonMsg.printTo(strMsg); // print to JSON readable string...
+  return strMsg;
 }

@@ -5,6 +5,8 @@
 
 uint32_t getAddressFromCubeID(int CubeID);
 
+#define SERVER_ID 0
+
 /// ESP ID to CUBE MAP ////
 typedef struct EspToCubeMapping
 {

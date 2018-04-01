@@ -84,25 +84,31 @@ void receivedCallback(uint32_t from, String & msg)
   }
   prevMID = mid;
 
-  // XXXTODO: does the "send status message" happen implicitly?
+  // Send an ack message.
+  // The ack consists of
+  //     type:      "ack"
+  //     targetID:  ID of server that this ack goes to
+  //     cubeID:    ID of cube sending this message
+  //     neighbors: Number of neighbors surrounding the cube.
+  //     topFace:   Face pointing upwards
+  sendAck(Cube* c, )
 }
 
-
-void sendStatusMessage(Cube* c, int serverNumber)
+void sendAck(Cube* c, uint32_t messageID, int serverNumber)
 {
-  Serial.println("sending status message");
-  StaticJsonBuffer<264> jsonBuffer; //Space Allocated to store json instance
-  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
-  //^class type||^ Root         ^class method
-  root["type"] = "update";
-  root["targetID"] = serverNumber;
-  root["cubeID"] = c->cubeID;
-  root["neighbors"] = c->numberOfNeighbors();
-  root["topFace"] = c->returnTopFace(0);
-  //root["plane"]
+  Serial.println("sending ack");
+  StaticJsonBuffer<256> jsonBuffer; //Space Allocated to store json instance
+  JsonObject& msg = jsonBuffer.createObject(); // & is "c++ reference"
+  msg["mID"] = messageID;
+  msg["type"] = "ack";
+  msg["targetID"] = serverNumber;
+  msg["cubeID"] = c->cubeID;
+  msg["neighbors"] = c->numberOfNeighbors();
+  msg["topFace"] = c->returnTopFace(0);
   //^ "key"   |  ^ "Value"
+
   String str; // generate empty string
-  root.printTo(str); // print to JSON readable string...
+  msg.printTo(str); // print to JSON readable string...
   sendMessage(serverNumber, str);
 }
 
