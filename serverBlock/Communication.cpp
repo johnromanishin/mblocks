@@ -14,40 +14,77 @@
 
 painlessMesh  mesh;
 
+
+/**
+ * In the outbox, we need to keep track of each message that we are going to transmit
+ */
+typedef struct outboxLog
+{
+  String contents;
+  uint32_t mID;
+  uint32_t mDeadline;
+  char backoff;
+} outboxLog;
+
+typedef struct inboxLog
+{
+  String contents;
+  uint32_t mID;
+} inboxLog;
+
+typedef struct cubeState
+{
+  char topface;
+  char plane;
+} cubeState;
+
 /**
  * These variables hold messages that need to be sent, and recieved messages that need to be
  * processed
  */
-#define NUM_MESSAGES_TO_BUFFER_OUTBOX 8 	// This is the max number of messages that can simultaneously fit in the outbox for a given cube.
+#define NUM_MESSAGES_TO_BUFFER_OUTBOX 5 	// This is the max number of messages that can simultaneously fit in the outbox for a given cube.
 																					// They are sent one-at-a-time
-std::pair<String, uint32_t> outboxMem[16][NUM_MESSAGES_TO_BUFFER_OUTBOX];
-CircularBuffer<std::pair<String, uint32_t>> outbox[16] =
+outboxLog outboxMem[16][NUM_MESSAGES_TO_BUFFER_OUTBOX];
+CircularBuffer<outboxLog> outbox[16] =
 {
-  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[0]), &outboxMem[0]),
-  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[1]), &outboxMem[1]),
-  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[2]), &outboxMem[2]),
-  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[3]), &outboxMem[3]),
-  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[4]), &outboxMem[4]),
-  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[5]), &outboxMem[5]),
-  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[6]), &outboxMem[6]),
-  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[7]), &outboxMem[7]),
-  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[8]), &outboxMem[8]),
-  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[9]), &outboxMem[9]),
-  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[10]), &outboxMem[10]),
-  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[11]), &outboxMem[11]),
-  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[12]), &outboxMem[12]),
-  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[13]), &outboxMem[13]),
-  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[14]), &outboxMem[14]),
-  CircularBuffer<std::pair<String, uint32_t>>(ARRAY_SIZEOF(outboxMem[15]), &outboxMem[15])
+  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[0]), &outboxMem[0]),
+  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[1]), &outboxMem[1]),
+  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[2]), &outboxMem[2]),
+  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[3]), &outboxMem[3]),
+  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[4]), &outboxMem[4]),
+  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[5]), &outboxMem[5]),
+  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[6]), &outboxMem[6]),
+  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[7]), &outboxMem[7]),
+  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[8]), &outboxMem[8]),
+  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[9]), &outboxMem[9]),
+  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[10]), &outboxMem[10]),
+  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[11]), &outboxMem[11]),
+  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[12]), &outboxMem[12]),
+  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[13]), &outboxMem[13]),
+  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[14]), &outboxMem[14]),
+  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[15]), &outboxMem[15])
 };
 
 #define NUM_MESSAGES_TO_BUFFER_INBOX 16
-std::pair<String, uint32_t> inboxMem[NUM_MESSAGE_TO_BUFFER_INBOX];
-CircularBuffer<std::pair<String, uint32_t>> inbox;
+inboxLog inboxMem[NUM_MESSAGE_TO_BUFFER_INBOX];
+CircularBuffer<inboxLog> inbox;
 
 bool calc_delay = false;
 SimpleList<uint32_t> nodes;
 void sendMessage() ; // Prototype
+
+static uint32_t advanceLfsr() // this call returns a message ID. these are not sequential.
+{
+  static uint32_t lfsr = 0xfefefe;
+
+  uint32_t lsb = lfsr & 0x01u;
+  lfsr >>= 1;
+  if(lsb)
+  {
+    lfsr ^= (1u << 31) | (1u << 21) | (1u << 1) | (1u << 0);
+  }
+  return lfsr;
+}
 
 void initializeWifiMesh()
 {
@@ -89,11 +126,73 @@ bool sendMessage(int cubeID, String msg)
   }
 }
 
+/**
+ * This function looks through newly-recieved messages, and prunes waiting
+ * messages in the outbox, sending them if appropriate.
+ *
+ * It also updates the state of the cubes
+ *
+ * XXX TODO:
+ */
+void updateBoxes(CircularBuffer<inboxLog>& inbox, CircularBuffer<outboxLog>& outbox[])
+{
+  // Clear out the inbox
+  while(!inbox.empty())
+  {
+    // Retrieve the most recent thing in the inbox
+    inboxLog inboxItem = inbox.pop();
+
+    // See if we need to mark any outbox messages as "acked"
+    bool foundflag = false;
+    for(int i = 0; i < ARRAY_SIZEOF(outbox); i++)
+    {
+      if(outbox[i].access(0).mID == inboxItem.mID) {
+        foundflag = true;
+        outbox[i].pop();
+      }
+    }
+    if(!foundflag) {
+      printf("No pending outbox message found for message ID %");
+    }
+
+    // XXXTODO incorporate new inboxItem into the state of the cubes
+  }
+
+  // Decide which message to send next. To do this, we search through all of the messages
+  // at the front of the circular buffers and find the on
+  uint32_t mintime = 0xffffffffu;
+  int minidx = -1;
+  for(int i = 0; i < ARRAY_SIZEOF(outbox); i++) {
+    if(!outbox[i].empty() && (outbox[i].access(0).mDeadline < mintime)) {
+      mintime = outbox[i].access(0).mDeadline;
+      minidx = i;
+    }
+  }
+
+  // Check and make sure that the minimum time that we just found is past the current mtime
+  if(mintime < millis()) {
+    sendMessage()
+  }
+}
+
 void receivedCallback(uint32_t from, String & msg)
 {
   Serial.println("rx message");
 
-  jsonCircularBuffer.push(msg);
+	char *s = msg.c_str();
+  int len = msg.length();
+  uint32_t mID = 0;
+  for(int i = 0; i < len; i++)
+  {
+    if((s[i] == '\"') && (!strncmp(&s[i] + 1, "mID\"", 4)))
+    {
+      mID = strtol(&s[i], NULL, 10);
+    }
+  }
+
+  Serial.printf("Extracted mid %i\r\n", mID);
+
+  inbox.push({msg, mID, 0, 0})
 }
 
 void newConnectionCallback(uint32_t nodeId)
@@ -123,33 +222,9 @@ void delayReceivedCallback(uint32_t from, int32_t delay) {
   //Serial.printf("Delay to node %u is %d us\n", from, delay);
 }
 
-uint32_t advanceLfsr() // this call returns a message ID. these are not sequential.
-{
-  static uint32_t lfsr = 0xfefefe;
-
-  uint32_t lsb = lfsr & 0x01u;
-  lfsr >>= 1;
-  if(lsb)
-  {
-    lfsr ^= (1u << 31) | (1u << 21) | (1u << 1) | (1u << 0);
-  }
-  return lfsr;
-}
-
-/**
- * In the outbox, we need to keep track of each message that we are going to transmit
- */
-typedef struct outboxLog
-{
-  String contents;
-  uint32_t mID;
-  uint32_t mDeadline;
-  uint32_t backoff;
-}
-
 String newBlinkCommand()
 {
-  //====== Generate a Broadcast message =========
+  //====== Generate a blink message =========
   StaticJsonBuffer<256> jsonBuffer; //Space Allocated to construct json instance
   JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
   //jsonMsg is our output, but in JSON form
@@ -165,7 +240,7 @@ String newBlinkCommand()
 
 String newStatusCommand()
 {
-  //======Temporarily Generated a Broadcast message =========
+  //====== Generate a status request =========
   StaticJsonBuffer<256> jsonBuffer; //Space Allocated to construct json instance
   JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
   //jsonMsg is our output, but in JSON form
@@ -181,7 +256,7 @@ String newStatusCommand()
 
 String newMoveCommand()
 {
-  //======Temporarily Generated a Broadcast message =========
+  //====== Generate a Move command =========
   StaticJsonBuffer<256> jsonBuffer; //Space Allocated to construct json instance
   JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
   //jsonMsg is our output, but in JSON form

@@ -67,22 +67,22 @@ void receivedCallback(uint32_t from, String & msg)
   // id field.
   char *s = msg.c_str();
   int len = msg.length();
-  uint32_t mid = 0;
+  uint32_t mID = 0;
   for(int i = 0; i < len; i++)
   {
     if((s[i] == '\"') && (!strncmp(&s[i] + 1, "mID\"", 4)))
     {
-      mid = strtol(&s[i], NULL, 10);
+      mID = strtol(&s[i], NULL, 10);
     }
   }
 
-  Serial.printf("Extracted mid %i\r\n", mid);
+  Serial.printf("Extracted mid %i\r\n", mID);
 
-  if(mid != prevMID)
+  if(mID != prevMID)
   {
     jsonCircularBuffer.push(msg);
   }
-  prevMID = mid;
+  prevMID = mID;
 
   // Send an ack message.
   // The ack consists of
@@ -91,21 +91,19 @@ void receivedCallback(uint32_t from, String & msg)
   //     cubeID:    ID of cube sending this message
   //     neighbors: Number of neighbors surrounding the cube.
   //     topFace:   Face pointing upwards
-  sendAck(Cube* c, )
+  sendAck(Cube* c, mID);
 }
 
-void sendAck(Cube* c, uint32_t messageID, int serverNumber)
+void sendAck(Cube* c, uint32_t messageID)
 {
-  Serial.println("sending ack");
-  StaticJsonBuffer<256> jsonBuffer; //Space Allocated to store json instance
+  Serial.println("sending ack to server");
+  StaticJsonBuffer<256> jsonBuffer; //memory allocated to store json instance
   JsonObject& msg = jsonBuffer.createObject(); // & is "c++ reference"
-  msg["mID"] = messageID;
+  msg["mID"] = messageID; // message ID
   msg["type"] = "ack";
-  msg["targetID"] = serverNumber;
-  msg["cubeID"] = c->cubeID;
+  msg["sID"] = c->cubeID; // sender ID
   msg["neighbors"] = c->numberOfNeighbors();
   msg["topFace"] = c->returnTopFace(0);
-  //^ "key"   |  ^ "Value"
 
   String str; // generate empty string
   msg.printTo(str); // print to JSON readable string...

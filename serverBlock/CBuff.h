@@ -12,11 +12,12 @@ class CircularBuffer
     int head;
     int tail;
     T* data;
-    
+
   public:
-    CircularBuffer(int capacity, T* data); 
+    CircularBuffer(int capacity, T* data);
     void push(T data);
     T access(int);
+    T* accessPointer(int);
     T pop();
     bool empty();
 };
@@ -41,7 +42,7 @@ void CircularBuffer<T, useTailParam>::push(T data)
     if(next == this->tail)
       return;
   }
-  
+
   *(this->data + this->head) = data; //
   this->head++; // increment head by one
   if(head >= this->capacity)
@@ -67,7 +68,7 @@ T CircularBuffer<T, useTailParam>::pop()
 
   if(this->tail == this->head)
     return (T)0;
-  
+
   T ret = *(this->data + this->tail);
   this->tail++;
   if(this->tail >= this->capacity)
@@ -77,20 +78,29 @@ T CircularBuffer<T, useTailParam>::pop()
 
   return ret;
 }
-      // [-3] [-2]  [-1]  [0]  [1]  [2]  [3]  [4]  [5] 
-      //  [5]  [4]   [3]  [2]  [1]  [0]  [H]  [4]  [3] 
+      // [-3] [-2]  [-1]  [0]  [1]  [2]  [3]  [4]  [5]
+      //  [5]  [4]   [3]  [2]  [1]  [0]  [H]  [4]  [3]
 template<typename T, bool useTailParam>
 T CircularBuffer<T, useTailParam>::access(int index)
 {
+    int temp = this->head - (index + 1);
+    if(temp < 0)
     {
-      int temp = this->head - (index + 1);
-      if(temp < 0)
-      {
         temp += this->capacity;
-      }
-      return(*(this->data + temp)); // return memory box accessed by current pointer
     }
-};
+    return(*(this->data + temp)); // return memory box accessed by current pointer
+}
+
+template<typename T, bool useTailParam>
+T* CircularBuffer<T, useTailParam>::accessPointer(int index)
+{
+    int temp = this->head - (index + 1);
+    if(temp < 0)
+    {
+        temp += this->capacity;
+    }
+    return(this->data + temp); // return memory box accessed by current pointer
+}
 
 #endif
 /**
