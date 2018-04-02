@@ -32,10 +32,26 @@ typedef struct inboxLog
   uint32_t mID;
 } inboxLog;
 
+typedef struct faceState
+{
+  char ID;
+  char connectedCube;
+  char connectedFace;
+  char connectedAngle;
+
+} cubeState;
+
 typedef struct cubeState
 {
-  char topface;
+  char bottomFace;
   char plane;
+  faceState faceA;
+  faceState faceB;
+  faceState faceC;
+  faceState faceD;
+  faceState faceE;
+  faceState faceF;
+
 } cubeState;
 
 /**
@@ -69,11 +85,18 @@ CircularBuffer<outboxLog> outbox[16] =
 inboxLog inboxMem[NUM_MESSAGE_TO_BUFFER_INBOX];
 CircularBuffer<inboxLog> inbox;
 
+#define NUM_CUBES 16
+cubeState topologyMem[NUM_CUBES];
+CircularBuffer<cubeState> topology[16] =
+{
+  //% TODO
+};
+
 bool calc_delay = false;
 SimpleList<uint32_t> nodes;
 void sendMessage() ; // Prototype
 
-static uint32_t advanceLfsr() // this call returns a message ID. these are not sequential.
+uint32_t advanceLfsr() // this call returns a message ID. these are not sequential.
 {
   static uint32_t lfsr = 0xfefefe;
 
@@ -97,31 +120,15 @@ void initializeWifiMesh()
     randomSeed(analogRead(A0));
 }
 
-bool sendBroadcastMessage(String message)
+bool sendMessage(int recipientID, String msg)
 {
-  String msg = ""; // create empty string
-  msg = message;   // assign contents of "message"
-  bool error = mesh.sendBroadcast(msg);
-//
-//  if (calc_delay) {
-//    SimpleList<uint32_t>::iterator node = nodes.begin();
-//    while (node != nodes.end()) {
-//      mesh.startDelayMeas(*node);
-//      node++;
-//    }
-//    calc_delay = false;
-//  }
-}
-
-bool sendMessage(int cubeID, String msg)
-{
-  if(cubeID == -1)
+  if(recipientID == -1)
   {
     return(mesh.sendBroadcast(msg));
   }
   else
   {
-    uint32_t address = getAddressFromCubeID(cubeID);
+    uint32_t address = getAddressFromCubeID(recipientID);
     return(mesh.sendSingle(address, msg));
   }
 }
@@ -149,17 +156,18 @@ void updateBoxes(CircularBuffer<inboxLog>& inbox, CircularBuffer<outboxLog>& out
       if(outbox[i].access(0).mID == inboxItem.mID) {
         foundflag = true;
         outbox[i].pop();
+        //sendnextmessagetocubei()
       }
     }
     if(!foundflag) {
-      printf("No pending outbox message found for message ID %");
+      printf("No sent message found in outbox for message ID %");
     }
 
     // XXXTODO incorporate new inboxItem into the state of the cubes
   }
 
-  // Decide which message to send next. To do this, we search through all of the messages
-  // at the front of the circular buffers and find the on
+  // Decide which messages to send next. To do this, we search through all of the messages
+  // at the front of the circular buffers and find the empty ones
   uint32_t mintime = 0xffffffffu;
   int minidx = -1;
   for(int i = 0; i < ARRAY_SIZEOF(outbox); i++) {
@@ -177,7 +185,7 @@ void updateBoxes(CircularBuffer<inboxLog>& inbox, CircularBuffer<outboxLog>& out
 
 void receivedCallback(uint32_t from, String & msg)
 {
-  Serial.println("rx message");
+  Serial.println("Received ACK:\n" + msg + "\n");
 
 	char *s = msg.c_str();
   int len = msg.length();
@@ -190,7 +198,7 @@ void receivedCallback(uint32_t from, String & msg)
     }
   }
 
-  Serial.printf("Extracted mid %i\r\n", mID);
+  Serial.printf("Extracted mID %i\r\n", mID);
 
   inbox.push({msg, mID, 0, 0})
 }
@@ -202,6 +210,7 @@ void newConnectionCallback(uint32_t nodeId)
 
 void changedConnectionCallback()
 {
+  Serial.printf("Connection Event\n");
 //  Serial.printf("Changed connections %s\n", mesh.subConnectionJson().c_str());
 //  nodes = mesh.getNodeList();
 //  Serial.printf("Num nodes: %d\n", nodes.size());
@@ -254,7 +263,7 @@ String newStatusCommand()
   return strMsg;
 }
 
-String newMoveCommand()
+String newForwardCommand()
 {
   //====== Generate a Move command =========
   StaticJsonBuffer<256> jsonBuffer; //Space Allocated to construct json instance
@@ -263,7 +272,23 @@ String newMoveCommand()
   jsonMsg["mID"] = 	advanceLfsr;
   jsonMsg["type"] = "cmd";
   jsonMsg["sID"] = 	SERVER_ID
-  jsonMsg["cmd"] = 	"statReq";
+  jsonMsg["cmd"] = 	"F";
+  String strMsg; // generate empty string
+  //strMsg is our output in String form
+  jsonMsg.printTo(strMsg); // print to JSON readable string...
+  return strMsg;
+}
+
+String newReverseCommand()
+{
+  //====== Generate a Move command =========
+  StaticJsonBuffer<256> jsonBuffer; //Space Allocated to construct json instance
+  JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
+  //jsonMsg is our output, but in JSON form
+  jsonMsg["mID"] =  advanceLfsr;
+  jsonMsg["type"] = "cmd";
+  jsonMsg["sID"] =  SERVER_ID
+  jsonMsg["cmd"] =  "F";
   String strMsg; // generate empty string
   //strMsg is our output in String form
   jsonMsg.printTo(strMsg); // print to JSON readable string...
