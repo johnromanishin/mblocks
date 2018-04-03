@@ -34,8 +34,10 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
           This can be used to visually verify which cubes are actually connectd to the wifi mesh
           and are working properly
       */
-      else if (receivedCMD == "blink")
+      if (receivedCMD == "blink")
+        {
         blinkFaceLeds(c, 50);
+        }
 
       /*  A simple way to turn the cube to various colors works by receiving a message
           that is just an integer, it will change to a color depending on the integer
@@ -69,7 +71,6 @@ Behavior demo(Cube* c)
   Behavior nextBehavior = DEMO;
   while (nextBehavior == DEMO) // loop until something changes the next behavior
   {
-    sendStatusMessage(c, 99);
     nextBehavior = basicUpkeep(c, nextBehavior);
     wifiDelay(500);
   }
