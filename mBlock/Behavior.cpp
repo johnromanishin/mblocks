@@ -12,32 +12,23 @@
 Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
 {
   if (MAGIC_DEBUG) Serial.println("CheckingForWifi Commands...");
-  int messagesRead = 5;
   Behavior resultBehavior = currentBehavior;
-  while (!jsonCircularBuffer.empty() && messagesRead > 0) // while there are still messages, and we haven't tried 5 times
+  if (!jsonCircularBuffer.empty()) // while there are still messages, and we haven't tried 5 times
   {
-    StaticJsonBuffer<700> jb; // Create a buffer to store our Jason Objects...
-    JsonObject& root = jb.parseObject(jsonCircularBuffer.pop());
-    if ((root["targetID"] == getCubeIDFromEsp(ESP.getChipId())) || // If message matches your ID
-        (root["targetID"] == -1))                                  // or if message is brodcast
-    {
+    StaticJsonBuffer<512> jb; // Create a buffer to store our Jason Objects...
+    JsonObject& jsonMsg = jb.parseObject(jsonCircularBuffer.pop());
       /* At this point, we have determined that the message is for us... so now we try to decode the contents
          this extracts the contents of "cmd" and puts it into a local variable
       */
-      String receivedCMD = root["cmd"];
+      String receivedCMD = jsonMsg["cmd"];
 
       /*  checks to see if the recieved message matches a behavior...
           If it doesn't we default to the currentBehavior
       */
       resultBehavior = cmdToBehaviors(receivedCMD, currentBehavior);
 
-      /*  If the command is "update" then we are going to generate a message containing relevant information
-           and then send it over the wifi channel
-      */
-      if (receivedCMD == "update")
-      {
-        //Serial.println("Preparing Update!");
-      }
+      //  If the command is an update request, nothing should happen, and an ack will be sent
+      
 
       /*  If the command is "blink" then we will really quickly blink the face LED's
           This can be used to visually verify which cubes are actually connectd to the wifi mesh
@@ -49,10 +40,6 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
       /*  A simple way to turn the cube to various colors works by receiving a message
           that is just an integer, it will change to a color depending on the integer
       */
-      else if (isDigit(receivedCMD[0]))
-      {
-        wifiLightChange(c, receivedCMD.toInt(), true); // true turns off the lights afterwards
-      }
 
       else if (receivedCMD == "lightSeek")
       {
@@ -61,16 +48,13 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
       /* cubeID's over 40 means it is attached by a cable... not a real cube // so we print
       */
 
-      if (c->cubeID > 40)
+      if (thisCubeID >= 99)
       {
-        String targetID = root["targetID"];
-        String receivedCMD = root["cmd"];
-        String senderID = root["senderID"];
-        String messageString = "Message: From: " + senderID + " to: " + targetID + " Command is: " + receivedCMD;// + " Command is: ";
-        Serial.println(messageString);
+        String receivedCMD = jsonMsg["cmd"];
+        String senderID = jsonMsg["sID"];
+        String stringMsg = "Message from: " + senderID + " to: " + thisCubeID + " Command is: " + receivedCMD;// + " Command is: ";
+        Serial.println(stringMsg);
       }
-    }
-    messagesRead--;
   }
   return (resultBehavior);
 }
