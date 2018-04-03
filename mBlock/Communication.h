@@ -18,6 +18,7 @@ void receivedCallback(uint32_t from, String & msg);
 
 ///// Sending Messages Utilities
 bool sendMessage(int cubeID, String msg);
+void sendAck(uint32_t messageID);
 
 // Commonly Used
 bool sendStatusMessage(Cube* c, int serverNumber);

@@ -73,7 +73,9 @@ void receivedCallback(uint32_t from, String & stringMsg)
   //check to see if it's new, if so, do something with it
   StaticJsonBuffer<512> jsonMsgBuffer;
   JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg);
-  if (jsonMsg["mID"] != prevMID){
+  String mIDstring = jsonMsg["mID"];
+  int mID = mIDstring.toInt();
+  if (mID != prevMID){
     jsonCircularBuffer.push(stringMsg);
     prevMID = mID;
   }
