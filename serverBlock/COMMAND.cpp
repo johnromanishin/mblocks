@@ -2,9 +2,6 @@
 #include <painlessMesh.h>         // Wifi Mesh Library found on the internet  
 #include <ArduinoJson.h>
 #include <Arduino.h>              // library with basic arduino commands
-#include "Interaction.h"
-#include "Communication.h"
-#include "Defines.h"
 
 #define Parameters 10
 #define numberOfCubes 18

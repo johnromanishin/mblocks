@@ -5,6 +5,7 @@
 #include "Communication.h"
 #include "espconn.h"
 #include "CBuff.h"
+#include "Defines.h"
 
 #define   BLINK_PERIOD    3000000 // microseconds until cycle repeat
 #define   BLINK_DURATION  100000  // microseconds LED is on for
@@ -13,7 +14,6 @@
 #define   MESH_PORT       5555
 
 painlessMesh  mesh;
-
 
 /**
  * In the outbox, we need to keep track of each message that we are going to transmit
@@ -38,8 +38,7 @@ typedef struct faceState
   char connectedCube;
   char connectedFace;
   char connectedAngle;
-
-} cubeState;
+} faceState;
 
 typedef struct cubeState
 {
@@ -61,36 +60,38 @@ typedef struct cubeState
 #define NUM_MESSAGES_TO_BUFFER_OUTBOX 5 	// This is the max number of messages that can simultaneously fit in the outbox for a given cube.
 																					// They are sent one-at-a-time
 outboxLog outboxMem[16][NUM_MESSAGES_TO_BUFFER_OUTBOX];
-CircularBuffer<outboxLog> outbox[16] =
-{
-  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[0]), &outboxMem[0]),
-  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[1]), &outboxMem[1]),
-  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[2]), &outboxMem[2]),
-  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[3]), &outboxMem[3]),
-  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[4]), &outboxMem[4]),
-  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[5]), &outboxMem[5]),
-  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[6]), &outboxMem[6]),
-  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[7]), &outboxMem[7]),
-  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[8]), &outboxMem[8]),
-  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[9]), &outboxMem[9]),
-  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[10]), &outboxMem[10]),
-  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[11]), &outboxMem[11]),
-  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[12]), &outboxMem[12]),
-  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[13]), &outboxMem[13]),
-  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[14]), &outboxMem[14]),
-  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[15]), &outboxMem[15])
-};
+
+//CircularBuffer<outboxLog> outbox[16] =
+//{
+//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[0]), &outboxMem[0]),
+//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[1]), &outboxMem[1]),
+//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[2]), &outboxMem[2]),
+//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[3]), &outboxMem[3]),
+//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[4]), &outboxMem[4]),
+//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[5]), &outboxMem[5]),
+//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[6]), &outboxMem[6]),
+//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[7]), &outboxMem[7]),
+//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[8]), &outboxMem[8]),
+//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[9]), &outboxMem[9]),
+//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[10]), &outboxMem[10]),
+//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[11]), &outboxMem[11]),
+//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[12]), &outboxMem[12]),
+//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[13]), &outboxMem[13]),
+//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[14]), &outboxMem[14]),
+//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[15]), &outboxMem[15])
+//};
 
 #define NUM_MESSAGES_TO_BUFFER_INBOX 16
 inboxLog inboxMem[NUM_MESSAGE_TO_BUFFER_INBOX];
-CircularBuffer<inboxLog> inbox;
+//CircularBuffer<inboxLog> inbox;
 
 #define NUM_CUBES 16
 cubeState topologyMem[NUM_CUBES];
-CircularBuffer<cubeState> topology[16] =
-{
-  //% TODO
-};
+//CircularBuffer<cubeState> topology[16] =
+//{
+//  delay(1);
+//  //% TODO
+//};
 
 bool calc_delay = false;
 SimpleList<uint32_t> nodes;
@@ -170,7 +171,7 @@ void updateBoxes(CircularBuffer<inboxLog>& inbox, CircularBuffer<outboxLog>& out
   // at the front of the circular buffers and find the empty ones
   uint32_t mintime = 0xffffffffu;
   int minidx = -1;
-  for(int i = 0; i < ARRAY_SIZEOF(outbox); i++) {
+  for(int i = 0; i < ARRAY_SIZE(outbox); i++) {
     if(!outbox[i].empty() && (outbox[i].access(0).mDeadline < mintime)) {
       mintime = outbox[i].access(0).mDeadline;
       minidx = i;

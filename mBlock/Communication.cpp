@@ -96,7 +96,7 @@ void receivedCallback(uint32_t from, String & msg)
 
 void sendAck(Cube* c, uint32_t messageID)
 {
-  Serial.println("sending ack to server");
+  if(MAGIC_DEBUG) Serial.println("sending ack to server");
   StaticJsonBuffer<256> jsonBuffer; //memory allocated to store json instance
   JsonObject& msg = jsonBuffer.createObject(); // & is "c++ reference"
   msg["mID"] = messageID; // message ID

@@ -51,7 +51,6 @@ void wifiDelay(int delayTime)
   int millisNow = millis();
   while((millis() - millisNow) < delayTime)
   {
-    delay(5);
     mesh.update();
   }
 }

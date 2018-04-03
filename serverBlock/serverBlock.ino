@@ -16,9 +16,10 @@
 
 // Header Files
 char storage[512]; // This creates storage space for decoding serial messages
-//
+
 // int getCubeIDFromEsp(int espID)
 // int getEspIDFromCube(int GlobalCubeID)
+
 int mainLoopCounter = 0;
 
 void setup() // Actually the main loop...
@@ -26,21 +27,24 @@ void setup() // Actually the main loop...
   Serial.begin(115200);
   initializeWifiMesh();
   initializeRangeSensor();
-  Serial.println("Hey, just getting started");
   Serial.print("WIFI ID: ");
   Serial.println(mesh.getNodeId());
-  espconn_tcp_set_max_con(6);
-  ///////////////////ACTUAL LOOP////////////////////
-  Serial.println("Beginning actual loop");
+  espconn_tcp_set_max_con(6); // this is supposed to increase the maximum number of WIFI connections to 6
 }
-// This is here only becuase arduino won't compile without it, but it is never used,
-//the real loop is "while(1)" in the void setup() Function
+
 void loop()
 {
-  //sendMessage(14, "hey Bro");
-  processWifiMessages();
+  processWifiMessages(); // checks messages from the WiFi Message que
+  interactWithRangeSensor(); // checks the range value to send messages based on user input
+  wifiDelay(100); // wait for a little just to relax
+  mainLoopCounter++;
+  if (mainLoopCounter == 7)
+    mainLoopCounter = 0;
+}
+
+void interactWithRangeSensor()
+{
   int rangeValue = readRangeSensor();
-  
   if (rangeValue < 20)
   {
     //sendBroadcastMessage(createJsonStringFlood(-1, "sleep"));
@@ -49,13 +53,11 @@ void loop()
   else if (rangeValue > 20 && rangeValue < 50)
   {
     //sendBroadcastMessage(createJsonStringFlood(-1, "lightSeek"));
-    //Serial.println("Putting the cubes to sleep...");
   }
   
   else if (rangeValue > 50 && rangeValue < 100)
   {
     //sendBroadcastMessage(createJsonStringFlood(-1, "attractive"));
-    //Serial.println("Putting the cubes to sleep...");
   }
   
   else if (rangeValue > 100 && rangeValue < 200)
@@ -63,14 +65,7 @@ void loop()
     makeThemBlink(-1);
     //Serial.println("Putting the cubes to sleep...");
   }
-  wifiDelay(100);
-  mainLoopCounter++;
-  if (mainLoopCounter == 7)
-  {
-    mainLoopCounter = 0;
-  }
 }
-
 
 void processWifiMessages()
 {
@@ -112,6 +107,5 @@ void processWifiMessages()
     }
     attempts--;
   }
- // return (true);
 }
 
