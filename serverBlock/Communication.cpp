@@ -20,15 +20,15 @@ painlessMesh  mesh;
  */
 typedef struct outboxLog
 {
-  String contents;
+  String mContents;
   uint32_t mID;
   uint32_t mDeadline;
-  char backoff;
+  unsigned char backoff;
 } outboxLog;
 
 typedef struct inboxLog
 {
-  String contents;
+  String mContents;
   uint32_t mID;
 } inboxLog;
 
@@ -56,11 +56,12 @@ typedef struct cubeState
  * These variables hold messages that need to be sent, and recieved messages that need to be
  * processed
  */
+
 #define NUM_MESSAGES_TO_BUFFER_OUTBOX 4 	// This is the max number of messages that can simultaneously fit in the outbox for a given cube.
 																					// They are sent one-at-a-time
-outboxLog outboxMem[16+1][NUM_MESSAGES_TO_BUFFER_OUTBOX];
+outboxLog outboxMem[NUM_CUBES][NUM_MESSAGES_TO_BUFFER_OUTBOX];
 
-CircularBuffer<outboxLog> outbox[16+1] =
+CircularBuffer<outboxLog> outbox[NUM_CUBES] =
 {
  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[0]), &outboxMem[0]),
  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[1]), &outboxMem[1]),
@@ -81,17 +82,13 @@ CircularBuffer<outboxLog> outbox[16+1] =
  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[16]), &outboxMem[16]),
 };
 
-#define NUM_MESSAGES_TO_BUFFER_INBOX 16
-inboxLog inboxMem[NUM_MESSAGE_TO_BUFFER_INBOX+1];
+inboxLog inboxMem[NUM_CUBES * WINDOW_SIZE];
 CircularBuffer<inboxLog> inbox;
 
 // this is where the cube data object will be built in the future
-// #define NUM_CUBES 16
-// cubeState topologyMem[NUM_CUBES];
-// CircularBuffer<cubeState> topology[16] = 
-// {
-//  //% TODO
-// };
+//
+//
+//
 
 bool calc_delay = false;
 SimpleList<uint32_t> nodes;
@@ -111,13 +108,13 @@ uint32_t advanceLfsr() // this call returns a message ID. these are not sequenti
 
 void initializeWifiMesh()
 {
-    mesh.init(MESH_SSID, MESH_PASSWORD, MESH_PORT);
-    mesh.onReceive(&receivedCallback);
-    mesh.onNewConnection(&newConnectionCallback);
-    mesh.onChangedConnections(&changedConnectionCallback);
-    mesh.onNodeTimeAdjusted(&nodeTimeAdjustedCallback);
-    mesh.onNodeDelayReceived(&delayReceivedCallback);
-    randomSeed(analogRead(A0));
+  mesh.init(MESH_SSID, MESH_PASSWORD, MESH_PORT);
+  mesh.onReceive(&receivedCallback);
+  mesh.onNewConnection(&newConnectionCallback);
+  mesh.onChangedConnections(&changedConnectionCallback);
+  mesh.onNodeTimeAdjusted(&nodeTimeAdjustedCallback);
+  mesh.onNodeDelayReceived(&delayReceivedCallback);
+  randomSeed(analogRead(A0));
 }
 
 bool sendMessage(int recipientID, String msg)
@@ -137,10 +134,11 @@ bool sendMessage(int recipientID, String msg)
  * This function looks through newly-recieved messages, and prunes waiting
  * messages in the outbox, sending them if appropriate.
  *
- * It also updates the state of the cubes
- *
- * XXX TODO:
+ * It also updates the state of the cube data model
  */
+
+#define AVERAGE_FIRST_DELAY_MS 100
+
 void updateBoxes(CircularBuffer<inboxLog>& inbox, CircularBuffer<outboxLog>& outbox[])
 {
   // Clear out the inbox
@@ -151,12 +149,11 @@ void updateBoxes(CircularBuffer<inboxLog>& inbox, CircularBuffer<outboxLog>& out
 
     // See if we need to mark any outbox messages as "acked"
     bool foundflag = false;
-    for(int cub = 0; cub < ARRAY_SIZEOF(outbox); cub++)
+    for(int cub = 0; cub < (NUM_CUBES); cub++)
     {
       if(outbox[cub].access(0).mID == inboxItem.mID) {
         foundflag = true;
         outbox[cub].pop();
-        // sendNextMessageToCub()
       }
     }
     if(!foundflag) {
@@ -166,22 +163,16 @@ void updateBoxes(CircularBuffer<inboxLog>& inbox, CircularBuffer<outboxLog>& out
     // updateCubeModelWithAck() TODO incorporate new inboxItem into the state of the cubes
   }
 
-  // Decide which messages to send next. To do this, we search through all of the messages
-  // at the front of the circular buffers and find the empty ones
-
-
-  uint32_t mintime = 0xffffffffu;
-  int minidx = -1;
-  for(int i = 0; i < ARRAY_SIZE(outbox); i++) {
-    if(!outbox[i].empty() && (outbox[i].access(0).mDeadline < mintime)) {
-      mintime = outbox[i].access(0).mDeadline;
-      minidx = i;
+  // Decide which messages to (re)send.
+  for (int cub = 0; cub < (NUM_CUBES); cub++){
+    if (!outbox[cub].empty()){ // for the outbox queues with messages in them...
+      if (millis()>outbox[cub].access(0).mDeadline) // if the time has come to resend the message...
+      {
+        sendMessage(cub, outbox[cub].access(0).mContents); // send it...
+        outbox.cub.access(0).mDeadline = millis() + random((1ul << outbox.cub.access(0).backoff) * AVERAGE_FIRST_DELAY_MS); // set the next deadline using exponential backoff...
+        outbox.cub.access(0).backoff++; // and increment the counter to reflect the number of tries.
+        }
     }
-  }
-
-  // Check and make sure that the minimum time that we just found is past the current mtime
-  if(mintime < millis()) {
-    sendMessage()
   }
 }
 
@@ -189,7 +180,7 @@ void receivedCallback(uint32_t from, String & msg)
 {
   Serial.println("Received ACK:\n" + msg + "\n");
 
-	char *s = msg.c_str();
+  char *s = msg.c_str();
   int len = msg.length();
   uint32_t mID = 0;
   for(int i = 0; i < len; i++)

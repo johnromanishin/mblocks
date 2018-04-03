@@ -52,7 +52,7 @@ uint32_t initializeWifiMesh()
   //mesh.onChangedConnections(&changedConnectionCallback);
   //mesh.onNodeTimeAdjusted(&nodeTimeAdjustedCallback);
   //mesh.onNodeDelayReceived(&delayReceivedCallback);
-  randomSeed(analogRead(A0));
+  randomSeed(ESP.getChipId());
   if(MAGIC_DEBUG) Serial.println("Exiting initializeWifiMesh");
   return(mesh.getNodeId());
 }

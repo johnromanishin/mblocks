@@ -7,6 +7,9 @@
 #include "CBuff.h"
 #include "espconn.h"
 
+#define NUM_CUBES 17
+#define WINDOW_SIZE 1
+
 //
 
 extern painlessMesh mesh;
