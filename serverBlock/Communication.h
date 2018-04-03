@@ -12,7 +12,8 @@
 extern painlessMesh mesh;
 extern CircularBuffer<String, true> jsonCircularBuffer;
 
-bool sendMessage(int cubeID, String msg);
+bool sendMessage(int recipientID, String msg);
+void updateBoxes(CircularBuffer<inboxLog>& inbox, CircularBuffer<outboxLog>& outbox[])
 
 void initializeWifiMesh();
 bool sendBroadcastMessage(String message);

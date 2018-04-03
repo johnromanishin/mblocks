@@ -16,7 +16,7 @@
 painlessMesh  mesh;
 
 /**
- * In the outbox, we need to keep track of each message that we are going to transmit
+ * In the outbox, we need to keep track of each message that we are transmitting
  */
 typedef struct outboxLog
 {
@@ -34,7 +34,7 @@ typedef struct inboxLog
 
 typedef struct faceState
 {
-  char ID;
+  char faceID;
   char connectedCube;
   char connectedFace;
   char connectedAngle;
@@ -50,18 +50,17 @@ typedef struct cubeState
   faceState faceD;
   faceState faceE;
   faceState faceF;
-
 } cubeState;
 
 /**
  * These variables hold messages that need to be sent, and recieved messages that need to be
  * processed
  */
-#define NUM_MESSAGES_TO_BUFFER_OUTBOX 5 	// This is the max number of messages that can simultaneously fit in the outbox for a given cube.
+#define NUM_MESSAGES_TO_BUFFER_OUTBOX 4 	// This is the max number of messages that can simultaneously fit in the outbox for a given cube.
 																					// They are sent one-at-a-time
-outboxLog outboxMem[16][NUM_MESSAGES_TO_BUFFER_OUTBOX];
+outboxLog outboxMem[16+1][NUM_MESSAGES_TO_BUFFER_OUTBOX];
 
-CircularBuffer<outboxLog> outbox[16] =
+CircularBuffer<outboxLog> outbox[16+1] =
 {
  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[0]), &outboxMem[0]),
  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[1]), &outboxMem[1]),
@@ -78,24 +77,24 @@ CircularBuffer<outboxLog> outbox[16] =
  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[12]), &outboxMem[12]),
  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[13]), &outboxMem[13]),
  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[14]), &outboxMem[14]),
- CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[15]), &outboxMem[15])
+ CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[15]), &outboxMem[15]),
+ CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[16]), &outboxMem[16]),
 };
 
 #define NUM_MESSAGES_TO_BUFFER_INBOX 16
-inboxLog inboxMem[NUM_MESSAGE_TO_BUFFER_INBOX];
+inboxLog inboxMem[NUM_MESSAGE_TO_BUFFER_INBOX+1];
 CircularBuffer<inboxLog> inbox;
 
-#define NUM_CUBES 16
-cubeState topologyMem[NUM_CUBES];
-CircularBuffer<cubeState> topology[16] =
-{
- delay(1);
- //% TODO
-};
+// this is where the cube data object will be built in the future
+// #define NUM_CUBES 16
+// cubeState topologyMem[NUM_CUBES];
+// CircularBuffer<cubeState> topology[16] = 
+// {
+//  //% TODO
+// };
 
 bool calc_delay = false;
 SimpleList<uint32_t> nodes;
-void sendMessage() ; // Prototype
 
 uint32_t advanceLfsr() // this call returns a message ID. these are not sequential.
 {
@@ -152,23 +151,25 @@ void updateBoxes(CircularBuffer<inboxLog>& inbox, CircularBuffer<outboxLog>& out
 
     // See if we need to mark any outbox messages as "acked"
     bool foundflag = false;
-    for(int i = 0; i < ARRAY_SIZEOF(outbox); i++)
+    for(int cub = 0; cub < ARRAY_SIZEOF(outbox); cub++)
     {
-      if(outbox[i].access(0).mID == inboxItem.mID) {
+      if(outbox[cub].access(0).mID == inboxItem.mID) {
         foundflag = true;
-        outbox[i].pop();
-        //sendnextmessagetocubei()
+        outbox[cub].pop();
+        // sendNextMessageToCub()
       }
     }
     if(!foundflag) {
-      printf("No sent message found in outbox for message ID %");
+      Serial.println("Spurious ACK for message ID: " + inboxItem.mID);
     }
 
-    // XXXTODO incorporate new inboxItem into the state of the cubes
+    // updateCubeModelWithAck() TODO incorporate new inboxItem into the state of the cubes
   }
 
   // Decide which messages to send next. To do this, we search through all of the messages
   // at the front of the circular buffers and find the empty ones
+
+
   uint32_t mintime = 0xffffffffu;
   int minidx = -1;
   for(int i = 0; i < ARRAY_SIZE(outbox); i++) {
