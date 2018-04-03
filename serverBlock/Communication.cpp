@@ -61,37 +61,37 @@ typedef struct cubeState
 																					// They are sent one-at-a-time
 outboxLog outboxMem[16][NUM_MESSAGES_TO_BUFFER_OUTBOX];
 
-//CircularBuffer<outboxLog> outbox[16] =
-//{
-//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[0]), &outboxMem[0]),
-//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[1]), &outboxMem[1]),
-//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[2]), &outboxMem[2]),
-//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[3]), &outboxMem[3]),
-//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[4]), &outboxMem[4]),
-//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[5]), &outboxMem[5]),
-//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[6]), &outboxMem[6]),
-//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[7]), &outboxMem[7]),
-//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[8]), &outboxMem[8]),
-//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[9]), &outboxMem[9]),
-//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[10]), &outboxMem[10]),
-//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[11]), &outboxMem[11]),
-//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[12]), &outboxMem[12]),
-//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[13]), &outboxMem[13]),
-//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[14]), &outboxMem[14]),
-//  CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[15]), &outboxMem[15])
-//};
+CircularBuffer<outboxLog> outbox[16] =
+{
+ CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[0]), &outboxMem[0]),
+ CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[1]), &outboxMem[1]),
+ CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[2]), &outboxMem[2]),
+ CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[3]), &outboxMem[3]),
+ CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[4]), &outboxMem[4]),
+ CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[5]), &outboxMem[5]),
+ CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[6]), &outboxMem[6]),
+ CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[7]), &outboxMem[7]),
+ CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[8]), &outboxMem[8]),
+ CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[9]), &outboxMem[9]),
+ CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[10]), &outboxMem[10]),
+ CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[11]), &outboxMem[11]),
+ CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[12]), &outboxMem[12]),
+ CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[13]), &outboxMem[13]),
+ CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[14]), &outboxMem[14]),
+ CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[15]), &outboxMem[15])
+};
 
 #define NUM_MESSAGES_TO_BUFFER_INBOX 16
 inboxLog inboxMem[NUM_MESSAGE_TO_BUFFER_INBOX];
-//CircularBuffer<inboxLog> inbox;
+CircularBuffer<inboxLog> inbox;
 
 #define NUM_CUBES 16
 cubeState topologyMem[NUM_CUBES];
-//CircularBuffer<cubeState> topology[16] =
-//{
-//  delay(1);
-//  //% TODO
-//};
+CircularBuffer<cubeState> topology[16] =
+{
+ delay(1);
+ //% TODO
+};
 
 bool calc_delay = false;
 SimpleList<uint32_t> nodes;

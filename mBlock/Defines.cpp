@@ -54,7 +54,7 @@ Color teal  =   {0, 1, 1};
 Color white =   {1, 1, 1};
 Color off   =   {0, 0, 0};
 
-int GlobalCubeID = 0;
+int thisCubeID = 1;
 extern String Mode = "nothing";
 extern int GlobalplaneChangeTime;
 extern int GlobalplaneChangeRPM;

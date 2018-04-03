@@ -18,5 +18,4 @@ int inputVoltage();         // Asks the Motor Control Board through serial what 
 int get_battery_voltage();  // Asks the Motor control board through serial what the battery voltage is...
 void loadMotionData(Motion* motion, int RPM, int Current, int brakeTime); // this loads the individually calibrated motorion 
                                                                           // data for each cube based on the ID number
-void actuallyLoadMotionData();  
 #endif

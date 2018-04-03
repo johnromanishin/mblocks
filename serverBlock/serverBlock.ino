@@ -17,9 +17,6 @@
 // Header Files
 char storage[512]; // This creates storage space for decoding serial messages
 
-// int getCubeIDFromEsp(int espID)
-// int getEspIDFromCube(int GlobalCubeID)
-
 int mainLoopCounter = 0;
 
 void setup() // Actually the main loop...

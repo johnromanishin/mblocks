@@ -13,7 +13,7 @@
 // Wifi Infrastructure
 extern painlessMesh mesh; // This is the class for the wireless mesh, usage is mesh.function()
 extern CircularBuffer<String, true> jsonCircularBuffer; // we store received messages in a circular buffer
-long initializeWifiMesh();
+uint32_t initializeWifiMesh();
 void receivedCallback(uint32_t from, String & msg);
 
 ///// Sending Messages Utilities

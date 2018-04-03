@@ -17,6 +17,8 @@
 #define   MESH_PASSWORD   "mblocks3d"
 #define   MESH_PORT       5555
 
+#define   SERVER_NUMBER   0
+
 painlessMesh  mesh; // instantiates the class "mesh" which handles the wireless messages
 
 // CircularBuffer<int> axCoreBuffer(ARRAY_SIZEOF(this->axCoreData), this->axCoreData),
@@ -41,7 +43,7 @@ bool sendMessage(int cubeID, String msg)
   }
 }
 
-long initializeWifiMesh()
+uint32_t initializeWifiMesh()
 {
   if(MAGIC_DEBUG) Serial.println("Beginning initializeWifiMesh");
   mesh.init(MESH_SSID, MESH_PASSWORD, MESH_PORT);
@@ -51,11 +53,12 @@ long initializeWifiMesh()
   //mesh.onNodeTimeAdjusted(&nodeTimeAdjustedCallback);
   //mesh.onNodeDelayReceived(&delayReceivedCallback);
   randomSeed(analogRead(A0));
-  return(mesh.getNodeId());
   if(MAGIC_DEBUG) Serial.println("Exiting initializeWifiMesh");
+  return(mesh.getNodeId());
 }
 
-void receivedCallback(uint32_t from, String & msg)
+ 
+void receivedCallback(uint32_t from, String & stringMsg)
 {
   if(MAGIC_DEBUG)
   {
@@ -65,24 +68,15 @@ void receivedCallback(uint32_t from, String & msg)
 
   // Check and see if this message is a dupe by "manually" extracting the message
   // id field.
-  char *s = msg.c_str();
-  int len = msg.length();
-  uint32_t mID = 0;
-  for(int i = 0; i < len; i++)
-  {
-    if((s[i] == '\"') && (!strncmp(&s[i] + 1, "mID\"", 4)))
-    {
-      mID = strtol(&s[i], NULL, 10);
-    }
+  
+  
+  //check to see if it's new, if so, do something with it
+  StaticJsonBuffer<512> jsonMsgBuffer;
+  JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg);
+  if (jsonMsg["mID"] != prevMID){
+    jsonCircularBuffer.push(stringMsg);
+    prevMID = mID;
   }
-
-  Serial.printf("Extracted mid %i\r\n", mID);
-
-  if(mID != prevMID)
-  {
-    jsonCircularBuffer.push(msg);
-  }
-  prevMID = mID;
 
   // Send an ack message.
   // The ack consists of
@@ -91,25 +85,31 @@ void receivedCallback(uint32_t from, String & msg)
   //     cubeID:    ID of cube sending this message
   //     neighbors: Number of neighbors surrounding the cube.
   //     topFace:   Face pointing upwards
-  sendAck(Cube* c, mID);
+  
+  // this is what we had before:
+  // sendAck(Cube* c, mID);
+  // and this is what we added 3Apr 1:30AM to make it compilable:
+  sendAck(mID);
 }
 
-void sendAck(Cube* c, uint32_t messageID)
+// this is what we had before:
+// void sendAck(Cube* c, uint32_t messageID)
+// and this is what we added 3Apr 1:30AM to make it compilable:
+void sendAck(uint32_t messageID)
 {
   if(MAGIC_DEBUG) Serial.println("sending ack to server");
   StaticJsonBuffer<256> jsonBuffer; //memory allocated to store json instance
   JsonObject& msg = jsonBuffer.createObject(); // & is "c++ reference"
   msg["mID"] = messageID; // message ID
   msg["type"] = "ack";
-  msg["sID"] = c->cubeID; // sender ID
-  msg["neighbors"] = c->numberOfNeighbors();
-  msg["topFace"] = c->returnTopFace(0);
+  msg["sID"] = thisCubeID; // sender ID
+  msg["neighbors"] = ""; // c->numberOfNeighbors();
+  msg["bFace"] = ""; // c->returnTopFace(0);
 
   String str; // generate empty string
   msg.printTo(str); // print to JSON readable string...
-  sendMessage(serverNumber, str);
+  sendMessage(SERVER_NUMBER, str);
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////

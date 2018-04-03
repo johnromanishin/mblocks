@@ -34,9 +34,8 @@
 void initializeCube()
 {
   initializeHardware();
-  long wifiID = initializeWifiMesh();
-  lookUpCalibrationValues(wifiID);
-  actuallyLoadMotionData();
+  lookUpCalibrationValues(initializeWifiMesh());
+  setMotionDataGlobalVariables();
   wifiDelay(200);
   int count = 0;
   Serial.println("madeithere...");
@@ -221,7 +220,7 @@ void lookUpCalibrationValues(long wifiID)
   {
     //********************************
     case 2133796284: // 9086927 This is the cube on the BIG Breadboard
-      GlobalCubeID = 99;
+      thisCubeID = 99;
 
       TRAVERSE_RPM_F = 6969;
       TRAVERSE_RPM_R = 69696;
@@ -240,8 +239,8 @@ void lookUpCalibrationValues(long wifiID)
     //********************************
 
     case 885790061:   // 13374829 Cube on Smaller Breadboard
-      //GlobalCubeID = 98;
-      GlobalCubeID = 0;
+      //thisCubeID = 98;
+      thisCubeID = 0;
 
       TRAVERSE_RPM_F = 999;
       TRAVERSE_RPM_R = 999;
@@ -260,7 +259,7 @@ void lookUpCalibrationValues(long wifiID)
     //********************************
 
     case 839:   //959839 PEI BLACK DB:9D:99:1A:BA:23
-      GlobalCubeID = 16;
+      thisCubeID = 16;
 
       TRAVERSE_RPM_F = 6000;
       TRAVERSE_RPM_R = 6000;
@@ -278,7 +277,7 @@ void lookUpCalibrationValues(long wifiID)
 
     //********************************
     case 94: //959694 PEI PURPLE | FA:AA:25:19:C7:DF
-      GlobalCubeID = 14;
+      thisCubeID = 14;
 
       GlobalPlaneAccel = 2000;
       TRAVERSE_RPM_F = 7000;
@@ -295,7 +294,7 @@ void lookUpCalibrationValues(long wifiID)
       break;
     //********************************
     case 348: //960348 PEI GREEN | EC:47:A9:35:1F:02
-      GlobalCubeID = 15;
+      thisCubeID = 15;
 
       TRAVERSE_RPM_F = 6500;
       TRAVERSE_RPM_R = 6500;
@@ -311,7 +310,7 @@ void lookUpCalibrationValues(long wifiID)
       break;
 
     case 242: //960242 PEI ORANGE E6:F6:05:69:08:F2
-      GlobalCubeID = 7;
+      thisCubeID = 7;
 
       TRAVERSE_RPM_F = 7000;
       TRAVERSE_RPM_R = 7000;
@@ -327,7 +326,7 @@ void lookUpCalibrationValues(long wifiID)
       break;
 
     case 6514: //8576514 PC BLACK  E3:6B:C6:CE:DA:31
-      GlobalCubeID = 9;
+      thisCubeID = 9;
 
       TRAVERSE_RPM_F = 6500;
       TRAVERSE_RPM_R = 6500;
@@ -343,7 +342,7 @@ void lookUpCalibrationValues(long wifiID)
       break;
 
     case 509: //959709 PC YELLOW  - FB:0D:8F:2C:3B:B4
-      GlobalCubeID = 8;
+      thisCubeID = 8;
 
       TRAVERSE_RPM_F = 6500;
       TRAVERSE_RPM_R = 7000;
@@ -360,7 +359,7 @@ void lookUpCalibrationValues(long wifiID)
       break;
 
      case 603: //8577103 PC ORANGE  - E6:E5:82:26:C7:8B
-      GlobalCubeID = 11;
+      thisCubeID = 11;
       GlobalPlaneAccel = 3000;
 
       TRAVERSE_RPM_F = 6500;
@@ -377,7 +376,7 @@ void lookUpCalibrationValues(long wifiID)
       break;
 
      case 12: //10229112 PC PURPLE  - DF:DF:3C:A0:F1:77
-      GlobalCubeID = 2;
+      thisCubeID = 2;
       GlobalPlaneAccel = 3000;
 
       TRAVERSE_RPM_F = 7000;
@@ -394,7 +393,7 @@ void lookUpCalibrationValues(long wifiID)
       break;
 
     case 62: //960662 PEI BROWN  - F1:E8:71:B2:99:B5
-      GlobalCubeID = 1;
+      thisCubeID = 1;
 
       TRAVERSE_RPM_F = 6500;
       TRAVERSE_RPM_R = 7000;
@@ -411,7 +410,7 @@ void lookUpCalibrationValues(long wifiID)
       break;
 
     case 960: //960558 PEI BLUE  f7:AE:59:2B:D9:4D
-      GlobalCubeID = 10;
+      thisCubeID = 10;
 
       TRAVERSE_RPM_F = 7000;
       TRAVERSE_RPM_R = 7000;
@@ -427,7 +426,7 @@ void lookUpCalibrationValues(long wifiID)
       break;
 
     case 96: //960043 PEI YELLOW  CC:F1:4F:AF:64:A8
-      GlobalCubeID = 12;
+      thisCubeID = 12;
 
       TRAVERSE_RPM_F = 7500;
       TRAVERSE_RPM_R = 7500;
@@ -443,7 +442,7 @@ void lookUpCalibrationValues(long wifiID)
       break;
 
      case 2131666859: //960427 PEI RED  D0:D5:6F:CB:32:4C
-      GlobalCubeID = 5;
+      thisCubeID = 5;
 
       TRAVERSE_RPM_F = 6500;
       TRAVERSE_RPM_R = 6500;
@@ -459,7 +458,7 @@ void lookUpCalibrationValues(long wifiID)
       break;
 
     case 244: //15044359 ORANGE PC RED  CD:2B:5E:AB:3E:F3
-      GlobalCubeID = 3;
+      thisCubeID = 3;
 
       TRAVERSE_RPM_F = 6500;
       TRAVERSE_RPM_R = 6500;
@@ -475,7 +474,7 @@ void lookUpCalibrationValues(long wifiID)
       break;
 
   case 345: //8577715 PC Brown  C5:FF:AB:04:3B:9D
-      GlobalCubeID = 6;
+      thisCubeID = 6;
 
       TRAVERSE_RPM_F = 6500;
       TRAVERSE_RPM_R = 6500;
@@ -491,7 +490,7 @@ void lookUpCalibrationValues(long wifiID)
       break;
 
     case 3534: //15044426 PC Blue  D8:9C:4D:EA:27:65
-      GlobalCubeID = 13;
+      thisCubeID = 13;
 
       TRAVERSE_RPM_F = 6500;
       TRAVERSE_RPM_R = 6500;
@@ -507,7 +506,7 @@ void lookUpCalibrationValues(long wifiID)
       break;
 
     case 5234: //8575308 PC Green : ED:A6:6A:8E:1B:58
-      GlobalCubeID = 4;
+      thisCubeID = 4;
       GlobalPlaneAccel = 2500;
 
       TRAVERSE_RPM_F = 6500;
@@ -541,7 +540,7 @@ void loadMotionData(Motion* motion, int RPM, int Current, int brakeTime)
   motion->brakeTime = brakeTime;
 }
 
-void actuallyLoadMotionData()
+void setMotionDataGlobalVariables()
 /*
  * This function goes through the list of motions, and applies
  * "moadMotionData" to each one of them.

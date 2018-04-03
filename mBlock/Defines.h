@@ -6,15 +6,6 @@
 /// ESP ID to CUBE MAP ////
 uint32_t getAddressFromCubeID(int CubeID);
 
-typedef struct EspToCubeMapping
-{
-  int esp;
-  int cube;
-} EspToCubeMapping;
-
-int getEspIDFromCube(int);
-int getCubeIDFromEsp(int);
-
 
 /*
  * Plane Enums are the possible states that the internal robot can be in
@@ -151,7 +142,7 @@ extern Motion rollDouble_R;
 /////////////////////////////////////////////////////////////////////
 //extern int faceVersion; // This 
 extern String Mode;
-extern int GlobalCubeID;
+extern int thisCubeID;
 extern int GlobalPlaneAccel;
 extern bool magicTheLight;
 extern int GlobalMaxAccel;
