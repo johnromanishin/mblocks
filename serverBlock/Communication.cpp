@@ -18,47 +18,10 @@ painlessMesh  mesh;
 /**
  * In the outbox, we need to keep track of each message that we are transmitting
  */
-typedef struct outboxLog
-{
-  String mContents;
-  uint32_t mID;
-  uint32_t mDeadline;
-  unsigned char backoff;
-} outboxLog;
 
-typedef struct inboxLog
-{
-  String mContents;
-  uint32_t mID;
-} inboxLog;
-
-typedef struct faceState
-{
-  char faceID;
-  char connectedCube;
-  char connectedFace;
-  char connectedAngle;
-} faceState;
-
-typedef struct cubeState
-{
-  char bottomFace;
-  char plane;
-  faceState faceA;
-  faceState faceB;
-  faceState faceC;
-  faceState faceD;
-  faceState faceE;
-  faceState faceF;
-} cubeState;
-
-/**
- * These variables hold messages that need to be sent, and recieved messages that need to be
- * processed
- */
 
 #define NUM_MESSAGES_TO_BUFFER_OUTBOX 4 	// This is the max number of messages that can simultaneously fit in the outbox for a given cube.
-																					// They are sent one-at-a-time
+																					// They are sent to the cube one-at-a-time
 outboxLog outboxMem[NUM_CUBES][NUM_MESSAGES_TO_BUFFER_OUTBOX];
 
 CircularBuffer<outboxLog> outbox[NUM_CUBES] =

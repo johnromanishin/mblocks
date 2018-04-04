@@ -15,6 +15,45 @@
 extern painlessMesh mesh;
 extern CircularBuffer<String, true> jsonCircularBuffer;
 
+typedef struct outboxLog
+{
+  String mContents;
+  uint32_t mID;
+  uint32_t mDeadline;
+  unsigned char backoff;
+} outboxLog;
+
+typedef struct inboxLog
+{
+  String mContents;
+  uint32_t mID;
+} inboxLog;
+
+typedef struct faceState
+{
+  char faceID;
+  char connectedCube;
+  char connectedFace;
+  char connectedAngle;
+} faceState;
+
+typedef struct cubeState
+{
+  char bottomFace;
+  char plane;
+  faceState faceA;
+  faceState faceB;
+  faceState faceC;
+  faceState faceD;
+  faceState faceE;
+  faceState faceF;
+} cubeState;
+
+/**
+ * These variables hold messages that need to be sent, and recieved messages that need to be
+ * processed
+ */
+
 bool sendMessage(int recipientID, String msg);
 void updateBoxes(CircularBuffer<inboxLog>& inbox, CircularBuffer<outboxLog>& outbox[]);
 
