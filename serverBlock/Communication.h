@@ -1,7 +1,10 @@
+
+
 #ifndef COMMUNICATION_H
 #define COMMUNICATION_H
 
-#include <painlessMesh.h>  // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
+#include <painlessMesh.h>
+
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include "CBuff.h"
@@ -55,7 +58,7 @@ typedef struct cubeState
  */
 
 bool sendMessage(int recipientID, String msg);
-void updateBoxes(CircularBuffer<inboxLog>& inbox, CircularBuffer<outboxLog>& outbox[]);
+void updateBoxes(CircularBuffer<inboxLog>& inbox, CircularBuffer<outboxLog> (&outbox)[NUM_CUBES]);
 
 void initializeWifiMesh();
 bool sendBroadcastMessage(String message);
