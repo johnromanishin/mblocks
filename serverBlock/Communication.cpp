@@ -23,29 +23,30 @@ painlessMesh  mesh;
 																					// They are sent to the cube one-at-a-time
 outboxLog outboxMem[NUM_CUBES][NUM_MESSAGES_TO_BUFFER_OUTBOX];
 
-CircularBuffer<outboxLog> outbox[NUM_CUBES] =
+CircularBuffer<outboxLog, true> outbox[NUM_CUBES] =
 {
- CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[0]),
- CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[1]),
- CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[2]),
- CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[3]),
- CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[4]),
- CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[5]),
- CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[6]),
- CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[7]),
- CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[8]),
- CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[9]),
- CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[10]),
- CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[11]),
- CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[12]),
- CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[13]),
- CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[14]),
- CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[15]),
- CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[16]),
+ CircularBuffer<outboxLog, true> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[0]),
+ CircularBuffer<outboxLog, true> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[1]),
+ CircularBuffer<outboxLog, true> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[2]),
+ CircularBuffer<outboxLog, true> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[3]),
+ CircularBuffer<outboxLog, true> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[4]),
+ CircularBuffer<outboxLog, true> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[5]),
+ CircularBuffer<outboxLog, true> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[6]),
+ CircularBuffer<outboxLog, true> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[7]),
+ CircularBuffer<outboxLog, true> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[8]),
+ CircularBuffer<outboxLog, true> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[9]),
+ CircularBuffer<outboxLog, true> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[10]),
+ CircularBuffer<outboxLog, true> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[11]),
+ CircularBuffer<outboxLog, true> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[12]),
+ CircularBuffer<outboxLog, true> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[13]),
+ CircularBuffer<outboxLog, true> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[14]),
+ CircularBuffer<outboxLog, true> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[15]),
+ CircularBuffer<outboxLog, true> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[16]),
 };
 
 inboxLog inboxMem[NUM_CUBES * WINDOW_SIZE];
-CircularBuffer<inboxLog> inbox;
+CircularBuffer<inboxLog, true> inbox(NUM_CUBES*WINDOW_SIZE, &inboxMem[0]);
+
 
 // this is where the cube data object will be built in the future
 //
@@ -101,7 +102,7 @@ bool sendMessage(int recipientID, String msg)
 
 #define AVERAGE_FIRST_DELAY_MS 100
 
-void updateBoxes(CircularBuffer<inboxLog>& inbox, CircularBuffer<outboxLog> (&outbox)[])
+void updateBoxes(CircularBuffer<inboxLog, true> &inbox, CircularBuffer<outboxLog, true> (&outbox)[NUM_CUBES])
 {
   // Clear out the inbox
   while(!inbox.empty())
