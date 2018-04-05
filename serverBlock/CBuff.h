@@ -3,7 +3,7 @@
 #include "Defines.h"
 #include <Arduino.h>
 
-template<typename T, bool useTailParam = false>
+template<typename T>
 class CircularBuffer
 {
   private:
@@ -14,15 +14,15 @@ class CircularBuffer
 
   public:
     CircularBuffer(int size, T* data);
-    void push(T data);
+    bool push(T data);
     T access(int);
     T* accessPointer(int);
     T pop();
     bool empty();
 };
 
-template<typename T, bool useTailParam>
-CircularBuffer<T, useTailParam>::CircularBuffer(int size, T* data)
+template<typename T>
+CircularBuffer<T>::CircularBuffer(int size, T* data)
 {
   this->data = data;
   this->size = size;
@@ -30,40 +30,35 @@ CircularBuffer<T, useTailParam>::CircularBuffer(int size, T* data)
   this->tail = 0;
 }
 
-template<typename T, bool useTailParam>
-void CircularBuffer<T, useTailParam>::push(T newItem)
+template<typename T>
+bool CircularBuffer<T>::push(T newItem)
 {
-  if(useTailParam)
-  {
     int next = this->head + 1;
-    if(next >= this->size)
+    if(next >= this->size){
       next = 0;
-    if(next == this->tail)
-      return;
-  }
+    }
+    if(next == this->tail){
+      return false;
+    }
 
-  *(this->data + this->head) = newItem; //
+  *(this->data + this->head) = newItem;
   this->head++; // increment head by one
   if(head >= this->size)
   {
     this->head = 0; // set it back to 0 if it it has exceded the size
   }
+  return true;
 }
 
-template<typename T, bool useTailParam>
-bool CircularBuffer<T, useTailParam>::empty()
+template<typename T>
+bool CircularBuffer<T>::empty()
 {
-  if(!useTailParam)
-    return false;
-  else
     return (this->tail == this->head);
 }
 
-template<typename T, bool useTailParam>
-T CircularBuffer<T, useTailParam>::pop()
+template<typename T>
+T CircularBuffer<T>::pop()
 {
-  if(!useTailParam)
-    return (T)0;
 
   if(this->tail == this->head)
     return (T)0;
@@ -79,8 +74,8 @@ T CircularBuffer<T, useTailParam>::pop()
 }
       // [-3] [-2]  [-1]  [0]  [1]  [2]  [3]  [4]  [5]
       //  [5]  [4]   [3]  [2]  [1]  [0]  [H]  [4]  [3]
-template<typename T, bool useTailParam>
-T CircularBuffer<T, useTailParam>::access(int index)
+template<typename T>
+T CircularBuffer<T>::access(int index)
 {
     int temp = this->head - (index + 1);
     if(temp < 0)

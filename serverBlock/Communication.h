@@ -12,7 +12,7 @@
 
 //
 extern painlessMesh mesh;
-extern CircularBuffer<String, true> jsonCircularBuffer;
+extern CircularBuffer<String> jsonCircularBuffer;
 
 //
 typedef struct outboxLog
