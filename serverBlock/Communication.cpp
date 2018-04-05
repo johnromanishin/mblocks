@@ -51,31 +51,31 @@ struct inboxEntry{
   uint32_t mID;
 };
 
- outboxEntry outboxMemoryReservation[NUM_CUBES][NUM_MESSAGES_TO_BUFFER_OUTBOX];
+ outboxEntry outboxMemoryReservation[NUM_CUBES * NUM_MESSAGES_TO_BUFFER_OUTBOX];
 
- CircularBuffer<outboxEntry> outbox[NUM_CUBES] =
+CircularBuffer<outboxEntry> outbox[NUM_CUBES] =
 {
- CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[0]),
- CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[1]),
- CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[2]),
- CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[3]),
- CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[4]),
- CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[5]),
- CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[6]),
- CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[7]),
- CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[8]),
- CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[9]),
- CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[10]),
- CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[11]),
- CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[12]),
- CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[13]),
- CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[14]),
- CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[15]),
- CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[16]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[0*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[1*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[2*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[3*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[4*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[5*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[6*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[7*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[8*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[9*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[10*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[11*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[12*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[13*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[14*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[15*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[16*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
 };
 
-inboxEntry inboxMemoryReservation[NUM_CUBES];
-CircularBuffer<inboxEntry> inbox(NUM_CUBES, &inboxMemoryReservation[0]);
+inboxEntry inboxMemoryReservation[NUM_CUBES * WINDOW_SIZE];
+CircularBuffer<inboxEntry> inbox(NUM_CUBES * WINDOW_SIZE, &inboxMemoryReservation[0]);
 /**
  * In the outbox, we need to keep track of each message that we are transmitting
  */
@@ -172,10 +172,9 @@ void updateBoxes(CircularBuffer<inboxEntry> &inbox, CircularBuffer<outboxEntry> 
       if (millis()>outbox[cub].access(0).mDeadline) // if the time has come to resend the message...
       {
         sendMessage(cub, outbox[cub].access(0).mContents); // send it...
-        outbox.cub.access(0).mDeadline = millis() + 
-        random((1ul << outbox.cub.access(0).backoff) * AVERAGE_FIRST_DELAY_MS); 
+        outbox[cub].access(0).mDeadline = millis() + random((1UL << outbox[cub].access(0).backoff) * AVERAGE_FIRST_DELAY_MS); 
         // set the next deadline using exponential backoff...
-        outbox.cub.access(0).backoff++; // and increment the counter to reflect the number of tries.
+        outbox[cub].access(0).backoff++; // and increment the counter to reflect the number of tries.
         }
     }
   }
@@ -183,7 +182,6 @@ void updateBoxes(CircularBuffer<inboxEntry> &inbox, CircularBuffer<outboxEntry> 
 
 void receivedCallback(uint32_t from, String & msg)
 {
-  Serial.println("Received ACK:\n" + msg + "\n");
 
   char *s = msg.c_str();
   int len = msg.length();
@@ -195,8 +193,6 @@ void receivedCallback(uint32_t from, String & msg)
       mID = strtol(&s[i], NULL, 10);
     }
   }
-
-  Serial.printf("Extracted mID %i\r\n", mID);
 
   inbox.push({msg, mID});
 }

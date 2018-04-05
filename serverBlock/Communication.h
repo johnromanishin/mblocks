@@ -7,6 +7,7 @@
 #include "CBuff.h"
 #include "espconn.h"
 
+#define WINDOW_SIZE 1
 #define NUM_CUBES 17
 #define NUM_MESSAGES_TO_BUFFER_OUTBOX 4 // This is the max number of messages that can simultaneously 
                                         // fit in the outbox for a given cube.

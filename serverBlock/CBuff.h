@@ -82,7 +82,7 @@ T CircularBuffer<T>::access(int index)
     {
         temp += this->size;
     }
-    return(*(this->data + temp)); // return memory box accessed by current pointer
+    return(*(this->data + temp)); // return memory accessed by current pointer
 }
 
 #endif
