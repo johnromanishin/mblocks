@@ -3,7 +3,6 @@
 #include <painlessMesh.h> // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
 #include <ArduinoJson.h>
 #include "Communication.h"
-#include "espconn.h"
 #include "CBuff.h"
 #include "Defines.h"
 
@@ -26,23 +25,23 @@ outboxLog outboxMem[NUM_CUBES][NUM_MESSAGES_TO_BUFFER_OUTBOX];
 
 CircularBuffer<outboxLog> outbox[NUM_CUBES] =
 {
- CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[0]), &outboxMem[0]),
- CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[1]), &outboxMem[1]),
- CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[2]), &outboxMem[2]),
- CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[3]), &outboxMem[3]),
- CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[4]), &outboxMem[4]),
- CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[5]), &outboxMem[5]),
- CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[6]), &outboxMem[6]),
- CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[7]), &outboxMem[7]),
- CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[8]), &outboxMem[8]),
- CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[9]), &outboxMem[9]),
- CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[10]), &outboxMem[10]),
- CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[11]), &outboxMem[11]),
- CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[12]), &outboxMem[12]),
- CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[13]), &outboxMem[13]),
- CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[14]), &outboxMem[14]),
- CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[15]), &outboxMem[15]),
- CircularBuffer<outboxLog>(ARRAY_SIZEOF(outboxMem[16]), &outboxMem[16]),
+ CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[0]),
+ CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[1]),
+ CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[2]),
+ CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[3]),
+ CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[4]),
+ CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[5]),
+ CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[6]),
+ CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[7]),
+ CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[8]),
+ CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[9]),
+ CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[10]),
+ CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[11]),
+ CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[12]),
+ CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[13]),
+ CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[14]),
+ CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[15]),
+ CircularBuffer<outboxLog>(NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMem[16]),
 };
 
 inboxLog inboxMem[NUM_CUBES * WINDOW_SIZE];
@@ -102,7 +101,7 @@ bool sendMessage(int recipientID, String msg)
 
 #define AVERAGE_FIRST_DELAY_MS 100
 
-void updateBoxes(CircularBuffer<inboxLog>& inbox, CircularBuffer<outboxLog>& outbox[])
+void updateBoxes(CircularBuffer<inboxLog>& inbox, CircularBuffer<outboxLog> (&outbox)[])
 {
   // Clear out the inbox
   while(!inbox.empty())

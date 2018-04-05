@@ -6,10 +6,7 @@
 #include <string.h>
 
 #include "Communication.h"
-//#include "Cube.h"
-#include "espconn.h"
 #include "CBuff.h"
-//#include "Face.h"
 
 #define   BLINK_PERIOD    3000000 // microseconds until cycle repeat
 #define   BLINK_DURATION  100000  // microseconds LED is on for
