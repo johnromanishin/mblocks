@@ -198,7 +198,7 @@ void receivedCallback(uint32_t from, String & msg)
 
   Serial.printf("Extracted mID %i\r\n", mID);
 
-  inbox.push({msg, mID, 0, 0});
+  inbox.push({msg, mID});
 }
 
 void newConnectionCallback(uint32_t nodeId)
