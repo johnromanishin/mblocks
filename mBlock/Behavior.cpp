@@ -242,7 +242,7 @@ Behavior followArrows(Cube* c) // purple
   Behavior nextBehavior = FOLLOW_ARROWS; // default is to keep doing what we are doing.
   int loopCounter = 0;
   nextBehavior = basicUpkeep(c, nextBehavior);  // check wifi and Magnetic Sensors
-  c->superSpecialBlink(&purple, 100);
+  (*c).superSpecialBlink(&purple, 100);
   c->superSpecialBlink(&white, 200);
   while ((nextBehavior == FOLLOW_ARROWS) && (millis() < c->shutDownTime))
   {

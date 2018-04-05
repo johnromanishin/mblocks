@@ -67,14 +67,16 @@ void interactWithRangeSensor()
 void processWifiMessages()
 {
   int attempts = 5;
-  while (!jsonCircularBuffer.empty() && attempts > 0) // while there are still messages, and we haven't tried 5 times
+  while (!jsonCircularBuffer.empty() && attempts > 0) // while there are still
+                                                      // messages, and we haven't tried 5 times
   {
     StaticJsonBuffer<400> jb; // Create a buffer to store our Jason Objects...
     JsonObject& root = jb.parseObject(jsonCircularBuffer.pop());
     if (root["targetID"] == 99)       // or if message is brodcast
     {
       // At this point, we have determined that the message is for us... so now we try to decode the contents
-      String receivedCMD = root["cmd"]; // this extracts the contents of "cmd" and puts it into a local variable
+      String receivedCMD = root["cmd"]; // this extracts the contents of "cmd" and
+                                        // puts it into a local variable
       if (receivedCMD == "update")
       {
         Serial.println("hey");
@@ -98,7 +100,8 @@ void processWifiMessages()
         String targetID = root["targetID"];
         String receivedCMD = root["cmd"];
         String senderID = root["senderID"];
-        String messageString = "Message: From: " + senderID + " to: " + targetID + " Command is: " + receivedCMD;// + " Command is: ";
+        String messageString = "Message: From: " + senderID + 
+          " to: " + targetID + " Command is: " + receivedCMD;// + " Command is: ";
         Serial.println(messageString);
       }
     }

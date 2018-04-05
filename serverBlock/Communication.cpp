@@ -19,8 +19,8 @@ painlessMesh  mesh;
  * In the outbox, we need to keep track of each message that we are transmitting
  */
 
-
-#define NUM_MESSAGES_TO_BUFFER_OUTBOX 4 	// This is the max number of messages that can simultaneously fit in the outbox for a given cube.
+#define NUM_MESSAGES_TO_BUFFER_OUTBOX 4 	// This is the max number of messages that can simultaneously 
+                                          // fit in the outbox for a given cube.
 																					// They are sent to the cube one-at-a-time
 outboxLog outboxMem[NUM_CUBES][NUM_MESSAGES_TO_BUFFER_OUTBOX];
 
@@ -132,7 +132,9 @@ void updateBoxes(CircularBuffer<inboxLog>& inbox, CircularBuffer<outboxLog>& out
       if (millis()>outbox[cub].access(0).mDeadline) // if the time has come to resend the message...
       {
         sendMessage(cub, outbox[cub].access(0).mContents); // send it...
-        outbox.cub.access(0).mDeadline = millis() + random((1ul << outbox.cub.access(0).backoff) * AVERAGE_FIRST_DELAY_MS); // set the next deadline using exponential backoff...
+        outbox.cub.access(0).mDeadline = millis() + 
+        random((1ul << outbox.cub.access(0).backoff) * AVERAGE_FIRST_DELAY_MS); 
+        // set the next deadline using exponential backoff...
         outbox.cub.access(0).backoff++; // and increment the counter to reflect the number of tries.
         }
     }
@@ -156,7 +158,7 @@ void receivedCallback(uint32_t from, String & msg)
 
   Serial.printf("Extracted mID %i\r\n", mID);
 
-  inbox.push({msg, mID, 0, 0})
+  inbox.push({msg, mID, 0, 0});
 }
 
 void newConnectionCallback(uint32_t nodeId)
@@ -211,7 +213,7 @@ String newStatusCommand()
   //jsonMsg is our output, but in JSON form
   jsonMsg["mID"] = 	advanceLfsr;
   jsonMsg["type"] = "cmd";
-  jsonMsg["sID"] = 	SERVER_ID
+  jsonMsg["sID"] = 	SERVER_ID;
   jsonMsg["cmd"] = 	"statReq";
   String strMsg; // generate empty string
   //strMsg is our output in String form
@@ -227,7 +229,7 @@ String newForwardCommand()
   //jsonMsg is our output, but in JSON form
   jsonMsg["mID"] = 	advanceLfsr;
   jsonMsg["type"] = "cmd";
-  jsonMsg["sID"] = 	SERVER_ID
+  jsonMsg["sID"] = 	SERVER_ID;
   jsonMsg["cmd"] = 	"F";
   String strMsg; // generate empty string
   //strMsg is our output in String form
@@ -243,7 +245,7 @@ String newReverseCommand()
   //jsonMsg is our output, but in JSON form
   jsonMsg["mID"] =  advanceLfsr;
   jsonMsg["type"] = "cmd";
-  jsonMsg["sID"] =  SERVER_ID
+  jsonMsg["sID"] =  SERVER_ID;
   jsonMsg["cmd"] =  "F";
   String strMsg; // generate empty string
   //strMsg is our output in String form

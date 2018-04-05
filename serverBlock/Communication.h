@@ -1,10 +1,7 @@
-
-
 #ifndef COMMUNICATION_H
 #define COMMUNICATION_H
 
 #include <painlessMesh.h>
-
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include "CBuff.h"
@@ -14,10 +11,10 @@
 #define WINDOW_SIZE 1
 
 //
-
 extern painlessMesh mesh;
 extern CircularBuffer<String, true> jsonCircularBuffer;
 
+//
 typedef struct outboxLog
 {
   String mContents;
@@ -70,11 +67,8 @@ void delayReceivedCallback(uint32_t from, int32_t delay);
 
 void countdown(int numberToSend, int cubeToRelayTo);
 void requestStatus(int cubeToRelayTo);
-void messageSingle(uint32_t dest);
 
 void makeThemBlink(int recipientCube);
-
-//void checkForMessage(Cube* c, String message);
 
 #endif
 
