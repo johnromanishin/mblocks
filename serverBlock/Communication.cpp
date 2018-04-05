@@ -12,41 +12,78 @@
 #define   MESH_PASSWORD   "mblocks3d"
 #define   MESH_PORT       5555
 
-painlessMesh  mesh;
+painlessMesh mesh;
 
+
+
+/*
+struct faceState
+{
+  char faceID;
+  char connectedCube;
+  char connectedFace;
+  char connectedAngle;
+};
+
+struct cubeState
+{
+  char bottomFace;
+  char plane;
+  faceState faceA;
+  faceState faceB;
+  faceState faceC;
+  faceState faceD;
+  faceState faceE;
+  faceState faceF;
+};
+
+*/
+
+struct outboxEntry{
+  String mContents;
+  uint32_t mID;
+  uint32_t mDeadline;
+  unsigned char backoff;
+};
+
+struct inboxEntry{
+  String mContents;
+  uint32_t mID;
+};
+
+ outboxEntry outboxMemoryReservation[NUM_CUBES][NUM_MESSAGES_TO_BUFFER_OUTBOX];
+
+ CircularBuffer<outboxEntry> outbox[NUM_CUBES] =
+{
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[0]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[1]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[2]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[3]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[4]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[5]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[6]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[7]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[8]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[9]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[10]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[11]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[12]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[13]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[14]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[15]),
+ CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMemoryReservation[16]),
+};
+
+inboxEntry inboxMemoryReservation[NUM_CUBES];
+CircularBuffer<inboxEntry> inbox(NUM_CUBES, &inboxMemoryReservation[0]);
 /**
  * In the outbox, we need to keep track of each message that we are transmitting
  */
 
-#define NUM_MESSAGES_TO_BUFFER_OUTBOX 4 	// This is the max number of messages that can simultaneously 
-                                          // fit in the outbox for a given cube.
-																					// They are sent to the cube one-at-a-time
-outboxLog outboxMem[NUM_CUBES][NUM_MESSAGES_TO_BUFFER_OUTBOX];
-
-CircularBuffer<outboxLog> outbox[NUM_CUBES] =
-{
- CircularBuffer<outboxLog> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[0]),
- CircularBuffer<outboxLog> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[1]),
- CircularBuffer<outboxLog> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[2]),
- CircularBuffer<outboxLog> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[3]),
- CircularBuffer<outboxLog> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[4]),
- CircularBuffer<outboxLog> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[5]),
- CircularBuffer<outboxLog> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[6]),
- CircularBuffer<outboxLog> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[7]),
- CircularBuffer<outboxLog> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[8]),
- CircularBuffer<outboxLog> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[9]),
- CircularBuffer<outboxLog> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[10]),
- CircularBuffer<outboxLog> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[11]),
- CircularBuffer<outboxLog> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[12]),
- CircularBuffer<outboxLog> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[13]),
- CircularBuffer<outboxLog> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[14]),
- CircularBuffer<outboxLog> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[15]),
- CircularBuffer<outboxLog> (NUM_MESSAGES_TO_BUFFER_OUTBOX, outboxMem[16]),
-};
-
-inboxLog inboxMem[NUM_CUBES * WINDOW_SIZE];
-CircularBuffer<inboxLog> inbox(NUM_CUBES*WINDOW_SIZE, &inboxMem[0]);
-
+/**
+ * These variables hold messages that need to be sent, and recieved messages that need to be
+ * processed
+ */
 
 // this is where the cube data object will be built in the future
 //
@@ -100,15 +137,18 @@ bool sendMessage(int recipientID, String msg)
  * It also updates the state of the cube data model
  */
 
-#define AVERAGE_FIRST_DELAY_MS 100
 
-void updateBoxes(CircularBuffer<inboxLog> &inbox, CircularBuffer<outboxLog> (&outbox)[NUM_CUBES])
+void initializeBoxes(){
+
+}
+
+void updateBoxes(CircularBuffer<inboxEntry> &inbox, CircularBuffer<outboxEntry> (&outbox)[NUM_CUBES])
 {
   // Clear out the inbox
   while(!inbox.empty())
   {
     // Retrieve the most recent thing in the inbox
-    inboxLog inboxItem = inbox.pop();
+    inboxEntry inboxItem = inbox.pop();
 
     // See if we need to mark any outbox messages as "acked"
     bool foundflag = false;
@@ -201,7 +241,7 @@ String newBlinkCommand()
   jsonMsg["cmd"] = 	"blink";
   String strMsg; // generate empty string
   //strMsg is our output in String form
-  msg.printTo(strMsg); // print to JSON readable string...
+  jsonMsg.printTo(strMsg); // print to JSON readable string...
   return strMsg;
 }
 
