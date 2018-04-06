@@ -5,14 +5,14 @@
 #include <Arduino.h>
 
 Face::Face()
+      // Buffers for the raw sensor values
   : ambientBuffer(ARRAY_SIZEOF(this->ambientData), this->ambientData),
-    reflectivityBuffer(ARRAY_SIZEOF(this->reflectivityData), this->reflectivityData),
     magnetAngleBuffer_A(ARRAY_SIZEOF(this->magnetAngleData_A), this->magnetAngleData_A),
     magnetStrengthBuffer_A(ARRAY_SIZEOF(this->magnetStrengthData_A), this->magnetStrengthData_A),
-    
     magnetAngleBuffer_B(ARRAY_SIZEOF(this->magnetAngleData_B), this->magnetAngleData_B),
     magnetStrengthBuffer_B(ARRAY_SIZEOF(this->magnetStrengthData_B), this->magnetStrengthData_B),
     
+    // Buffers for the data which we extract from the sensor values
     neighborIDBuffer(ARRAY_SIZEOF(this->neighborIDData), this->neighborIDData),
     neighborAngleBuffer(ARRAY_SIZEOF(this->neighborAngleData), this->neighborAngleData),
     neighborCommandBuffer(ARRAY_SIZEOF(this->neighborCommandData), this->neighborCommandData),
@@ -23,20 +23,6 @@ Face::Face()
 {
   this->IOExpanderState[0] = (this->IOExpanderState[1] = byte(0xff)); // sets bytes of IO expander to be all 1's
 }
-
-//Face::Face(int IOExpanderAddress);//, int faceVersion = 1)
-//  : ambientBuffer(ARRAY_SIZEOF(this->ambientData), this->ambientData),
-//    magnetBuffer_A(ARRAY_SIZEOF(this->magnetData_A), this->magnetData_A),
-//    magnetBuffer_B(ARRAY_SIZEOF(this->magnetData_B), this->magnetData_B),
-//    
-//    neighborIDBuffer(ARRAY_SIZEOF(this->neighborIDData), this->neighborIDData),
-//    neighborFaceBuffer(ARRAY_SIZEOF(this->neighborFaceData), this->neighborFaceData),
-//    neighborAttributeBuffer(ARRAY_SIZEOF(this->neighborAttributeData), this->neighborAttributeData)
-//{
-//  this->IOExpanderAddress = IOExpanderAddress;
-//  //this->faceVersion = faceVersion;
-//  this->IOExpanderState[0] = (this->IOExpanderState[1] = byte(0xff));
-//}
 
 bool Face::updateFace()
 {
@@ -51,18 +37,19 @@ bool Face::updateFace()
   
   if(this->returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE)
   {
-    this->blinkRingDigit(2, 3);
-    magicTheLight = true;
+    this->blinkRingDigit(2, 3); // blink out a quick little light show... 
   }
   
-  // if we are connected... and we are supposed to check for light, wait 2 seconds to try to find a message
+  // if we are connected... and we are supposed to check for light, wait 0.5 seconds to try to find a message
   if(this->returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) // checks for lightdigits...
   {
-    int numberOfSamplesToTake = 30;
+    int numberOfSamplesToTake = 20;
     for(int i = 0; i < numberOfSamplesToTake; i++) // take 30 light samples
       this->updateAmbient(false);
     this->neighborLightDigitBuffer.push(this->processLightData(numberOfSamplesToTake)); // add the lightDigit to the buffer
-    if(magicTheLight == true)
+    
+    if(magicTheLight == true) // This is supposed to light the faces up when we are in a specific mode, we might move this to
+                              // a different part of the code...
       this->turnOnFaceLEDs(1,1,1,1);
   }
   else
@@ -86,14 +73,27 @@ bool Face::processTag()
  * Tag Command: TAGCOMMAND_NONE | ...
  */
 {
+    // Create temporary variables, and initialize them to be negative / invalid values
   bool tagPresent = false;
+  TagType tagType = TAGTYPE_INVALID;        // Resets all of these values
+  TagCommand tagCommand = TAGCOMMAND_NONE;  // Resets all of these values
+  int tagAngle = -1; //                     // Resets all of these values
+  int tagID = -1; //                        // Resets all of these values
+  int tagFace = -1; //                      // Resets all of these values
+  int magDigit1 = 0;
+  int magDigit2 = 0;
+  
+  // Create local variables to store the values from the magnetic sensors.
   int angle1 = this->returnMagnetAngle_A(0);
   int angle2 = this->returnMagnetAngle_B(0);
   int agc1 = this->returnMagnetStrength_A(0);
   int agc2 = this->returnMagnetStrength_B(0);
-  int strengthThreshold = 490;
-  int magDigit1 = 0;
-  int magDigit2 = 0;
+
+  int strengthThreshold = 470; // This Value is a threshold that the two magnet strength values must sum to
+
+  // This section creates magnetic Digits from the raw sensor Values
+  // Magnet digits are simply values from 1-30 evenly spaced arouynd the circle, so each
+  // digit corresponds to 12 degrees.
         if (agc1 == 0 || agc1 >= 255)       {magDigit1 = 0;}
    else if (angle1 < 6 || angle1 > 354)     {magDigit1 = 1;}
    else                                     {magDigit1 = int(angle1 + 18)/12;}
@@ -101,16 +101,12 @@ bool Face::processTag()
         if (agc2 == 0 || agc2 >= 255)       {magDigit2 = 0;}
    else if(angle2 < 6 || angle2 > 354)      {magDigit2 = 1;}  
    else                                     {magDigit2 = int(angle2 + 18)/12;}
-  //
   
   int tagStrength = agc1+agc2; // this is a measurement of how accurate the tag strength is
-  
-  TagType tagType = TAGTYPE_INVALID;        // Resets all of these values
-  TagCommand tagCommand = TAGCOMMAND_NONE;  // Resets all of these values
-  int tagAngle = -1; //                     // Resets all of these values
-  int tagID = -1; //                        // Resets all of these values
-  int tagFace = -1; //                      // Resets all of these values
-        
+
+  /* If this evaluates to be true, then we know there is a valid tag, we will then check the values
+   *  against tables in order to generate meaningful data from the raw data
+   */
   if(((agc1+agc2) < strengthThreshold) && (tagStrength > 0)) // this means there is a valid tag!! woo!
   {
     tagPresent = true; // THIS MEANS WE HAVE A TAG!!
@@ -128,8 +124,8 @@ bool Face::processTag()
       else
         tagAngle = 1;
     }    
-    if((magDigit2 >= 17 && magDigit2 <= 29) &&  // Means magdigit1 is a faceID
-     (magDigit1 >= 1 && magDigit1 <= 17))     // Means magdifit2 stores an ID # 
+    else if((magDigit2 >= 17 && magDigit2 <= 29) &&   // Means magdigit1 is a faceID
+     (magDigit1 >= 1 && magDigit1 <= 17))             // Means magdigit2 stores an ID # 
     {
       tagType = TAGTYPE_REGULAR_CUBE;
       tagID   = magDigit1;
@@ -152,9 +148,9 @@ bool Face::processTag()
       else 
         tagAngle = 3;
     }
-    if((magDigit2 == 15 || magDigit2 == 16 || magDigit2 == 17 ||  // Means magdigit1 is a faceID
-        magDigit2 == 30 || magDigit2 == 1  || magDigit2 == 2 ) &&
-       (magDigit1 == 8  || magDigit1 == 9  || magDigit1 == 10))     // Means magdifit2 stores an ID # 
+    else if((magDigit2 == 15 || magDigit2 == 16 || magDigit2 == 17 ||  // Means magdigit1 is a faceID
+             magDigit2 == 30 || magDigit2 == 1  || magDigit2 == 2 ) &&
+            (magDigit1 == 8  || magDigit1 == 9  || magDigit1 == 10))     // Means magdifit2 stores an ID # 
     {
       tagType = TAGTYPE_PASSIVE_CUBE;
       if(magDigit2 == 30 || magDigit2 == 1  || magDigit2 == 2)
@@ -191,6 +187,13 @@ return(tagPresent);
 
 
 bool Face::updateIOExpander()
+/*
+ * The IO Expander is the "brain" for each face. The IO Expander controlls 16 different outputs
+ * some of which are connected to various items... Like LED's, or to the sensors.
+ * There are two bytes (this->IOExpanderState[0], and this->IOExpanderState[1] which 
+ * contain bit fields representing the 16 possible bits of out puts.
+ * This function actually pushes the 16 values to the IO Expander
+ */
 {
   bool success;
   Wire.beginTransmission(this->IOExpanderAddress);
@@ -201,12 +204,19 @@ bool Face::updateIOExpander()
 }
 
 bool Face::readAmbient(bool activate)
+/*
+ * Each Face circuit board contains a light sensor which can be accessed through
+ * I2C - the sensors return a value from 1 to ~4000. 
+ * The arguement (bool activate) is true if we first need to activate the sensor prior to reading it.
+ * If the sensor is to be read repeaditly, then activate should only be true the first time, and then
+ * false for every subsequent read.
+ */
 {
   if(activate)
   {
     activateLightSensor(this->ambientSensorAddress);
   }
-  delay(19);
+  wifiDelay(19);
   int reading = 0;
   Wire.beginTransmission(this->ambientSensorAddress); 
   Wire.write(byte(0x8C)); // this is the register where the Ambient values are stored
@@ -222,6 +232,10 @@ bool Face::readAmbient(bool activate)
 }
 
 void Face::forceUpdateAmbientValue(int value)
+/*
+ * This pushes a "fake" value to the ambient Value buffer.
+ * We can use this to zero out a face when we are trying to determine which face is the brightest
+ */
 {
   this->ambientBuffer.push(value); // adds the sensor value to the buffer 
 }
@@ -252,9 +266,9 @@ int Face::processLightData(int samplesTaken)
     if(this->returnAmbientValue(indexx) > thresholdValue)
       tempResult++;
   }
-  if(tempResult > 20)
+  if(tempResult > samplesTaken/2)
     endResult = 2;
-  else if(tempResult > 10)
+  else if(tempResult > samplesTaken/4)
     endResult = 1;
   return(endResult);
 }

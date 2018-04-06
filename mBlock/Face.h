@@ -35,15 +35,17 @@ typedef struct Tag
  */
 {
   TagType type;   
-  /* 0 = not a valid tag
-   * 1 = Regular Cube Attached
-   * 2 = Passive Cube Attached
-   * 3 = COMMAND tag
-   */ 
+  //  TAGTYPE_NOTHING,
+  //  TAGTYPE_INVALID,
+  //  TAGTYPE_REGULAR_CUBE,
+  //  TAGTYPE_PASSIVE_CUBE,
+  //  TAGTYPE_COMMAND
+
   int angle ; // Either -1, 0, 1, 2 or 3 - corresponding to 90 deg angle
   int id; // ID or message code attached to tag
   int face; // face number (0,1,2,3,4,5) associated with a cube
   int strength; // Validitity of the tag, basically just agc1+agc2
+  int lightDigit; // stores a digital light digit... 0 = off, digit is blinking, 2, digit is solid on
   TagCommand command; // Text of command or behavior to go to... if it exists
 } Tag;
 
@@ -58,23 +60,11 @@ class Face
     void getMagnetEncoderAddresses(int* target)
     {
       target[0] = 0x43; target[1] = 0x42;
-      //switch(faceVersion)
-      //{
-        //case 1:
-          //target[0] = 0x43; target[1] = 0x42;
-          //break;
-          
-        //default:
-          //target[0] = 0x42; target[1] = 0x43;
-          //break;
-      //}
     }
     
       // Data storage spaces
-    int ambientData[128];
-    int reflectivityData[8];
+    int ambientData[64];
     CircularBuffer<int> ambientBuffer;
-    CircularBuffer<int> reflectivityBuffer;
 
       // Magnetic data Buffers
     int magnetAngleData_A[10];
@@ -146,10 +136,10 @@ class Face
     bool disableSensors();  
     bool updateAmbient(bool activate = true);   
     bool readAmbient(bool activate = true);
-    //bool updateReflectivity();
     bool updateMagneticBarcode(); // Reads both magnet sensors,
     bool isThereNeighbor(); // true == yes! // false == NO
     int processLightData(int samplesTaken);
+    
     void blinkOutMessage(int digit); 
     void blinkRingDigit(int digit, int numberOfTimes);
 
@@ -164,22 +154,22 @@ class Face
     
     int returnAmbientValue(int index);
     void forceUpdateAmbientValue(int value); // used to simplify sorting...
-   // int returnReflectivityValue(int index);
-    //
+      // int returnReflectivityValue(int index);
+
     bool returnNeighborPresence(int index);
     int returnNeighborID(int index);
     int returnNeighborAngle(int index);
     int returnNeighborFace(int index);
+    int returnNeighborLightDigit(int index);
     TagType returnNeighborType(int index);
     TagCommand returnNeighborCommand(int index);
-    int returnNeighborLightDigit(int index);
 };
 
 void activateLightSensor(int address);
 int readMagnetSensorAngle(int i2cAddress);
 int readMagnetSensorFieldStrength(int i2cAddress);
-int magnetSensorRead(int i2cAddress, byte dataRegisterAddress);\
+int magnetSensorRead(int i2cAddress, byte dataRegisterAddress);
 void analyzeTag(int angle1, int agc1, int angle2, int agc2, Tag*);
-int returnFaceNumber(int magDigit);
+int returnFaceNumber(int magDigit); // gives the value of the face given magnetic Digits... converts from 0-30 to 
 
 #endif
