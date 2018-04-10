@@ -15,15 +15,15 @@
 
 #define AVERAGE_FIRST_DELAY_MS 100
 
-//
-
+// Basic Functions - Mechanics of sending messages
 extern painlessMesh mesh;
 extern CircularBuffer<String, true> jsonCircularBuffer;
+bool sendMessage(int recipientID, String msg);
 
+// Data Structures to work with things...
 struct outboxEntry;
 struct inboxEntry;
 
-bool sendMessage(int recipientID, String msg);
 //void updateBoxes(CircularBuffer<inboxEntry> &inbox, CircularBuffer<outboxEntry> (&outbox)[NUM_CUBES]);
 
 void initializeWifiMesh();
@@ -37,11 +37,12 @@ void delayReceivedCallback(uint32_t from, int32_t delay);
 void countdown(int numberToSend, int cubeToRelayTo);
 void requestStatus(int cubeToRelayTo);
 
+// this call returns a message ID. these are not sequential.
+uint32_t advanceLfsr();
+
+// These functions generate strings that are formatted in the correct manner for 
 String newStatusCommand();
 String newForwardCommand();
 String newReverseCommand();
 String newBlinkCommand();
-
-
 #endif
-

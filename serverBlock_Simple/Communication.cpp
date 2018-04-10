@@ -14,6 +14,7 @@
 
 // Create class variable mesh
 painlessMesh mesh;
+uint32_t previousMessageID; // This stores the 
 
 bool calc_delay = false;
 SimpleList<uint32_t> nodes;
@@ -46,43 +47,26 @@ CircularBuffer<String, true> jsonCircularBuffer(ARRAY_SIZEOF(jsonBufferSpace), j
 
 */
 
-struct outboxEntry {
-  String mContents;
-  uint32_t mID;
-  uint32_t mDeadline;
-  unsigned char backoff;
-};
-
-struct inboxEntry {
-  String mContents;
-  uint32_t mID;
-};
-
-outboxEntry outboxMemoryReservation[NUM_CUBES * NUM_MESSAGES_TO_BUFFER_OUTBOX];
-
-//CircularBuffer<outboxEntry> outbox[NUM_CUBES] =
-//{
-// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[0*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
-// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[1*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
-// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[2*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
-// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[3*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
-// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[4*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
-// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[5*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
-// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[6*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
-// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[7*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
-// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[8*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
-// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[9*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
-// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[10*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
-// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[11*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
-// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[12*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
-// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[13*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
-// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[14*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
-// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[15*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
-// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[16*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+// Defined 
+//struct outboxEntry {
+//  String mContents;
+//  uint32_t mID;
+//  uint32_t mDeadline;
+//  unsigned char backoff;
 //};
 
-inboxEntry inboxMemoryReservation[NUM_CUBES * WINDOW_SIZE];
-CircularBuffer<inboxEntry> inbox(NUM_CUBES * WINDOW_SIZE, &inboxMemoryReservation[0]);
+//struct inboxEntry {
+//  String mContents;
+//  uint32_t mID;
+//};
+
+//outboxEntry 
+//outboxMemoryReservation[NUM_CUBES * NUM_MESSAGES_TO_BUFFER_OUTBOX];
+
+
+
+// inboxEntry inboxMemoryReservation[NUM_CUBES * WINDOW_SIZE];
+// CircularBuffer<inboxEntry> inbox(NUM_CUBES * WINDOW_SIZE, &inboxMemoryReservation[0]);
 /**
    In the outbox, we need to keep track of each message that we are transmitting
 */
@@ -106,6 +90,8 @@ uint32_t advanceLfsr() // this call returns a message ID. these are not sequenti
   {
     lfsr ^= (1u << 31) | (1u << 21) | (1u << 1) | (1u << 0);
   }
+  Serial.print("LFSR = ");
+  Serial.println(lfsr);
   return lfsr;
 }
 
@@ -140,10 +126,19 @@ bool sendMessage(int recipientID, String msg)
    It also updates the state of the cube data model
 */
 
-
 void initializeBoxes()
 {
 
+}
+
+void updateInboxAndOutbox()
+/*
+ * This function does the following
+ * 
+ * 1. Clears out the inbox... Basically checks the circular buffer for accrued message
+ */
+{
+  
 }
 
 //void updateBoxes(CircularBuffer<inboxEntry> &inbox, CircularBuffer<outboxEntry> (&outbox)[NUM_CUBES])
@@ -171,12 +166,13 @@ void initializeBoxes()
 //  }
 //
 //  // Decide which messages to (re)send.
-//  for (int cub = 0; cub < (NUM_CUBES); cub++){
+//  for (int cub = 0; cub < (NUM_CUBES); cub++) 
 //    if (!outbox[cub].empty()){ // for the outbox queues with messages in them...
 //      if (millis()>outbox[cub].access(0).mDeadline) // if the time has come to resend the message...
 //      {
 //        sendMessage(cub, outbox[cub].access(0).mContents); // send it...
-//        outbox[cub].access(0).mDeadline = millis() + random((1UL << outbox[cub].access(0).backoff) * AVERAGE_FIRST_DELAY_MS);
+//        outbox[cub].access(0).mDeadline = millis() + random((1UL << outbox[cub].access(0).backoff) * 
+//        AVERAGE_FIRST_DELAY_MS);
 //        // set the next deadline using exponential backoff...
 //        outbox[cub].access(0).backoff++; // and increment the counter to reflect the number of tries.
 //        }
@@ -184,21 +180,30 @@ void initializeBoxes()
 //  }
 //}
 
-void receivedCallback(uint32_t from, String & msg)
+void receivedCallback(uint32_t from, String & stringMsg)
 {
-  //  String msg_copy = msg;
-  //  char *s = msg_copy.c_str();
-  //  int len = msg_copy.length();
-  //  uint32_t mID = 0;
-  //  for(int i = 0; i < len; i++)
-  //  {
-  //    if((s[i] == '\"') && (!strncmp(&s[i] + 1, "mID\"", 4)))
-  //    {
-  //      mID = strtol(&s[i], NULL, 10);
-  //    }
-  //  }
-  //
-  //  inbox.push({msg, mID});
+  if(MAGIC_DEBUG)
+  {
+    Serial.print("Message Received from: ");
+    Serial.println(from);
+    Serial.print("Message Contents: ");
+    Serial.println(stringMsg);
+  }
+
+  // Check and see if this message is a dupe by "manually" extracting the message
+  // id field.
+  // check to see if it's new, if so, do something with it
+  
+  StaticJsonBuffer<512> jsonMsgBuffer;
+  JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg);
+  String mIDstring = jsonMsg["mID"];
+  int mID = mIDstring.toInt();
+  //if (mID != prevMID)
+  if (mID == previousMessageID)
+  {
+    Serial.println("MESSAGE ACKNOWLEDGED!!!");
+  }
+  previousMessageID = mID;
 }
 
 void newConnectionCallback(uint32_t nodeId)
@@ -235,7 +240,7 @@ String newBlinkCommand()
   StaticJsonBuffer<256> jsonBuffer; //Space Allocated to construct json instance
   JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
   //jsonMsg is our output, but in JSON form
-  jsonMsg["mID"] = 	advanceLfsr;
+  jsonMsg["mID"] = 	advanceLfsr();
   jsonMsg["type"] = "cmd";
   jsonMsg["sID"] = 	SERVER_ID;
   jsonMsg["cmd"] = 	"blink";
@@ -251,7 +256,7 @@ String newStatusCommand()
   StaticJsonBuffer<256> jsonBuffer; //Space Allocated to construct json instance
   JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
   //jsonMsg is our output, but in JSON form
-  jsonMsg["mID"] = 	advanceLfsr;
+  jsonMsg["mID"] = 	advanceLfsr();
   jsonMsg["type"] = "cmd";
   jsonMsg["sID"] = 	SERVER_ID;
   jsonMsg["cmd"] = 	"statReq";
@@ -267,7 +272,7 @@ String newForwardCommand()
   StaticJsonBuffer<256> jsonBuffer; //Space Allocated to construct json instance
   JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
   //jsonMsg is our output, but in JSON form
-  jsonMsg["mID"] = 	advanceLfsr;
+  jsonMsg["mID"] = 	advanceLfsr();
   jsonMsg["type"] = "cmd";
   jsonMsg["sID"] = 	SERVER_ID;
   jsonMsg["cmd"] = 	"F";
@@ -283,7 +288,7 @@ String newReverseCommand()
   StaticJsonBuffer<256> jsonBuffer; //Space Allocated to construct json instance
   JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
   //jsonMsg is our output, but in JSON form
-  jsonMsg["mID"] =  advanceLfsr;
+  jsonMsg["mID"] =  advanceLfsr();
   jsonMsg["type"] = "cmd";
   jsonMsg["sID"] =  SERVER_ID;
   jsonMsg["cmd"] =  "F";

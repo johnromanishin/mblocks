@@ -39,7 +39,7 @@ void setup()
  */
 void loop()
 {
-  processWifiMessages(); // checks messages from the WiFi Message que
+  //processWifiMessages(); // checks messages from the WiFi Message que
   interactWithRangeSensor(); // checks the range value to send messages based on user input
   wifiDelay(100); // wait for a little just to relax
   mainLoopCounter++;
@@ -55,6 +55,7 @@ void interactWithRangeSensor()
     //sendBroadcastMessage(createJsonStringFlood(-1, "sleep"));
     Serial.println("Putting the cubes to sleep...");
   }
+  
   else if (rangeValue > 20 && rangeValue < 50)
   {
     //sendBroadcastMessage(createJsonStringFlood(-1, "lightSeek"));
@@ -70,50 +71,51 @@ void interactWithRangeSensor()
     sendMessage(-1, newBlinkCommand());
     //Serial.println("Putting the cubes to sleep...");
   }
+  wifiDelay(500);
 }
 
 void processWifiMessages()
 {
-//  int attempts = 5;
-//  while (!jsonCircularBuffer.empty() && attempts > 0) // while there are still
-//                                                      // messages, and we haven't tried 5 times
-//  {
-//    StaticJsonBuffer<400> jb; // Create a buffer to store our Jason Objects...
-//    JsonObject& root = jb.parseObject(jsonCircularBuffer.pop());
-//    if (root["targetID"] == 99)       // or if message is brodcast
-//    {
-//      // At this point, we have determined that the message is for us... so now we try to decode the contents
-//      String receivedCMD = root["cmd"]; // this extracts the contents of "cmd" and
-//                                        // puts it into a local variable
-//      if (receivedCMD == "update")
-//      {
-//        Serial.println("hey");
-//        String noNebro = root["targetID"];
-//        String copiedNoNebro = noNebro;
-//        if(copiedNoNebro.toInt() > 0)
-//        {
-//           Serial.print("The connect cube has: ");Serial.print(noNebro);Serial.println(" Neighbros");
-//        }
-//      }
-//
-//      /*
-//         If the first element is a digit, we light up LED's and wait
-//      */
-//      //  else if(isDigit(receivedCMD[0]))
-//      //  {
-//      //  int targetFace = receivedCMD.toInt();
-//
-//      if (true) // cubeID's over 40 means it is attached by a cable... not a real cube // so we print
-//      {
-//        String targetID = root["targetID"];
-//        String receivedCMD = root["cmd"];
-//        String senderID = root["senderID"];
-//        String messageString = "Message: From: " + senderID + 
-//          " to: " + targetID + " Command is: " + receivedCMD;// + " Command is: ";
-//        Serial.println(messageString);
-//      }
-//    }
-//    attempts--;
-//  }
+  int attempts = 10;
+  while (!jsonCircularBuffer.empty() && attempts > 0) // while there are still
+                                                      // messages, and we haven't tried 5 times
+  {
+    StaticJsonBuffer<400> jb; // Create a buffer to store our Jason Objects...
+    JsonObject& root = jb.parseObject(jsonCircularBuffer.pop()); // jsonCircularBuffer is the master buffer...
+    if (root["targetID"] == SERVER_ID || root["type"])       // or if message is brodcast
+    {
+      // At this point, we have determined that the message is for for server
+      String receivedCMD = root["cmd"]; // this extracts the contents of "cmd" and
+                                        // puts it into a local variable
+      if (receivedCMD == "update")
+      {
+        Serial.println("hey");
+        String noNebro = root["targetID"];
+        String copiedNoNebro = noNebro;
+        if(copiedNoNebro.toInt() > 0)
+        {
+           Serial.print("The connect cube has: ");Serial.print(noNebro);Serial.println(" Neighbros");
+        }
+      }
+
+      /*
+         If the first element is a digit, we light up LED's and wait
+      */
+      //  else if(isDigit(receivedCMD[0]))
+      //  {
+      //  int targetFace = receivedCMD.toInt();
+
+      if (true) // cubeID's over 40 means it is attached by a cable... not a real cube // so we print
+      {
+        String targetID = root["targetID"];
+        String receivedCMD = root["cmd"];
+        String senderID = root["senderID"];
+        String messageString = "Message: From: " + senderID + 
+          " to: " + targetID + " Command is: " + receivedCMD;// + " Command is: ";
+        Serial.println(messageString);
+      }
+    }
+    attempts--;
+  }
 }
 

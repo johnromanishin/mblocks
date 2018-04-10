@@ -12,5 +12,4 @@ void updateCubeInformation(int cubeID, int parameter, int valueToAdd);
 
 int returnCubeInformation(int cubeID, int parameter);
 
-
 #endif

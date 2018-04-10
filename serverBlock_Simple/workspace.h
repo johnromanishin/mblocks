@@ -50,3 +50,26 @@
 //  else if(inputBehavior == PRE_SOLO_LIGHT)        {stringToReturn = "pre_solo_light";}
 //return(stringToReturn);
 //}
+
+
+
+//CircularBuffer<outboxEntry> outbox[NUM_CUBES] =
+//{
+// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[0*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[1*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[2*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[3*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[4*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[5*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[6*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[7*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[8*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[9*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[10*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[11*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[12*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[13*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[14*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[15*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+// CircularBuffer<outboxEntry> (NUM_MESSAGES_TO_BUFFER_OUTBOX, &outboxMemoryReservation[16*NUM_MESSAGES_TO_BUFFER_OUTBOX]),
+//};
