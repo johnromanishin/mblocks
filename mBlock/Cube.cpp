@@ -1215,7 +1215,7 @@ void Cube::updateCubeID(int idNUM, long wifiAddress)
   if(thisCubeID >= 99) // stationary cube
   {
     Serial.print("Printing Debugging Information");
-    MAGIC_DEBUG = 1;
+    //MAGIC_DEBUG = 1;
   }
 }
 

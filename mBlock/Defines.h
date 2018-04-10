@@ -140,9 +140,15 @@ extern Motion rollDouble_R;
 #define SDA 2     //  Managed by the wire.begin in initializeCube()
 #define SCL 14    //  Managed by the wire.begin in initializeCube() 
 /////////////////////////////////////////////////////////////////////
+// Global Variables Related to Cube Status...
+
+extern String
+
+
 //extern int faceVersion; // This 
 extern String Mode;
 extern int thisCubeID;
+
 extern int GlobalPlaneAccel;
 extern bool magicTheLight;
 extern int GlobalMaxAccel;

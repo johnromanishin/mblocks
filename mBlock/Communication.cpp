@@ -54,13 +54,15 @@ uint32_t initializeWifiMesh()
   return(mesh.getNodeId());
 }
 
- 
+#define messageDebug 1
 void receivedCallback(uint32_t from, String & stringMsg)
 {
-  if(MAGIC_DEBUG)
+  if(messageDebug)
   {
     Serial.print("Message Received from: ");
     Serial.println(from);
+    Serial.print("Message Contents: ");
+    Serial.println(stringMsg);
   }
 
   // Check and see if this message is a dupe by "manually" extracting the message
@@ -76,7 +78,7 @@ void receivedCallback(uint32_t from, String & stringMsg)
     jsonCircularBuffer.push(stringMsg);
     prevMID = mID;
   }
-
+  
   // Send an ack message.
   // The ack consists of
   //     type:      "ack"
