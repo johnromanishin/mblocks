@@ -4,6 +4,7 @@
 #include <Arduino.h>   
 #include <Wire.h>                 // Arduino's implementation of the i2c wireless protocal
 #include <VL6180X.h>
+
 VL6180X sensor;
 
 int initializeRangeSensor()

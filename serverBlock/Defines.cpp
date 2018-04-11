@@ -7,9 +7,9 @@
 uint32_t getAddressFromCubeID(int CubeID)
 {
   switch (CubeID) { // used to be ESP.getChipID
-    case 0:                   //  ESP 13374829 || WIFI  885790061 || Server
+    case 99:                   //  ESP WIFI  885790061 || Server
       return (885790061);
-    case 99:                  //  ESP  9086927 || WIFI 2139793359 ||  Test Mblock
+    case 0:                  //  ESP WIFI 2133796284 ||  Test Mblock
       return (2133796284);
     case 1:
       break;
@@ -48,8 +48,8 @@ uint32_t getAddressFromCubeID(int CubeID)
 
 void wifiDelay(int delayTime)
 {
-  int millisNow = millis();
-  while((millis() - millisNow) < delayTime)
+  uint32_t releaseTime = millis() + delayTime;
+  while(releaseTime > millis())
   {
     mesh.update();
   }
