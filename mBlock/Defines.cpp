@@ -1,5 +1,4 @@
 /*
-
    This Contains Three Main Sections
    0. Database Matching cubeID's to WIFI ID's
    1. Misc. Global Variables
