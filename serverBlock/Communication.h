@@ -17,7 +17,25 @@
 
 //
 
+struct outboxEntry{
+  uint32_t mID;
+  int senderID;
+  char cmd;
+  uint32_t mDeadline;
+  unsigned char backoff;
+};
+
+struct inboxEntry{
+  uint32_t mID;
+  char bottomFace;
+};
+
+
 extern painlessMesh mesh;
+extern inboxEntry inbox;
+extern outboxEntry outbox;
+
+
 
 struct outboxEntry;
 struct inboxEntry;

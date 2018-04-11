@@ -14,18 +14,6 @@
 
 painlessMesh mesh;
 
-struct outboxEntry{
-  uint32_t mID;
-  int senderID;
-  char cmd;
-  uint32_t mDeadline;
-  unsigned char backoff;
-};
-
-struct inboxEntry{
-  uint32_t mID;
-  char bottomFace;
-};
 
 inboxEntry inbox;
 outboxEntry outbox;
