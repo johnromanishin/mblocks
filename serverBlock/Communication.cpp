@@ -113,6 +113,13 @@ void updateBoxes()
         //generate message
         sendMessage(TESTCUBE_ID, repeatCommand(outbox.cmd, outbox.mID)); // send it...
         outbox.mDeadline = millis() + random((1UL << outbox.backoff) * AVERAGE_FIRST_DELAY_MS * 2); 
+
+        Serial.println("mID " + outbox.mID);
+        Serial.println("cmd " + outbox.cmd);
+        Serial.println("backoff " + outbox.backoff);
+        Serial.println("mDeadline " + outbox.mDeadline);
+        Serial.println("senderID " + outbox.senderID);
+        
         // set the next deadline using exponential backoff...
         outbox.backoff++; // and increment the counter to reflect the number of tries.
         }
