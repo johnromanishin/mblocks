@@ -45,7 +45,7 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
 
       else if (receivedCMD == "lightSeek")
       {
-        Mode = "lightSeek";
+        Game = "lightSeek";
       }
       /* cubeID's over 40 means it is attached by a cable... not a real cube // so we print
       */
@@ -98,7 +98,7 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
     Serial.print("nextBehavior is... ");
     Serial.println(behaviorsToCmd(newBehavior));
   }
-  if (Mode == "lightSeek")
+  if (Game == "lightSeek")
   {
     return (LightTrackingStateMachine(c, newBehavior));
   }
@@ -1041,17 +1041,6 @@ void wifiLightChange(Cube* c, int number, bool turnOff)
     c->lightCube(&off);
   }
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -36,11 +36,9 @@ Motion cornerClimb_R  = {"cornerClimb", true    , 15500           , 7000        
 Motion shake_F        = {"shake"      , false   , 4500            , 4000          , 3500              , 20            , 250       , "f"};
 Motion softShake_F    = {"softShake"  , false   , 3500            , 3000          , 3000              , 20            , 250       , "f"};
 
-
 Motion explode_F      = {"explode"    , false   , 15500           , 6000          , 5000              , 30            , 250       , "f"};
 Motion explode_R      = {"explode"    , false   , 15500           , 6000          , 5000              , 30            , 250       , "r"};
 //
-
 Motion rollDouble_F   = {"double"     , false   , 15500           , 3000          , 3000              , 5             , 250       , "f"};
 Motion rollDouble_R   = {"double"     , false   , 15500           , 3000          , 3000              , 5             , 250       , "r"};
 
@@ -55,7 +53,7 @@ Color white =   {1, 1, 1};
 Color off   =   {0, 0, 0};
 
 int thisCubeID = 1;
-extern String Mode = "nothing";
+extern String Game = "nothing";
 extern int GlobalplaneChangeTime;
 extern int GlobalplaneChangeRPM;
 extern int GlobalPlaneAccel = 2100;
@@ -65,10 +63,6 @@ extern int MAGIC_DEBUG = 0;
 extern int magicFace = 0;
 extern int magicVariable_0 = 0;
 extern int magicVariable_1 = 0;
-extern int magicVariable_2 = 0;
-extern int magicVariable_3 = 0;
-extern int magicVariable_4 = 0;
-extern int magicVariable_5 = 0;
 extern int GlobalMaxAccel = 6000;
 
 // Defaults for motion values
@@ -247,5 +241,3 @@ const int faceRotations[FACES][4] =
   {2, 3, 0, 1},  // FACE 4
   {1, 0, 3, 2}   // FACE 5
 };
-
-// Functions
