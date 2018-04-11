@@ -21,15 +21,21 @@ void setup() // Actually the main loop...
   Serial.begin(115200);
   initializeWifiMesh();
   initializeRangeSensor();
-  Serial.print("WIFI ID: ");
+  Serial.print("\n WIFI ID: ");
   Serial.println(mesh.getNodeId());
   espconn_tcp_set_max_con(6); // this is supposed to increase the maximum number of WIFI connections to 6
+
+outbox.mID = 2;
+outbox.senderID = 99;
+outbox.cmd = 'b';
+
 }
 
 void loop()
 {
   updateBoxes(); // checks messages from the WiFi Message que
   interactWithRangeSensor(); // checks the range value to send messages based on user input
+  wifiDelay(10);
 }
 
 void interactWithRangeSensor()

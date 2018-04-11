@@ -14,18 +14,6 @@
 
 painlessMesh mesh;
 
-struct outboxEntry{
-  uint32_t mID;
-  int senderID;
-  char cmd;
-  uint32_t mDeadline;
-  unsigned char backoff;
-};
-
-struct inboxEntry{
-  uint32_t mID;
-  char bottomFace;
-};
 
 inboxEntry inbox;
 outboxEntry outbox;
@@ -124,7 +112,7 @@ void updateBoxes()
       {
         //generate message
         sendMessage(TESTCUBE_ID, repeatCommand(outbox.cmd, outbox.mID)); // send it...
-        outbox.mDeadline = millis() + random((1UL << outbox.backoff) * AVERAGE_FIRST_DELAY_MS); 
+        outbox.mDeadline = millis() + random((1UL << outbox.backoff) * AVERAGE_FIRST_DELAY_MS * 2); 
         // set the next deadline using exponential backoff...
         outbox.backoff++; // and increment the counter to reflect the number of tries.
         }
