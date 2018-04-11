@@ -80,9 +80,9 @@ extern int CC_BRAKETIME_R = 12;
 uint32_t getAddressFromCubeID(int CubeID)
 {
   switch (CubeID) { // used to be ESP.getChipID
-    case 0:                   //  ESP 13374829 || WIFI  885790061 || Server
+    case 99:                   //  ESP 13374829 || WIFI  885790061 || Server
       return (885790061);
-    case 99:                  //  ESP  9086927 || WIFI 2139793359 ||  Test Mblock
+    case 0:                  //  ESP  9086927 || WIFI 2139793359 ||  Test Mblock
       return (2133796284);
     case 1:
       break;

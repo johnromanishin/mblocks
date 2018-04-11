@@ -785,10 +785,9 @@ int Cube::returnReverseFace()
 
 void wifiDelay(int delayTime)
 {
-  int millisNow = millis();
-  while((millis() - millisNow) < delayTime)
+  uint32_t releaseTime = millis() + delayTime;
+  while(releaseTime > millis())
   {
-    delay(2);
     mesh.update();
   }
 }
