@@ -112,7 +112,7 @@ void updateBoxes()
       {
         //generate message
         sendMessage(TESTCUBE_ID, repeatCommand(outbox.cmd, outbox.mID)); // send it...
-        outbox.mDeadline = millis() + random((1UL << outbox.backoff) * AVERAGE_FIRST_DELAY_MS); 
+        outbox.mDeadline = millis() + random((1UL << outbox.backoff) * AVERAGE_FIRST_DELAY_MS * 2); 
         // set the next deadline using exponential backoff...
         outbox.backoff++; // and increment the counter to reflect the number of tries.
         }

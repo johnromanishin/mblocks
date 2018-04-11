@@ -35,6 +35,7 @@ void loop()
 {
   updateBoxes(); // checks messages from the WiFi Message que
   interactWithRangeSensor(); // checks the range value to send messages based on user input
+  wifiDelay(10);
 }
 
 void interactWithRangeSensor()
