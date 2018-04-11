@@ -115,7 +115,7 @@ void updateBoxes()
         inbox.bottomFace = 0;
       }
     else{
-      Serial.println("Spurious ACK for message ID: " + inboxItem.mID);
+      Serial.println("Spurious ACK for message ID: " + inbox.mID);
     }
   }
 
@@ -131,16 +131,16 @@ void updateBoxes()
     }
   }
 
-void receivedCallback(uint32_t from, String & msg)
+void receivedCallback(uint32_t from, String & stringMsg)
 {
-  if (inboxEntry.mID == 0){
+  if (inbox.mID == 0){
     StaticJsonBuffer<256> jsonMsgBuffer;
     JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg);
     
     // ******
     // update data object for lattice
-    InboxEntry.bottomFace = jsonMsg["bFace"];
-    InboxEntry.mID = jsonMsg["mID"];
+    inbox.bottomFace = jsonMsg["bFace"];
+    inbox.mID = jsonMsg["mID"];
   }
 }
 
@@ -158,7 +158,7 @@ void nodeTimeAdjustedCallback(int32_t offset) {}
 
 void delayReceivedCallback(uint32_t from, int32_t delay) {}
 
-String repeatCommand(char cmd, uint32_t mID = 0)
+String repeatCommand(char cmd, uint32_t mID)
 {
   if (mID == 0){
     mID = advanceLfsr();

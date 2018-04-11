@@ -52,11 +52,11 @@ void interactWithRangeSensor()
   
   else if (rangeValue > 100 && rangeValue < 200)
   {
-    makeThemBlink(-1);
     //Serial.println("Putting the cubes to sleep...");
   }
 }
 
+/*
 void processWifiMessages()
 {
   int attempts = 5;
@@ -81,9 +81,9 @@ void processWifiMessages()
         }
       }
 
-      /*
-         If the first element is a digit, we light up LED's and wait
-      */
+      //
+      //   If the first element is a digit, we light up LED's and wait
+      //
       //  else if(isDigit(receivedCMD[0]))
       //  {
       //  int targetFace = receivedCMD.toInt();
@@ -102,3 +102,4 @@ void processWifiMessages()
   }
 }
 
+*/
