@@ -25,7 +25,7 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
       /*  checks to see if the recieved message matches a behavior...
           If it doesn't we default to the currentBehavior
       */
-      resultBehavior = cmdToBehaviors(receivedCMD, currentBehavior);
+      //resultBehavior = cmdToBehaviors(receivedCMD, currentBehavior);
 
       //  If the command is an update request, nothing should happen, and an ack will be sent
       
@@ -36,7 +36,7 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
       */
       if (receivedCMD == "b")
         {
-          uint32_t mID = jsonMsg["cmd"];
+          uint32_t mID = jsonMsg["mID"];
           Serial.print("Recieved Message ID = ");
           Serial.println(mID);
           c->lightCube(&red);
@@ -56,7 +56,7 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
       /* cubeID's over 40 means it is attached by a cable... not a real cube // so we print
       */
 
-      if (thisCubeID >= 99)
+      if (thisCubeID == 0)
       {
         String receivedCMD = jsonMsg["cmd"];
         String senderID = jsonMsg["sID"];
@@ -73,16 +73,16 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
 Behavior demo(Cube* c)
 {
   if (MAGIC_DEBUG) Serial.println("Beginning DEMO Behaviour");
-  int loopCounter = 0;
   Behavior nextBehavior = DEMO;
+  int loopCounter = 0;
   while (nextBehavior == DEMO) // loop until something changes the next behavior
   {
     nextBehavior = basicUpkeep(c, nextBehavior);
+    mesh.update();
     wifiDelay(500);
-  }
-  if (MAGIC_DEBUG) {
-    Serial.print("nextBehavior is... ");
-    Serial.println(behaviorsToCmd(nextBehavior));
+    Serial.println(loopCounter++);
+    String Messagee = "WHAT IS GOING ON";
+    mesh.sendBroadcast(Messagee);
   }
   return nextBehavior;
 }
