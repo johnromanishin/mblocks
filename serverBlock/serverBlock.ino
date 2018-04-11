@@ -17,8 +17,6 @@
 // Header Files
 char storage[512]; // This creates storage space for decoding serial messages
 
-int mainLoopCounter = 0;
-
 void setup() // Actually the main loop...
 {
   Serial.begin(115200);
@@ -31,12 +29,8 @@ void setup() // Actually the main loop...
 
 void loop()
 {
-  processWifiMessages(); // checks messages from the WiFi Message que
+  updateBoxes(); // checks messages from the WiFi Message que
   interactWithRangeSensor(); // checks the range value to send messages based on user input
-  wifiDelay(100); // wait for a little just to relax
-  mainLoopCounter++;
-  if (mainLoopCounter == 7)
-    mainLoopCounter = 0;
 }
 
 void interactWithRangeSensor()
