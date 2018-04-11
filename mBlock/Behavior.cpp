@@ -34,9 +34,15 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
           This can be used to visually verify which cubes are actually connectd to the wifi mesh
           and are working properly
       */
-      if (receivedCMD == "blink")
+      if (receivedCMD == "b")
         {
-        blinkFaceLeds(c, 50);
+          uint32_t mID = jsonMsg["cmd"];
+          Serial.print("Recieved Message ID = ");
+          Serial.println(mID);
+          c->lightCube(&red);
+          wifiDelay(200);
+          c->lightCube(&off);
+        //blinkFaceLeds(c, 50);
         }
 
       /*  A simple way to turn the cube to various colors works by receiving a message

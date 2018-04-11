@@ -90,7 +90,8 @@ void receivedCallback(uint32_t from, String & stringMsg)
   // this is what we had before:
   // sendAck(Cube* c, mID);
   // and this is what we added 3Apr 1:30AM to make it compilable:
-  sendAck(mID);
+  
+  // sendAck(mID);
 }
 
 // this is what we had before:
