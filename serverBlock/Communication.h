@@ -18,26 +18,27 @@
 //
 
 extern painlessMesh mesh;
-extern CircularBuffer<String> jsonCircularBuffer;
 
 struct outboxEntry;
 struct inboxEntry;
 
 bool sendMessage(int recipientID, String msg);
-void updateBoxes(CircularBuffer<inboxEntry> &inbox, CircularBuffer<outboxEntry> (&outbox)[NUM_CUBES]);
+uint32_t advanceLfsr();
+
+void initializeBoxes();
+void updateBoxes();
 
 void initializeWifiMesh();
-bool sendBroadcastMessage(String message);
 void receivedCallback(uint32_t from, String & msg);
 void newConnectionCallback(uint32_t nodeId);
 void changedConnectionCallback();
 void nodeTimeAdjustedCallback(int32_t offset);
 void delayReceivedCallback(uint32_t from, int32_t delay);
 
-void countdown(int numberToSend, int cubeToRelayTo);
-void requestStatus(int cubeToRelayTo);
-
-void makeThemBlink(int recipientCube);
+String repeatCommand(char cmd, uint32_t mID = 0);
+String newBlinkCommand();
+String newForwardCommand();
+String newReverseCommand();
 
 #endif
 

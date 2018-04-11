@@ -14,42 +14,21 @@
 
 painlessMesh mesh;
 
-
-
-/*
-struct faceState
-{
-  char faceID;
-  char connectedCube;
-  char connectedFace;
-  char connectedAngle;
-};
-
-struct cubeState
-{
-  char bottomFace;
-  char plane;
-  faceState faceA;
-  faceState faceB;
-  faceState faceC;
-  faceState faceD;
-  faceState faceE;
-  faceState faceF;
-};
-
-*/
-
 struct outboxEntry{
-  String mContents;
   uint32_t mID;
+  int senderID;
+  char cmd;
   uint32_t mDeadline;
   unsigned char backoff;
 };
 
 struct inboxEntry{
-  String mContents;
   uint32_t mID;
+  char bottomFace;
 };
+
+inboxEntry inbox;
+outboxEntry outbox;
 
 /**
  * In the outbox, we need to keep track of each message that we are transmitting
@@ -117,59 +96,52 @@ void initializeBoxes(){
 
 }
 
-void updateBoxes(CircularBuffer<inboxEntry> &inbox, CircularBuffer<outboxEntry> (&outbox)[NUM_CUBES])
+void updateBoxes()
+/*
+ * This function checks the inbox to see if it is an ack for a message currently in the outbox.
+ * If so, it clears both the inbox and the outbox.
+ * If not, or if no message is in the inbox, it checks to see if the outbox message needs to be resent (and does so if needed).
+ */
 {
   // Clear out the inbox
-  while(!inbox.empty())
+  if(inbox.mID != 0)
   {
-    // Retrieve the most recent thing in the inbox
-    inboxEntry inboxItem = inbox.pop();
-
-    // See if we need to mark any outbox messages as "acked"
-    bool foundflag = false;
-    for(int cub = 0; cub < (NUM_CUBES); cub++)
-    {
-      if(outbox[cub].access(0).mID == inboxItem.mID) {
-        foundflag = true;
-        outbox[cub].pop();
+      if(outbox.mID == inbox.mID) {
+        // if inbox is ack for outbox
+        outbox.mID = 0;
+        outbox.backoff = 0;
+        outbox.mDeadline = 0;
+        inbox.mID = 0;
+        inbox.bottomFace = 0;
       }
-    }
-    if(!foundflag) {
+    else{
       Serial.println("Spurious ACK for message ID: " + inboxItem.mID);
     }
-
-    // updateCubeModelWithAck() TODO incorporate new inboxItem into the state of the cubes
   }
 
-  // Decide which messages to (re)send.
-  for (int cub = 0; cub < (NUM_CUBES); cub++){
-    if (!outbox[cub].empty()){ // for the outbox queues with messages in them...
-      if (millis()>outbox[cub].access(0).mDeadline) // if the time has come to resend the message...
+    if (outbox.mID != 0){ // for the outbox queues with messages in them...
+      if (millis() > outbox.mDeadline) // if the time has come to resend the message...
       {
-        sendMessage(cub, outbox[cub].access(0).mContents); // send it...
-        outbox[cub].access(0).mDeadline = millis() + random((1UL << outbox[cub].access(0).backoff) * AVERAGE_FIRST_DELAY_MS); 
+        //generate message
+        sendMessage(TESTCUBE_ID, repeatCommand(outbox.cmd, outbox.mID)); // send it...
+        outbox.mDeadline = millis() + random((1UL << outbox.backoff) * AVERAGE_FIRST_DELAY_MS); 
         // set the next deadline using exponential backoff...
-        outbox[cub].access(0).backoff++; // and increment the counter to reflect the number of tries.
+        outbox.backoff++; // and increment the counter to reflect the number of tries.
         }
     }
   }
-}
 
 void receivedCallback(uint32_t from, String & msg)
 {
-
-  char *s = msg.c_str();
-  int len = msg.length();
-  uint32_t mID = 0;
-  for(int i = 0; i < len; i++)
-  {
-    if((s[i] == '\"') && (!strncmp(&s[i] + 1, "mID\"", 4)))
-    {
-      mID = strtol(&s[i], NULL, 10);
-    }
+  if (inboxEntry.mID == 0){
+    StaticJsonBuffer<256> jsonMsgBuffer;
+    JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg);
+    
+    // ******
+    // update data object for lattice
+    InboxEntry.bottomFace = jsonMsg["bFace"];
+    InboxEntry.mID = jsonMsg["mID"];
   }
-
-  inbox.push({msg, mID});
 }
 
 void newConnectionCallback(uint32_t nodeId)
@@ -180,24 +152,29 @@ void newConnectionCallback(uint32_t nodeId)
 void changedConnectionCallback()
 {
   Serial.printf("Connection Event\n");
-//  Serial.printf("Changed connections %s\n", mesh.subConnectionJson().c_str());
-//  nodes = mesh.getNodeList();
-//  Serial.printf("Num nodes: %d\n", nodes.size());
-//  Serial.printf("Connection list:");
-//  SimpleList<uint32_t>::iterator node = nodes.begin();
-//  while (node != nodes.end()) {
-//    Serial.printf(" %u", *node);
-//    node++;
-//  }
-//  calc_delay = true;
 }
 
-void nodeTimeAdjustedCallback(int32_t offset) {
-  //Serial.printf("Adjusted time %u. Offset = %d\n", mesh.getNodeTime(), offset);
-}
+void nodeTimeAdjustedCallback(int32_t offset) {}
 
-void delayReceivedCallback(uint32_t from, int32_t delay) {
-  //Serial.printf("Delay to node %u is %d us\n", from, delay);
+void delayReceivedCallback(uint32_t from, int32_t delay) {}
+
+String repeatCommand(char cmd, uint32_t mID = 0)
+{
+  if (mID == 0){
+    mID = advanceLfsr();
+  }
+  //====== Generate a blink message =========
+  StaticJsonBuffer<256> jsonBuffer; //Space Allocated to construct json instance
+  JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
+  //jsonMsg is our output, but in JSON form
+  jsonMsg["mID"] =  mID;
+  jsonMsg["type"] = 'c';
+  jsonMsg["sID"] =  SERVER_ID;
+  jsonMsg["cmd"] =  cmd;
+  String strMsg; // generate empty string
+  //strMsg is our output in String form
+  jsonMsg.printTo(strMsg); // print to JSON readable string...
+  return strMsg;
 }
 
 String newBlinkCommand()
@@ -206,26 +183,10 @@ String newBlinkCommand()
   StaticJsonBuffer<256> jsonBuffer; //Space Allocated to construct json instance
   JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
   //jsonMsg is our output, but in JSON form
-  jsonMsg["mID"] = 	advanceLfsr;
-  jsonMsg["type"] = "cmd";
-  jsonMsg["sID"] = 	SERVER_ID;
-  jsonMsg["cmd"] = 	"blink";
-  String strMsg; // generate empty string
-  //strMsg is our output in String form
-  jsonMsg.printTo(strMsg); // print to JSON readable string...
-  return strMsg;
-}
-
-String newStatusCommand()
-{
-  //====== Generate a status request =========
-  StaticJsonBuffer<256> jsonBuffer; //Space Allocated to construct json instance
-  JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
-  //jsonMsg is our output, but in JSON form
-  jsonMsg["mID"] = 	advanceLfsr;
-  jsonMsg["type"] = "cmd";
-  jsonMsg["sID"] = 	SERVER_ID;
-  jsonMsg["cmd"] = 	"statReq";
+  jsonMsg["mID"] =  advanceLfsr();
+  jsonMsg["type"] = 'c';
+  jsonMsg["sID"] =  SERVER_ID;
+  jsonMsg["cmd"] =  'b';
   String strMsg; // generate empty string
   //strMsg is our output in String form
   jsonMsg.printTo(strMsg); // print to JSON readable string...
@@ -238,10 +199,10 @@ String newForwardCommand()
   StaticJsonBuffer<256> jsonBuffer; //Space Allocated to construct json instance
   JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
   //jsonMsg is our output, but in JSON form
-  jsonMsg["mID"] = 	advanceLfsr;
-  jsonMsg["type"] = "cmd";
-  jsonMsg["sID"] = 	SERVER_ID;
-  jsonMsg["cmd"] = 	"F";
+  jsonMsg["mID"] =  advanceLfsr();
+  jsonMsg["type"] = 'c';
+  jsonMsg["sID"] =  SERVER_ID;
+  jsonMsg["cmd"] =  'f';
   String strMsg; // generate empty string
   //strMsg is our output in String form
   jsonMsg.printTo(strMsg); // print to JSON readable string...
@@ -254,10 +215,10 @@ String newReverseCommand()
   StaticJsonBuffer<256> jsonBuffer; //Space Allocated to construct json instance
   JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
   //jsonMsg is our output, but in JSON form
-  jsonMsg["mID"] =  advanceLfsr;
-  jsonMsg["type"] = "cmd";
+  jsonMsg["mID"] =  advanceLfsr();
+  jsonMsg["type"] = 'c';
   jsonMsg["sID"] =  SERVER_ID;
-  jsonMsg["cmd"] =  "F";
+  jsonMsg["cmd"] =  'r';
   String strMsg; // generate empty string
   //strMsg is our output in String form
   jsonMsg.printTo(strMsg); // print to JSON readable string...

@@ -12,7 +12,6 @@
 #include "Communication.h"
 #include "Defines.h"
 #include <VL6180X.h>
-#include "COMMAND.h"
 
 // Header Files
 char storage[512]; // This creates storage space for decoding serial messages
