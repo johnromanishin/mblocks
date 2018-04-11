@@ -14,7 +14,7 @@
 #define   MESH_PASSWORD   "mblocks3d"
 #define   MESH_PORT       5555
 
-#define   SERVER_NUMBER   0
+#define   SERVER_NUMBER   99
 
 painlessMesh  mesh; // instantiates the class "mesh" which handles the wireless messages
 
@@ -57,13 +57,11 @@ uint32_t initializeWifiMesh()
 #define messageDebug 1
 void receivedCallback(uint32_t from, String & stringMsg)
 {
-  if(messageDebug)
-  {
-    Serial.print("Message Received from: ");
-    Serial.println(from);
-    Serial.print("Message Contents: ");
-    Serial.println(stringMsg);
-  }
+   Serial.print("Message Received from: ");
+   Serial.println(from);
+   Serial.print("Message Contents: ");
+   Serial.println(stringMsg);
+
 
   // Check and see if this message is a dupe by "manually" extracting the message
   // id field.
@@ -74,6 +72,7 @@ void receivedCallback(uint32_t from, String & stringMsg)
   JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg);
   String mIDstring = jsonMsg["mID"];
   int mID = mIDstring.toInt();
+  Serial.println(mID);
   if (mID != prevMID){
     jsonCircularBuffer.push(stringMsg);
     prevMID = mID;
@@ -91,7 +90,7 @@ void receivedCallback(uint32_t from, String & stringMsg)
   // sendAck(Cube* c, mID);
   // and this is what we added 3Apr 1:30AM to make it compilable:
   
-  // sendAck(mID);
+  sendAck(mID);
 }
 
 // this is what we had before:
@@ -105,8 +104,8 @@ void sendAck(uint32_t messageID)
   msg["mID"] = messageID; // message ID
   msg["type"] = "ack";
   msg["sID"] = thisCubeID; // sender ID
-  msg["neighbors"] = ""; // c->numberOfNeighbors();
-  msg["bFace"] = ""; // c->returnTopFace(0);
+  msg["neighbors"] = "lots"; // c->numberOfNeighbors();
+  msg["bFace"] = "yo"; // c->returnTopFace(0);
 
   String str; // generate empty string
   msg.printTo(str); // print to JSON readable string...

@@ -58,7 +58,7 @@ extern int GlobalplaneChangeRPM;
 extern int GlobalPlaneAccel = 2100;
 extern bool magicTheLight = false;
 extern int magicVariable = 0;
-extern int MAGIC_DEBUG = 0;
+extern int MAGIC_DEBUG = 1;
 extern int magicFace = 0;
 extern int magicVariable_0 = 0;
 extern int magicVariable_1 = 0;

@@ -59,7 +59,7 @@ bool Cube::update()
   for(int i = 0; i< FACES; i++)
     {
       delay(3); // we wait a bit to allow the i2c switches to switch, so that we don't get collisions on the I2C bus
-      this->faces[i].updateFace();  // updateFupdatesace  light and Magnetic sensors  
+      this->faces[i].updateFace();  // update Face  reads the light and Magnetic sensors  
       delay(3);
     }
   return(true);
@@ -788,6 +788,7 @@ void wifiDelay(int delayTime)
   uint32_t releaseTime = millis() + delayTime;
   while(releaseTime > millis())
   {
+    delay(1);
     mesh.update();
   }
 }
