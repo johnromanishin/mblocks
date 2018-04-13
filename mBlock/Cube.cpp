@@ -1103,6 +1103,7 @@ bool Cube::determineTopFace(int threshold)
   else                                                                     
           {this->topFace = -1;}
   this->topFaceBuffer.push(this->topFace);
+  bFace =  oppositeFace(this->topFace);
 
   if(sum > 0)
   {

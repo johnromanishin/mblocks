@@ -40,7 +40,7 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
           Serial.print("Recieved Message ID = ");
           Serial.println(mID);
           c->lightCube(&red);
-          wifiDelay(200);
+          wifiDelay(500);
           c->lightCube(&off);
         //blinkFaceLeds(c, 50);
         }
@@ -81,8 +81,9 @@ Behavior demo(Cube* c)
     mesh.update();
     wifiDelay(500);
     Serial.println(loopCounter++);
-    String Messagee = "WHAT IS GOING ON";
-    mesh.sendBroadcast(Messagee);
+    //String Messagee = "WHAT IS GOING ON";
+    //sendMessage(-1, Messagee);
+    //mesh.sendBroadcast(Messagee);
   }
   return nextBehavior;
 }

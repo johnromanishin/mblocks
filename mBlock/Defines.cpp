@@ -64,6 +64,14 @@ extern int magicVariable_0 = 0;
 extern int magicVariable_1 = 0;
 extern int GlobalMaxAccel = 6000;
 
+extern int bFace = 0;
+extern int f0 = 0;
+extern int f1 = 0;
+extern int f2 = 0;
+extern int f3 = 0;
+extern int f4 = 0;
+extern int f5 = 0;
+
 // Defaults for motion values
 extern int TRAVERSE_RPM_F = 6500;
 extern int TRAVERSE_RPM_R = 6500;

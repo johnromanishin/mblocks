@@ -220,7 +220,7 @@ void lookUpCalibrationValues(long wifiID)
   {
     //********************************
     case 2133796284: // 9086927 This is the cube on the BIG Breadboard
-      thisCubeID = 0;
+      thisCubeID = 17;
 
       TRAVERSE_RPM_F = 6969;
       TRAVERSE_RPM_R = 69696;
@@ -240,7 +240,7 @@ void lookUpCalibrationValues(long wifiID)
 
     case 885790061:   // 13374829 Cube on Smaller Breadboard
       //thisCubeID = 98;
-      thisCubeID = 0;
+      thisCubeID = 99;
 
       TRAVERSE_RPM_F = 999;
       TRAVERSE_RPM_R = 999;

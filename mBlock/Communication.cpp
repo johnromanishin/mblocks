@@ -70,8 +70,9 @@ void receivedCallback(uint32_t from, String & stringMsg)
   //check to see if it's new, if so, do something with it
   StaticJsonBuffer<512> jsonMsgBuffer;
   JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg);
-  String mIDstring = jsonMsg["mID"];
-  int mID = mIDstring.toInt();
+  //String mIDstring = jsonMsg["mID"];
+  uint32_t mID = jsonMsg["mID"];
+  //int mID = mIDstring.toInt();
   Serial.println(mID);
   if (mID != prevMID){
     jsonCircularBuffer.push(stringMsg);
@@ -104,9 +105,34 @@ void sendAck(uint32_t messageID)
   msg["mID"] = messageID; // message ID
   msg["type"] = "ack";
   msg["sID"] = thisCubeID; // sender ID
-  msg["neighbors"] = "lots"; // c->numberOfNeighbors();
-  msg["bFace"] = "yo"; // c->returnTopFace(0);
-
+  //msg["neighbors"] = "lots"; // c->numberOfNeighbors();
+  msg["bFace"] = bFace; // c->returnTopFace(0);
+  
+  if(f0 > 0)
+  {
+     msg["f0"] = f0;
+  }
+  if(f1 > 0)
+  {
+     msg["f1"] = f1;
+  }
+  if(f2 > 0)
+  {
+     msg["f2"] = f2;
+  }
+  if(f3 > 0)
+  {
+     msg["f3"] = f3;
+  }
+  if(f4 > 0)
+  {
+     msg["f4"] = f4;
+  }
+  if(f5 > 0)
+  {
+     msg["f5"] = f5;
+  }
+  
   String str; // generate empty string
   msg.printTo(str); // print to JSON readable string...
   sendMessage(SERVER_NUMBER, str);

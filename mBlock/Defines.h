@@ -14,7 +14,14 @@
 extern String Game;
 extern int thisCubeID;
 extern bool magicTheLight;
-extern char bFace;
+
+extern int bFace;
+extern int f0;
+extern int f1;
+extern int f2;
+extern int f3;
+extern int f4;
+extern int f5;
 
 extern int GlobalPlaneAccel;
 extern int GlobalMaxAccel;
