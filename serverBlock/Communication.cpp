@@ -19,13 +19,13 @@ inboxEntry inbox;
 outboxEntry outbox;
 
 /**
- * In the outbox, we need to keep track of each message that we are transmitting
- */
+   In the outbox, we need to keep track of each message that we are transmitting
+*/
 
 /**
- * These variables hold messages that need to be sent, and recieved messages that need to be
- * processed
- */
+   These variables hold messages that need to be sent, and recieved messages that need to be
+   processed
+*/
 
 // this is where the cube data object will be built in the future
 //
@@ -41,7 +41,7 @@ uint32_t advanceLfsr() // this call returns a message ID. these are not sequenti
 
   uint32_t lsb = lfsr & 0x01u;
   lfsr >>= 1;
-  if(lsb)
+  if (lsb)
   {
     lfsr ^= (1u << 31) | (1u << 21) | (1u << 1) | (1u << 0);
   }
@@ -63,81 +63,101 @@ bool sendMessage(int recipientID, String msg)
 {
   Serial.println("in sendMessage");
   Serial.println(msg);
-  if(recipientID == -1)
+  if (recipientID == -1)
   {
-    return(mesh.sendBroadcast(msg));
+    return (mesh.sendBroadcast(msg));
   }
   else
   {
     uint32_t address = getAddressFromCubeID(recipientID);
-    return(mesh.sendSingle(address, msg));
+    return (mesh.sendSingle(address, msg));
   }
 }
 
 /**
- * This function looks through newly-recieved messages, and prunes waiting
- * messages in the outbox, sending them if appropriate.
- *
- * It also updates the state of the cube data model
- */
+   This function looks through newly-recieved messages, and prunes waiting
+   messages in the outbox, sending them if appropriate.
+
+   It also updates the state of the cube data model
+*/
 
 
-void initializeBoxes(){
+void initializeBoxes() {
 
 }
 
 void updateBoxes()
 /*
- * This function checks the inbox to see if it is an ack for a message currently in the outbox.
- * If so, it clears both the inbox and the outbox.
- * If not, or if no message is in the inbox, it checks to see if the outbox message needs to be resent (and does so if needed).
- */
+   This function checks the inbox to see if it is an ack for a message currently in the outbox.
+   If so, it clears both the inbox and the outbox.
+   If not, or if no message is in the inbox, it checks to see if the outbox message needs to be resent (and does so if needed).
+*/
 {
   // Clear out the inbox
-  if(inbox.mID != 0)
+  if (inbox.mID != 0)
   {
-      if(outbox.mID == inbox.mID) {
-        // if inbox is ack for outbox
-        outbox.mID = 0;
-        outbox.backoff = 0;
-        outbox.mDeadline = 0;
-        inbox.mID = 0;
-        inbox.bottomFace = 0;
-      }
-    else{
-      Serial.println("Spurious ACK for message ID: " + inbox.mID);
+    if (outbox.mID == inbox.mID) {
+       //Serial.println("I didn't crash...");
+       //if inbox is ack for outbox
+       outbox.mID = advanceLfsr();
+       outbox.backoff = 2;
+       outbox.mDeadline = millis() + 5000;
+       inbox.mID = 0;
+       inbox.bottomFace = 0;
+    }
+    else {
+      //Serial.println("Spurious ACK");
     }
   }
 
-    if (outbox.mID != 0){ // for the outbox queues with messages in them...
-      if (millis() > outbox.mDeadline) // if the time has come to resend the message...
-      {
-        //generate message
-        sendMessage(TESTCUBE_ID, repeatCommand(outbox.cmd, outbox.mID)); // send it...
-        outbox.mDeadline = millis() + random((1UL << outbox.backoff) * AVERAGE_FIRST_DELAY_MS * 2); 
+  if (outbox.mID != 0) { // for the outbox queues with messages in them...
+    if (millis() > outbox.mDeadline) // if the time has come to resend the message...
+    {
+      //generate message
+      sendMessage(TESTCUBE_ID, repeatCommand(outbox.cmd, outbox.mID)); // send it...
+      outbox.mDeadline = millis() + random((1UL << outbox.backoff) * AVERAGE_FIRST_DELAY_MS * 2);
 
-        Serial.println("mID " + String(outbox.mID));
-        Serial.println("cmd " + String(outbox.cmd));
-        Serial.println("backoff " + String(outbox.backoff));
-        Serial.println("mDeadline " + String(outbox.mDeadline));
-        Serial.println("senderID " + String(outbox.senderID));
-        
-        // set the next deadline using exponential backoff...
-        outbox.backoff++; // and increment the counter to reflect the number of tries.
-        }
+      Serial.println("mID " + String(outbox.mID));
+      Serial.println("cmd " + String(outbox.cmd));
+      Serial.println("backoff " + String(outbox.backoff));
+      Serial.println("mDeadline " + String(outbox.mDeadline));
+      Serial.println("senderID " + String(outbox.senderID));
+
+      // set the next deadline using exponential backoff...
+      outbox.backoff++; // and increment the counter to reflect the number of tries.
     }
   }
+}
 
 void receivedCallback(uint32_t from, String & stringMsg)
+/*
+ * This function gets called by the mesh library whenever we receive a wifi Message
+ * 
+ * The goal is to check to see if it is a new message, and if so, we 
+ */
 {
-  if (inbox.mID == 0){
-    StaticJsonBuffer<256> jsonMsgBuffer;
+  Serial.print("Received message from: ");
+  Serial.println(from);
+  Serial.print("Message Contents: ");
+  Serial.println(stringMsg);
+
+  //Serial.println(inbox.mID);
+  //inbox.WTF = 44;
+  //Serial.println(inbox.mID);
+
+  if (inbox.mID == 0)
+  {
+    //Serial.println("WOOO");
+    StaticJsonBuffer<512> jsonMsgBuffer;
     JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg);
-    
     // ******
     // update data object for lattice
     inbox.bottomFace = jsonMsg["bFace"];
-    inbox.mID = jsonMsg["mID"];
+    uint32_t mID = jsonMsg["mID"];
+    inbox.mID = mID;
+    /*
+     * 
+     */
   }
 }
 
@@ -155,18 +175,19 @@ void nodeTimeAdjustedCallback(int32_t offset) {}
 
 void delayReceivedCallback(uint32_t from, int32_t delay) {}
 
-String repeatCommand(char cmd, uint32_t mID)
+String repeatCommand(String cmd, uint32_t mID)
 {
-  if (mID == 0){
+  Serial.println("RESENDING MESSAGE");
+  if (mID == 0) {
     mID = advanceLfsr();
   }
   //====== Generate a blink message =========
-  StaticJsonBuffer<256> jsonBuffer; //Space Allocated to construct json instance
+  StaticJsonBuffer<512> jsonBuffer; //Space Allocated to construct json instance
   JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
   //jsonMsg is our output, but in JSON form
-  
+
   jsonMsg["mID"] =  mID;
-  jsonMsg["type"] = 'c';
+  jsonMsg["type"] = "c";
   jsonMsg["sID"] =  SERVER_ID;
   jsonMsg["cmd"] =  cmd;
   String strMsg; // generate empty string

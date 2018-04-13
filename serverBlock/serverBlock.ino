@@ -15,34 +15,36 @@
 
 // Header Files
 char storage[512]; // This creates storage space for decoding serial messages
+extern inboxEntry inbox;
+extern outboxEntry outbox;
 
 void setup()
 {
   Serial.begin(115200);
   initializeWifiMesh();
   initializeRangeSensor();
+  wifiDelay(2000);
   Serial.print("\n WIFI ID: ");
   Serial.println(mesh.getNodeId());
   espconn_tcp_set_max_con(6); // this is supposed to increase the maximum number of WIFI connections to 6
 
-outbox.mID = 2;
-outbox.senderID = 99;
-outbox.cmd = 'b';
+  outbox.mID = 23;
+  outbox.senderID = 99;
+  outbox.cmd = "b";
 
 
-        Serial.println("mID " + String(outbox.mID));
-        Serial.println("cmd " + String(outbox.cmd));
-        Serial.println("backoff " + String(outbox.backoff));
-        Serial.println("mDeadline " + String(outbox.mDeadline));
-        Serial.println("senderID " + String(outbox.senderID));
-
+  Serial.println("mID " + String(outbox.mID));
+  Serial.println("cmd " + String(outbox.cmd));
+  Serial.println("backoff " + String(outbox.backoff));
+  Serial.println("mDeadline " + String(outbox.mDeadline));
+  Serial.println("senderID " + String(outbox.senderID));
 }
 
 void loop()
 {
   updateBoxes(); // checks messages from the WiFi Message que
   interactWithRangeSensor(); // checks the range value to send messages based on user input
-  wifiDelay(10);
+  wifiDelay(5);
 }
 
 void interactWithRangeSensor()

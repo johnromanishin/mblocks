@@ -17,28 +17,38 @@
 
 //
 
-struct outboxEntry{
+typedef struct outboxEntry
+{
   uint32_t mID;
   int senderID;
-  char cmd;
+  String cmd;
   uint32_t mDeadline;
   unsigned char backoff;
-};
+} outboxEntry ;
 
-struct inboxEntry{
+typedef struct inboxEntry
+{
+  //int mID5;
   uint32_t mID;
-  char bottomFace;
-};
+  int bottomFace;
+  int f0;
+  int f1;
+  int f2;
+  int f3;
+  int f4;
+  int f5;
+  long timeStamp;
+} inboxEntry ;
 
 
 extern painlessMesh mesh;
-extern inboxEntry inbox;
-extern outboxEntry outbox;
+//extern inboxEntry inbox;
+//extern outboxEntry outbox;
 
 
 
-struct outboxEntry;
-struct inboxEntry;
+//typedef struct outboxEntry;
+//typedef struct inboxEntry;
 
 bool sendMessage(int recipientID, String msg);
 uint32_t advanceLfsr();
@@ -53,7 +63,7 @@ void changedConnectionCallback();
 void nodeTimeAdjustedCallback(int32_t offset);
 void delayReceivedCallback(uint32_t from, int32_t delay);
 
-String repeatCommand(char cmd, uint32_t mID = 0);
+String repeatCommand(String cmd, uint32_t mID = 0);
 String newBlinkCommand();
 String newForwardCommand();
 String newReverseCommand();

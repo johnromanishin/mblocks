@@ -48,7 +48,7 @@ uint32_t getAddressFromCubeID(int CubeID)
 
 void wifiDelay(int delayTime)
 {
-  uint32_t releaseTime = millis() + delayTime;
+  long releaseTime = millis() + delayTime;
   while(releaseTime > millis())
   {
     mesh.update();
