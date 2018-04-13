@@ -61,6 +61,8 @@ void initializeWifiMesh()
 
 bool sendMessage(int recipientID, String msg)
 {
+  Serial.println("in sendMessage");
+  Serial.println(msg);
   if(recipientID == -1)
   {
     return(mesh.sendBroadcast(msg));
@@ -114,11 +116,11 @@ void updateBoxes()
         sendMessage(TESTCUBE_ID, repeatCommand(outbox.cmd, outbox.mID)); // send it...
         outbox.mDeadline = millis() + random((1UL << outbox.backoff) * AVERAGE_FIRST_DELAY_MS * 2); 
 
-        Serial.println("mID " + outbox.mID);
-        Serial.println("cmd " + outbox.cmd);
-        Serial.println("backoff " + outbox.backoff);
-        Serial.println("mDeadline " + outbox.mDeadline);
-        Serial.println("senderID " + outbox.senderID);
+        Serial.println("mID " + String(outbox.mID));
+        Serial.println("cmd " + String(outbox.cmd));
+        Serial.println("backoff " + String(outbox.backoff));
+        Serial.println("mDeadline " + String(outbox.mDeadline));
+        Serial.println("senderID " + String(outbox.senderID));
         
         // set the next deadline using exponential backoff...
         outbox.backoff++; // and increment the counter to reflect the number of tries.
@@ -162,6 +164,7 @@ String repeatCommand(char cmd, uint32_t mID)
   StaticJsonBuffer<256> jsonBuffer; //Space Allocated to construct json instance
   JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
   //jsonMsg is our output, but in JSON form
+  
   jsonMsg["mID"] =  mID;
   jsonMsg["type"] = 'c';
   jsonMsg["sID"] =  SERVER_ID;

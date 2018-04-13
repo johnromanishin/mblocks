@@ -16,7 +16,7 @@
 // Header Files
 char storage[512]; // This creates storage space for decoding serial messages
 
-void setup() // Actually the main loop...
+void setup()
 {
   Serial.begin(115200);
   initializeWifiMesh();
@@ -28,6 +28,13 @@ void setup() // Actually the main loop...
 outbox.mID = 2;
 outbox.senderID = 99;
 outbox.cmd = 'b';
+
+
+        Serial.println("mID " + String(outbox.mID));
+        Serial.println("cmd " + String(outbox.cmd));
+        Serial.println("backoff " + String(outbox.backoff));
+        Serial.println("mDeadline " + String(outbox.mDeadline));
+        Serial.println("senderID " + String(outbox.senderID));
 
 }
 
