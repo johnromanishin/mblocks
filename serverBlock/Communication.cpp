@@ -14,9 +14,8 @@
 
 painlessMesh mesh;
 
-
 inboxEntry inbox;
-outboxEntry outbox;
+outboxEntry outbox[OUTBOX_SIZE];
 
 /**
    In the outbox, we need to keep track of each message that we are transmitting
@@ -81,50 +80,102 @@ bool sendMessage(int recipientID, String msg)
    It also updates the state of the cube data model
 */
 
+//typedef struct outboxEntry
+//{
+//  uint32_t mID;
+//  int senderID;
+//  String cmd;
+//  uint32_t mDeadline;
+//  unsigned char backoff;
+//} outboxEntry ;
 
-void initializeBoxes() {
+void initializeOutBoxes() 
+{
+  outbox[0].senderID = 99;
+  outbox[0].mID = advanceLfsr();
+  outbox[0].cmd = "r";
+  outbox[0].mDeadline = 0;
+  outbox[0].backoff = 1;
 
+  outbox[1].senderID = 99;
+  outbox[1].mID = advanceLfsr();
+  outbox[1].cmd = "f";
+  outbox[1].mDeadline = 0;
+  outbox[1].backoff = 1;
+
+  outbox[2].senderID = 99;
+  outbox[2].mID = advanceLfsr();
+  outbox[2].cmd = "r";
+  outbox[2].mDeadline = 0;
+  outbox[2].backoff = 1;
+
+  outbox[3].senderID = 99;
+  outbox[3].mID = advanceLfsr();
+  outbox[3].cmd = "f";
+  outbox[3].mDeadline = 0;
+  outbox[3].backoff = 1;
+
+  outbox[4].senderID = 99;
+  outbox[4].mID = advanceLfsr();
+  outbox[4].cmd = "p";
+  outbox[4].mDeadline = 0;
+  outbox[4].backoff = 1;
+
+  outbox[5].senderID = 99;
+  outbox[5].mID = advanceLfsr();
+  outbox[5].cmd = "f";
+  outbox[5].mDeadline = 0;
+  outbox[5].backoff = 1;
 }
-
+ int head = 0;
 void updateBoxes()
 /*
    This function checks the inbox to see if it is an ack for a message currently in the outbox.
    If so, it clears both the inbox and the outbox.
-   If not, or if no message is in the inbox, it checks to see if the outbox message needs to be resent (and does so if needed).
+   If not, or if no message is in the inbox, it checks to see if the outbox message needs to be resent 
+   (and does so if needed).
 */
 {
   // Clear out the inbox
   if (inbox.mID != 0)
   {
-    if (outbox.mID == inbox.mID) {
+    if (outbox[head].mID == inbox.mID) // This means that we successfully acknowledged a message
+    {
        //Serial.println("I didn't crash...");
        //if inbox is ack for outbox
-       outbox.mID = advanceLfsr();
-       outbox.backoff = 2;
-       outbox.mDeadline = millis() + 5000;
-       inbox.mID = 0;
-       inbox.bottomFace = 0;
+       outbox[head].mID = 0;
+       if (head == OUTBOX_SIZE) head=0;
+       else head++;
     }
-    else {
-      //Serial.println("Spurious ACK");
+    else 
+    {       
+      Serial.println("Spurious ACK");
     }
+    inbox.mID = 0;
+    inbox.bottomFace = 0;
   }
 
-  if (outbox.mID != 0) { // for the outbox queues with messages in them...
-    if (millis() > outbox.mDeadline) // if the time has come to resend the message...
+  if (outbox[head].mID != 0) { // for the outbox queues with messages in them...
+    if (millis() > outbox[head].mDeadline) // if the time has come to resend the message...
     {
       //generate message
-      sendMessage(TESTCUBE_ID, repeatCommand(outbox.cmd, outbox.mID)); // send it...
-      outbox.mDeadline = millis() + random((1UL << outbox.backoff) * AVERAGE_FIRST_DELAY_MS * 2);
+      sendMessage(TESTCUBE_ID, repeatCommand(outbox[head].cmd, outbox[head].mID)); // send it...
+      outbox[head].mDeadline = millis() + random((1UL << outbox[head].backoff) * AVERAGE_FIRST_DELAY_MS * 2);
+      // set the next deadline using exponential backoff,
+      
+      Serial.println("mID ");
+      Serial.println(String(outbox[head].mID));
+      Serial.println("cmd ");
+      Serial.println(String(outbox[head].cmd));
+      Serial.println("backoff ");
+      Serial.println(String(outbox[head].backoff));
+      Serial.println("mDeadline ");
+      Serial.println(String(outbox[head].mDeadline));
+      Serial.println("senderID ");
+      Serial.println(String(outbox[head].senderID));
 
-      Serial.println("mID " + String(outbox.mID));
-      Serial.println("cmd " + String(outbox.cmd));
-      Serial.println("backoff " + String(outbox.backoff));
-      Serial.println("mDeadline " + String(outbox.mDeadline));
-      Serial.println("senderID " + String(outbox.senderID));
 
-      // set the next deadline using exponential backoff...
-      outbox.backoff++; // and increment the counter to reflect the number of tries.
+      outbox[head].backoff++; // and increment the counter to reflect the number of tries.
     }
   }
 }
@@ -133,7 +184,8 @@ void receivedCallback(uint32_t from, String & stringMsg)
 /*
  * This function gets called by the mesh library whenever we receive a wifi Message
  * 
- * The goal is to check to see if it is a new message, and if so, we 
+ * The goal is to check to see if it is a new message, and if so, we add it to a 
+ * list of messages to be processed by inboxbuffer
  */
 {
   Serial.print("Received message from: ");
@@ -141,29 +193,19 @@ void receivedCallback(uint32_t from, String & stringMsg)
   Serial.print("Message Contents: ");
   Serial.println(stringMsg);
 
-  //Serial.println(inbox.mID);
-  //inbox.WTF = 44;
-  //Serial.println(inbox.mID);
-
-  if (inbox.mID == 0)
+  if (inbox.mID == 0) //if no current item in inbox
   {
-    //Serial.println("WOOO");
-    StaticJsonBuffer<512> jsonMsgBuffer;
-    JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg);
-    // ******
-    // update data object for lattice
+    StaticJsonBuffer<512> jsonMsgBuffer; // allocate memory for json
+    JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg); // parse message
     inbox.bottomFace = jsonMsg["bFace"];
     uint32_t mID = jsonMsg["mID"];
     inbox.mID = mID;
-    /*
-     * 
-     */
   }
 }
 
 void newConnectionCallback(uint32_t nodeId)
 {
-  Serial.printf("--> startHere: New Connection, nodeId = %u\n", nodeId);
+  Serial.printf("New Connection, nodeId = %u\n", nodeId);
 }
 
 void changedConnectionCallback()

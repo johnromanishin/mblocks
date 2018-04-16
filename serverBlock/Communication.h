@@ -54,6 +54,7 @@ bool sendMessage(int recipientID, String msg);
 uint32_t advanceLfsr();
 
 void initializeBoxes();
+void initializeOutBoxes();
 void updateBoxes();
 
 void initializeWifiMesh();
