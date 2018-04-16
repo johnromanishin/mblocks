@@ -8,7 +8,8 @@
 
 //=============================================================================================
 //=============================WIFI Checking  CHECKING=========================================
-//=============================================================================================
+//======================================
+//=======================================================
 Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
 {
   if (MAGIC_DEBUG) Serial.println("CheckingForWifi Commands...");
@@ -44,7 +45,21 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
           c->lightCube(&off);
         //blinkFaceLeds(c, 50);
         }
-
+      else if(receivedCMD == "r")
+      {
+        c->lightCube(&red);
+        wifiDelay(100);
+      }
+      else if(receivedCMD == "p")
+      {
+        c->lightCube(&blue);
+        wifiDelay(100);
+      }
+      else if(receivedCMD == "f")
+      {
+        c->lightCube(&off);
+        wifiDelay(100);
+      }
       /*  A simple way to turn the cube to various colors works by receiving a message
           that is just an integer, it will change to a color depending on the integer
       */

@@ -20,6 +20,7 @@ painlessMesh  mesh; // instantiates the class "mesh" which handles the wireless 
 
 // CircularBuffer<int> axCoreBuffer(ARRAY_SIZEOF(this->axCoreData), this->axCoreData),
 String jsonBufferSpace[40];
+
 CircularBuffer<String, true> jsonCircularBuffer(ARRAY_SIZEOF(jsonBufferSpace), jsonBufferSpace);
 
 uint32_t prevMID = 0;
