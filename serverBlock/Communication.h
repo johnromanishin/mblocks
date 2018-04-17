@@ -39,6 +39,7 @@ struct inboxEntry
 
 extern painlessMesh mesh;
 
+///
 bool sendMessage(int recipientID, String msg);
 uint32_t advanceLfsr();
 
@@ -53,10 +54,20 @@ void changedConnectionCallback();
 void nodeTimeAdjustedCallback(int32_t offset);
 void delayReceivedCallback(uint32_t from, int32_t delay);
 
-String repeatCommand(String cmd, uint32_t mID = 0);
-String newBlinkCommand();
-String newForwardCommand();
-String newReverseCommand();
+String generateMessageText(String cmd, uint32_t mID);
+void pushMessage(int cubeID, String command);
+
+void pushBlinkMessage(int cubeID);
+void pushForwardMessage(int cubeID);
+void pushReverseMessage(int cubeID);
+
+void advanceOutboxHead();
+void advanceOutboxTail();
+bool outboxIsFull();
+void advanceInboxHead();
+void advanceInboxTail();
+bool inboxIsFull();
+void initializeOutboxes();
 
 #endif
 

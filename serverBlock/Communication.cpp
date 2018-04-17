@@ -29,6 +29,9 @@ outboxEntry outbox[OUTBOX_SIZE] ; // outboxEntry outbox[cubeID][OUTBOX_SIZE];
 int outboxHead = 0; //
 int outboxTail = 0; //
 
+int inboxHead = 0; 
+int inboxTail = 0;
+
 /**
    This function looks through newly-recieved messages, and prunes waiting
    messages in the outbox, sending them if appropriate.
@@ -47,7 +50,7 @@ int outboxTail = 0; //
 
 void initializeOutboxes() 
 {
-  outbox[head].mID=0;
+  outbox[outboxHead].mID=0;
 }
 
 void updateBoxes()
@@ -80,7 +83,8 @@ void updateBoxes()
     {
       //generate message
       sendMessage(TESTCUBE_ID, generateMessageText(outbox[outboxTail].cmd, outbox[outboxTail].mID)); // send it...
-      outbox[outboxTail].mDeadline = millis() + random((1UL << outbox[outboxTail].backoff) * AVERAGE_FIRST_DELAY_MS * 2);
+      outbox[outboxTail].mDeadline = millis() + 
+      random((1UL << outbox[outboxTail].backoff) * AVERAGE_FIRST_DELAY_MS * 2);
       // set the next deadline using exponential backoff,
       outbox[outboxTail].backoff++;
       // and increment the counter to reflect the number of tries.
@@ -174,13 +178,13 @@ void pushReverseMessage(int cubeID)
 
 void pushMessage(int cubeID, String command)
 {
-  if (outboxisFull())
+  if (outboxIsFull())
     return;
-  outbox[head].mID = advanceLfsr();
-  outbox[head].senderID = SERVER_ID;
-  outbox[head].backoff = 0;
-  outbox[head].mDeadline = 0;
-  outbox[head].cmd = command;
+  outbox[outboxHead].mID = advanceLfsr();
+  outbox[outboxHead].senderID = SERVER_ID;
+  outbox[outboxHead].backoff = 0;
+  outbox[outboxHead].mDeadline = 0;
+  outbox[outboxHead].cmd = command;
   advanceOutboxHead();
 }
 
@@ -216,15 +220,15 @@ void advanceInboxTail(){
   if (inboxTail == NUM_CUBES) inboxTail = 0;
 }
 
-bool inboxIsFull(){
-  if (inboxHead == inboxTail){
-    if (inbox[inboxHead].mID == 0) 
-      return false;
-    else 
-      return true;
-  }
-  return false;
-}
+//bool inboxIsFull(){
+//  if (inboxHead == inboxTail){
+//    if (inbox[inboxHead].mID == 0) 
+//      return false;
+//    else 
+//      return true;
+//  }
+//  return false;
+//}
 
 
 // Cube Data Object

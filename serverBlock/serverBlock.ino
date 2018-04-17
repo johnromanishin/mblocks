@@ -66,6 +66,7 @@ void interactWithRangeSensor()
     pushReverseMessage(TESTCUBE_ID);
     pushForwardMessage(TESTCUBE_ID);
     pushBlinkMessage(TESTCUBE_ID);
+    wifiDelay(100);
   }
 }
 
@@ -73,8 +74,11 @@ void testOutboxes()
 {
   pushReverseMessage(TESTCUBE_ID);
   pushForwardMessage(TESTCUBE_ID);
+  pushBlinkMessage(TESTCUBE_ID);
   pushReverseMessage(TESTCUBE_ID);
   pushForwardMessage(TESTCUBE_ID);
   pushBlinkMessage(TESTCUBE_ID);
+  pushReverseMessage(TESTCUBE_ID);
   pushForwardMessage(TESTCUBE_ID);
+  pushBlinkMessage(TESTCUBE_ID);
 }
