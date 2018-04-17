@@ -27,17 +27,13 @@ struct inboxEntry
 {
   uint32_t mID;
   int bottomFace;
-  int f0;
-  int f1;
-  int f2;
-  int f3;
-  int f4;
-  int f5;
+  int faceStates;
   long timeStamp;
 };
 
 
 extern painlessMesh mesh;
+extern int cubesState[6];
 
 ///
 bool sendMessage(int recipientID, String msg);

@@ -26,8 +26,8 @@ inboxEntry inbox;
    In the outbox, we need to keep track of each message that we are transmitting
 */
 outboxEntry outbox[OUTBOX_SIZE] ; // outboxEntry outbox[cubeID][OUTBOX_SIZE];
-int outboxHead = 0; //
-int outboxTail = 0; //
+int outboxHead = 0; 
+int outboxTail = 0; 
 
 int inboxHead = 0; 
 int inboxTail = 0;
@@ -67,15 +67,15 @@ void updateBoxes()
     if (outbox[outboxTail].mID == inbox.mID) // This means that we successfully acknowledged a message
     {
        //if inbox is ack for outbox
-       outbox[outboxTail].mID = 0;
-       advanceOutboxTail();
+       updateStateModel(); //process ack
+       outbox[outboxTail].mID = 0; // clear outbox entry
+       advanceOutboxTail(); //move on to next outbox slot
     }
     else 
     {       
       Serial.println("Spurious ACK");
     }
-    inbox.mID = 0;
-    inbox.bottomFace = 0;
+    inbox.mID = 0; // clear inbox
   }
   
   if (outbox[outboxTail].mID != 0) { // for the outbox queues with messages in them...
@@ -121,8 +121,15 @@ void receivedCallback(uint32_t from, String & stringMsg)
     StaticJsonBuffer<512> jsonMsgBuffer; // allocate memory for json
     JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg); // parse message
     inbox.bottomFace = jsonMsg["bFace"];
-    uint32_t mID = jsonMsg["mID"];
-    inbox.mID = mID;
+    inbox.mID = jsonMsg["mID"];
+    
+    
+    inbox.faceStates[0] = jsonMsg["f0"];
+    inbox.faceStates[1] = jsonMsg["f1"];
+    inbox.faceStates[2] = jsonMsg["f2"];
+    inbox.faceStates[3] = jsonMsg["f3"];
+    inbox.faceStates[4] = jsonMsg["f4"];
+    inbox.faceStates[5] = jsonMsg["f5"];
   }
 }
 
@@ -230,8 +237,15 @@ void advanceInboxTail(){
 //  return false;
 //}
 
-
 // Cube Data Object
+int cubesState[6];
+void updateStateModel()
+{
+  for (char i=0; i<6; i++)
+  {
+    cubesState[i] = inbox.faceStates[i];
+  }
+}
 
 // Misc Helper Functions
 
