@@ -25,9 +25,9 @@ inboxEntry inbox;
 /** OUTBOX
    In the outbox, we need to keep track of each message that we are transmitting
 */
-outboxEntry outbox[cubeID][OUTBOX_SIZE]; // outboxEntry outbox[cubeID][OUTBOX_SIZE];
-int outboxHead = 0; // Head is where
-int outboxTail = 0; // 
+outboxEntry outbox[OUTBOX_SIZE] ; // outboxEntry outbox[cubeID][OUTBOX_SIZE];
+int outboxHead = 0; //
+int outboxTail = 0; //
 
 /**
    This function looks through newly-recieved messages, and prunes waiting
@@ -45,24 +45,11 @@ int outboxTail = 0; //
 //  unsigned char backoff;
 //} outboxEntry ;
 
-void initializeOutBoxes() 
+void initializeOutboxes() 
 {
-  for(int i = 0; i++; i < OUTBOX_SIZE)
-  {
-    outbox[i].senderID = 99;
-    outbox[i].mID = advanceLfsr();
-    outbox[i].mDeadline = 0;
-    outbox[i].backoff = 1;
-  }
-  outbox[0].cmd = "r";
-  outbox[1].cmd = "f";
-  outbox[2].cmd = "r";
-  outbox[3].cmd = "f";
-  outbox[4].cmd = "p";
-  outbox[5].cmd = "f";
+  outbox[head].mID=0;
 }
 
-int head = 0;
 void updateBoxes()
 /*
    This function checks the inbox to see if it is an ack for a message currently in the outbox.
@@ -74,13 +61,11 @@ void updateBoxes()
   // Clear out the inbox
   if (inbox.mID != 0)
   {
-    if (outbox[head].mID == inbox.mID) // This means that we successfully acknowledged a message
+    if (outbox[outboxTail].mID == inbox.mID) // This means that we successfully acknowledged a message
     {
-       //Serial.println("I didn't crash...");
        //if inbox is ack for outbox
-       outbox[head].mID = 0;
-       if (head == OUTBOX_SIZE) head=0;
-       else head++;
+       outbox[outboxTail].mID = 0;
+       advanceOutboxTail();
     }
     else 
     {       
@@ -89,28 +74,27 @@ void updateBoxes()
     inbox.mID = 0;
     inbox.bottomFace = 0;
   }
-
-  if (outbox[head].mID != 0) { // for the outbox queues with messages in them...
-    if (millis() > outbox[head].mDeadline) // if the time has come to resend the message...
+  
+  if (outbox[outboxTail].mID != 0) { // for the outbox queues with messages in them...
+    if (millis() > outbox[outboxTail].mDeadline) // if the time has come to resend the message...
     {
       //generate message
-      sendMessage(TESTCUBE_ID, repeatCommand(outbox[head].cmd, outbox[head].mID)); // send it...
-      outbox[head].mDeadline = millis() + random((1UL << outbox[head].backoff) * AVERAGE_FIRST_DELAY_MS * 2);
+      sendMessage(TESTCUBE_ID, generateMessageText(outbox[outboxTail].cmd, outbox[outboxTail].mID)); // send it...
+      outbox[outboxTail].mDeadline = millis() + random((1UL << outbox[outboxTail].backoff) * AVERAGE_FIRST_DELAY_MS * 2);
       // set the next deadline using exponential backoff,
+      outbox[outboxTail].backoff++;
+      // and increment the counter to reflect the number of tries.
       
       Serial.println("mID ");
-      Serial.println(String(outbox[head].mID));
+      Serial.println(String(outbox[outboxTail].mID));
       Serial.println("cmd ");
-      Serial.println(String(outbox[head].cmd));
+      Serial.println(String(outbox[outboxTail].cmd));
       Serial.println("backoff ");
-      Serial.println(String(outbox[head].backoff));
+      Serial.println(String(outbox[outboxTail].backoff));
       Serial.println("mDeadline ");
-      Serial.println(String(outbox[head].mDeadline));
+      Serial.println(String(outbox[outboxTail].mDeadline));
       Serial.println("senderID ");
-      Serial.println(String(outbox[head].senderID));
-
-
-      outbox[head].backoff++; // and increment the counter to reflect the number of tries.
+      Serial.println(String(outbox[outboxTail].senderID));
     }
   }
 }
@@ -152,7 +136,7 @@ void nodeTimeAdjustedCallback(int32_t offset) {}
 
 void delayReceivedCallback(uint32_t from, int32_t delay) {}
 
-String repeatCommand(String cmd, uint32_t mID)
+String generateMessageText(String cmd, uint32_t mID)
 {
   Serial.println("RESENDING MESSAGE");
   if (mID == 0) {
@@ -173,57 +157,77 @@ String repeatCommand(String cmd, uint32_t mID)
   return strMsg;
 }
 
-String newBlinkCommand()
+void pushBlinkMessage(int cubeID)
 {
-  //====== Generate a blink message =========
-  StaticJsonBuffer<256> jsonBuffer; //Space Allocated to construct json instance
-  JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
-  //jsonMsg is our output, but in JSON form
-  jsonMsg["mID"] =  advanceLfsr();
-  jsonMsg["type"] = 'c';
-  jsonMsg["sID"] =  SERVER_ID;
-  jsonMsg["cmd"] =  'b';
-  String strMsg; // generate empty string
-  //strMsg is our output in String form
-  jsonMsg.printTo(strMsg); // print to JSON readable string...
-  return strMsg;
+  pushMessage(cubeID, "b");
 }
 
-String newForwardCommand()
+void pushForwardMessage(int cubeID)
 {
-  //====== Generate a Move command =========
-  StaticJsonBuffer<256> jsonBuffer; //Space Allocated to construct json instance
-  JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
-  //jsonMsg is our output, but in JSON form
-  jsonMsg["mID"] =  advanceLfsr();
-  jsonMsg["type"] = 'c';
-  jsonMsg["sID"] =  SERVER_ID;
-  jsonMsg["cmd"] =  'f';
-  String strMsg; // generate empty string
-  //strMsg is our output in String form
-  jsonMsg.printTo(strMsg); // print to JSON readable string...
-  return strMsg;
+  pushMessage(cubeID, "f");
 }
 
-String newReverseCommand()
+void pushReverseMessage(int cubeID)
 {
-  //====== Generate a Move command =========
-  StaticJsonBuffer<256> jsonBuffer; //Space Allocated to construct json instance
-  JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
-  //jsonMsg is our output, but in JSON form
-  jsonMsg["mID"] =  advanceLfsr();
-  jsonMsg["type"] = 'c';
-  jsonMsg["sID"] =  SERVER_ID;
-  jsonMsg["cmd"] =  'r';
-  String strMsg; // generate empty string
-  //strMsg is our output in String form
-  jsonMsg.printTo(strMsg); // print to JSON readable string...
-  return strMsg;
+  pushMessage(cubeID, "r");
+}
+
+void pushMessage(int cubeID, String command)
+{
+  if (outboxisFull())
+    return;
+  outbox[head].mID = advanceLfsr();
+  outbox[head].senderID = SERVER_ID;
+  outbox[head].backoff = 0;
+  outbox[head].mDeadline = 0;
+  outbox[head].cmd = command;
+  advanceOutboxHead();
+}
+
+// Outbox circular buffer functions
+void advanceOutboxHead(){
+  outboxHead++;
+  if (outboxHead == OUTBOX_SIZE) outboxHead = 0;
+}
+
+void advanceOutboxTail(){
+  outboxTail++;
+  if (outboxTail == OUTBOX_SIZE) outboxTail = 0;
+}
+
+bool outboxIsFull(){
+  if (outboxHead == outboxTail){
+    if (outbox[outboxHead].mID == 0) 
+      return false;
+    else 
+      return true;
+  }
+  return false;
+}
+
+// Inbox circular buffer functions
+void advanceInboxHead(){
+  inboxHead++;
+  if (inboxHead == NUM_CUBES) inboxHead = 0;
+}
+
+void advanceInboxTail(){
+  inboxTail++;
+  if (inboxTail == NUM_CUBES) inboxTail = 0;
+}
+
+bool inboxIsFull(){
+  if (inboxHead == inboxTail){
+    if (inbox[inboxHead].mID == 0) 
+      return false;
+    else 
+      return true;
+  }
+  return false;
 }
 
 
 // Cube Data Object
-
 
 // Misc Helper Functions
 
@@ -257,7 +261,7 @@ void initializeWifiMesh()
 
 bool sendMessage(int recipientID, String msg)
 {
-  Serial.println("in sendMessage");
+  Serial.println("sendMessage sending: ");
   Serial.println(msg);
   if (recipientID == -1)
   {
