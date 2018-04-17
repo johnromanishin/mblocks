@@ -241,7 +241,7 @@ void advanceInboxTail(){
 int cubesState[6];
 void updateStateModel()
 {
-  for (char i=0; i<6; i++)
+  for (int i=0; i<6; i++)
   {
     cubesState[i] = inbox.faceStates[i];
   }

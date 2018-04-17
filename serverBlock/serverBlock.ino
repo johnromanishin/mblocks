@@ -23,12 +23,13 @@ void setup()
   Serial.begin(115200);
   initializeWifiMesh();
   initializeRangeSensor();
-  wifiDelay(2000);
+  wifiDelay(1000);
   Serial.print("\n WIFI ID: ");
   Serial.println(mesh.getNodeId());
   initializeOutboxes();
   espconn_tcp_set_max_con(6); // this is supposed to increase the maximum number of WIFI connections to 6
-  
+  wifiDelay(1000);
+
   testOutboxes();
   
 }
@@ -39,16 +40,22 @@ void loop()
   updateBoxes(); // checks messages from the WiFi Message queue
   interactWithRangeSensor(); // checks the range value to send messages based on user input
   wifiDelay(5);
+  Serial.println("beginning check on state model");
   for (int face=1; face<5; face<<1)
   {
+
+    Serial.println("in for loop");
     if ( (cubesState[face] != 0) && (cubesState[oppositeFace(face)] != 0) )
       if (lineOfThree == false)
       {
+
+        Serial.println("sending R message");
         lineOfThree = true;
         pushReverseMessage(TESTCUBE_ID);
       }
     else if (lineOfThree == true)
     {
+      Serial.println("sending F message");
       lineOfThree = false;
       pushForwardMessage(TESTCUBE_ID);
     }
