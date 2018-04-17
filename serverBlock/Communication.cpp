@@ -39,14 +39,6 @@ int inboxTail = 0;
    It also updates the state of the cube data model
 */
 
-//typedef struct outboxEntry
-//{
-//  uint32_t mID;
-//  int senderID;
-//  String cmd;
-//  uint32_t mDeadline;
-//  unsigned char backoff;
-//} outboxEntry ;
 
 void initializeOutboxes() 
 {
@@ -181,6 +173,11 @@ void pushForwardMessage(int cubeID)
 void pushReverseMessage(int cubeID)
 {
   pushMessage(cubeID, "r");
+}
+
+void pushStatusMessage(int cubeID)
+{
+  pushMessage(cubeID, "q");
 }
 
 void pushMessage(int cubeID, String command)

@@ -25,7 +25,6 @@ struct inboxEntry
   uint32_t mID;
   int bottomFace;
   int faceStates[6];
-  long timeStamp;
 };
 
 
@@ -53,6 +52,7 @@ void pushMessage(int cubeID, String command);
 void pushBlinkMessage(int cubeID);
 void pushForwardMessage(int cubeID);
 void pushReverseMessage(int cubeID);
+void pushStatusMessage(int cubeID);
 
 void advanceOutboxHead();
 void advanceOutboxTail();
