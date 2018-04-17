@@ -6,72 +6,28 @@
 #include "CBuff.h"
 #include "Defines.h"
 
+// Parameters for the the WIFI mesh network
 #define   BLINK_PERIOD    3000000 // microseconds until cycle repeat
 #define   BLINK_DURATION  100000  // microseconds LED is on for
 #define   MESH_SSID       "mblocks3d"
 #define   MESH_PASSWORD   "mblocks3d"
 #define   MESH_PORT       5555
 
+// Class instance for the WIFI mesh
 painlessMesh mesh;
 
-inboxEntry inbox;
-outboxEntry outbox[OUTBOX_SIZE];
-
-/**
-   In the outbox, we need to keep track of each message that we are transmitting
-*/
-
-/**
+/** INBOX
    These variables hold messages that need to be sent, and recieved messages that need to be
    processed
 */
+inboxEntry inbox;
 
-// this is where the cube data object will be built in the future
-//
-//
-//
-
-bool calc_delay = false;
-SimpleList<uint32_t> nodes;
-
-uint32_t advanceLfsr() // this call returns a message ID. these are not sequential.
-{
-  static uint32_t lfsr = 0xfefefe;
-
-  uint32_t lsb = lfsr & 0x01u;
-  lfsr >>= 1;
-  if (lsb)
-  {
-    lfsr ^= (1u << 31) | (1u << 21) | (1u << 1) | (1u << 0);
-  }
-  return lfsr;
-}
-
-void initializeWifiMesh()
-{
-  mesh.init(MESH_SSID, MESH_PASSWORD, MESH_PORT);
-  mesh.onReceive(&receivedCallback);
-  mesh.onNewConnection(&newConnectionCallback);
-  mesh.onChangedConnections(&changedConnectionCallback);
-  mesh.onNodeTimeAdjusted(&nodeTimeAdjustedCallback);
-  mesh.onNodeDelayReceived(&delayReceivedCallback);
-  randomSeed(analogRead(A0));
-}
-
-bool sendMessage(int recipientID, String msg)
-{
-  Serial.println("in sendMessage");
-  Serial.println(msg);
-  if (recipientID == -1)
-  {
-    return (mesh.sendBroadcast(msg));
-  }
-  else
-  {
-    uint32_t address = getAddressFromCubeID(recipientID);
-    return (mesh.sendSingle(address, msg));
-  }
-}
+/** OUTBOX
+   In the outbox, we need to keep track of each message that we are transmitting
+*/
+outboxEntry outbox[cubeID][OUTBOX_SIZE]; // outboxEntry outbox[cubeID][OUTBOX_SIZE];
+int outboxHead = 0; // Head is where
+int outboxTail = 0; // 
 
 /**
    This function looks through newly-recieved messages, and prunes waiting
@@ -91,43 +47,22 @@ bool sendMessage(int recipientID, String msg)
 
 void initializeOutBoxes() 
 {
-  outbox[0].senderID = 99;
-  outbox[0].mID = advanceLfsr();
+  for(int i = 0; i++; i < OUTBOX_SIZE)
+  {
+    outbox[i].senderID = 99;
+    outbox[i].mID = advanceLfsr();
+    outbox[i].mDeadline = 0;
+    outbox[i].backoff = 1;
+  }
   outbox[0].cmd = "r";
-  outbox[0].mDeadline = 0;
-  outbox[0].backoff = 1;
-
-  outbox[1].senderID = 99;
-  outbox[1].mID = advanceLfsr();
   outbox[1].cmd = "f";
-  outbox[1].mDeadline = 0;
-  outbox[1].backoff = 1;
-
-  outbox[2].senderID = 99;
-  outbox[2].mID = advanceLfsr();
   outbox[2].cmd = "r";
-  outbox[2].mDeadline = 0;
-  outbox[2].backoff = 1;
-
-  outbox[3].senderID = 99;
-  outbox[3].mID = advanceLfsr();
   outbox[3].cmd = "f";
-  outbox[3].mDeadline = 0;
-  outbox[3].backoff = 1;
-
-  outbox[4].senderID = 99;
-  outbox[4].mID = advanceLfsr();
   outbox[4].cmd = "p";
-  outbox[4].mDeadline = 0;
-  outbox[4].backoff = 1;
-
-  outbox[5].senderID = 99;
-  outbox[5].mID = advanceLfsr();
   outbox[5].cmd = "f";
-  outbox[5].mDeadline = 0;
-  outbox[5].backoff = 1;
 }
- int head = 0;
+
+int head = 0;
 void updateBoxes()
 /*
    This function checks the inbox to see if it is an ack for a message currently in the outbox.
@@ -284,4 +219,53 @@ String newReverseCommand()
   //strMsg is our output in String form
   jsonMsg.printTo(strMsg); // print to JSON readable string...
   return strMsg;
+}
+
+
+// Cube Data Object
+
+
+// Misc Helper Functions
+
+uint32_t advanceLfsr() // this call returns a message ID. these are not sequential.
+{
+  static uint32_t lfsr = 0xfefefe;
+
+  uint32_t lsb = lfsr & 0x01u;
+  lfsr >>= 1;
+  if (lsb)
+  {
+    lfsr ^= (1u << 31) | (1u << 21) | (1u << 1) | (1u << 0);
+  }
+  return lfsr;
+}
+
+bool calc_delay = false;
+SimpleList<uint32_t> nodes;
+
+void initializeWifiMesh()
+{
+  mesh.init(MESH_SSID, MESH_PASSWORD, MESH_PORT);
+  mesh.onReceive(&receivedCallback);
+  mesh.onNewConnection(&newConnectionCallback);
+  mesh.onChangedConnections(&changedConnectionCallback);
+  mesh.onNodeTimeAdjusted(&nodeTimeAdjustedCallback);
+  mesh.onNodeDelayReceived(&delayReceivedCallback);
+  randomSeed(analogRead(A0));
+}
+
+
+bool sendMessage(int recipientID, String msg)
+{
+  Serial.println("in sendMessage");
+  Serial.println(msg);
+  if (recipientID == -1)
+  {
+    return (mesh.sendBroadcast(msg));
+  }
+  else
+  {
+    uint32_t address = getAddressFromCubeID(recipientID);
+    return (mesh.sendSingle(address, msg));
+  }
 }
