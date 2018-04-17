@@ -29,33 +29,35 @@ bool Face::updateFace()
   bool updateSuccess = false;
   updateSuccess = (this->enableSensors() &&
                    this->updateAmbient(true) &&
-                   this->turnOnFaceLEDs(0,0,1,0) &&
+                   this->turnOnFaceLEDs(0,1,1,0) &&
                    this->updateMagneticBarcode() && // actually reads magnetic valuess
                    this->turnOffFaceLEDs());
  
   this->neighborPresenceBuffer.push(this->processTag()); // actually processes Tag... adds whether there is anything to a buffer...
   
-  if(this->returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE)
-  {
-    this->blinkRingDigit(2, 3); // blink out a quick little light show... 
-  }
+//  if(this->returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE)
+//  {
+//    this->blinkRingDigit(2, 3); // blink out a quick little light show... 
+//  }
   
   // if we are connected... and we are supposed to check for light, wait 0.5 seconds to try to find a message
-  if(this->returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) // checks for lightdigits...
-  {
-    int numberOfSamplesToTake = 20;
-    for(int i = 0; i < numberOfSamplesToTake; i++) // take 30 light samples
-      this->updateAmbient(false);
-    this->neighborLightDigitBuffer.push(this->processLightData(numberOfSamplesToTake)); // add the lightDigit to the buffer
-    
-    if(magicTheLight == true) // This is supposed to light the faces up when we are in a specific mode, we might move this to
-                              // a different part of the code...
-      this->turnOnFaceLEDs(1,1,1,1);
-  }
-  else
-  {
-    this->neighborLightDigitBuffer.push(-2);
-  }
+
+  //LIGHT TRACKING RELATED CODE
+//  if(this->returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) // checks for lightdigits...
+//  {
+//    int numberOfSamplesToTake = 20;
+//    for(int i = 0; i < numberOfSamplesToTake; i++) // take 30 light samples
+//      this->updateAmbient(false);
+//    this->neighborLightDigitBuffer.push(this->processLightData(numberOfSamplesToTake)); // add the lightDigit to the buffer
+//    
+//    if(magicTheLight == true) // This is supposed to light the faces up when we are in a specific mode, we might move this to
+//                              // a different part of the code...
+//      this->turnOnFaceLEDs(1,1,1,1);
+//  }
+//  else
+//  {
+//    this->neighborLightDigitBuffer.push(-2);
+//  }
   this->disableSensors(); // turn off sensors...
   return(updateSuccess);
 }
@@ -92,7 +94,7 @@ bool Face::processTag()
   int agc1 = this->returnMagnetStrength_A(0);
   int agc2 = this->returnMagnetStrength_B(0);
 
-  int strengthThreshold = 470; // This Value is a threshold that the two magnet strength values must sum to
+  int strengthThreshold = 500; // This Value is a threshold that the two magnet strength values must sum to
 
   // This section creates magnetic Digits from the raw sensor Values
   // Magnet digits are simply values from 1-30 evenly spaced arouynd the circle, so each
@@ -196,6 +198,11 @@ this->neighborIDBuffer.push(tagID);
  * in this format: X X X     X
  *                [id][face][tagangle]
  */
+
+if(tagType == TAGTYPE_PASSIVE_CUBE)
+{
+  tagID = 18;
+}
 
 int numberToReturn;
 if(tagFace == -1)

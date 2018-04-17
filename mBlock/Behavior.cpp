@@ -36,29 +36,30 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
           and are working properly
       */
       if (receivedCMD == "b")
-        {
-          uint32_t mID = jsonMsg["mID"];
-          Serial.print("Recieved Message ID = ");
-          Serial.println(mID);
-          c->lightCube(&red);
-          wifiDelay(500);
-          c->lightCube(&off);
+      {
+        uint32_t mID = jsonMsg["mID"];
+        Serial.print("Recieved Message ID = ");
+        Serial.println(mID);
+        //c->lightCube(&red);
+        c->superSpecialBlink(&red, 50);
+        // wifiDelay(500);
+        // c->lightCube(&off);
         //blinkFaceLeds(c, 50);
-        }
+      }
       else if(receivedCMD == "r")
       {
         c->lightCube(&red);
-        wifiDelay(100);
+        mesh.update();
       }
       else if(receivedCMD == "p")
       {
         c->lightCube(&blue);
-        wifiDelay(100);
+        mesh.update();
       }
       else if(receivedCMD == "f")
       {
         c->lightCube(&off);
-        wifiDelay(100);
+        mesh.update();
       }
       /*  A simple way to turn the cube to various colors works by receiving a message
           that is just an integer, it will change to a color depending on the integer
@@ -94,7 +95,6 @@ Behavior demo(Cube* c)
   {
     nextBehavior = basicUpkeep(c, nextBehavior);
     mesh.update();
-    wifiDelay(500);
     Serial.println(loopCounter++);
     //String Messagee = "WHAT IS GOING ON";
     //sendMessage(-1, Messagee);
@@ -841,9 +841,9 @@ int checkForMagneticTagsStandard(Cube* c)
       neighbors++;
       if (c->faces[face].returnNeighborAngle(0) > -1)
       {
-        c->lightFace(faceArrowPointsTo(face, c->faces[face].returnNeighborAngle(0)), &purple);
-        wifiDelay(200);
-        c->lightCube(&off);
+        //c->lightFace(faceArrowPointsTo(face, c->faces[face].returnNeighborAngle(0)), &purple);
+        //wifiDelay(200);
+        //c->lightCube(&off);
       }
     }
 

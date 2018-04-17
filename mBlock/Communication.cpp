@@ -58,10 +58,10 @@ uint32_t initializeWifiMesh()
 #define messageDebug 1
 void receivedCallback(uint32_t from, String & stringMsg)
 {
-   Serial.print("Message Received from: ");
-   Serial.println(from);
-   Serial.print("Message Contents: ");
-   Serial.println(stringMsg);
+   //Serial.print("Message Received from: ");
+   //Serial.println(from);
+   //Serial.print("Message Contents: ");
+   //Serial.println(stringMsg);
 
 
   // Check and see if this message is a dupe by "manually" extracting the message
@@ -69,13 +69,22 @@ void receivedCallback(uint32_t from, String & stringMsg)
   
   
   //check to see if it's new, if so, do something with it
-  StaticJsonBuffer<512> jsonMsgBuffer;
+  StaticJsonBuffer<256> jsonMsgBuffer;
   JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg);
   //String mIDstring = jsonMsg["mID"];
   uint32_t mID = jsonMsg["mID"];
+  String command = jsonMsg["cmd"];
+  
   //int mID = mIDstring.toInt();
-  Serial.println(mID);
-  if (mID != prevMID){
+  //Serial.println(mID);
+  if (command == "q")
+  {
+    sendAck(mID);
+    return;
+  }
+  
+  if (mID != prevMID)
+  {
     jsonCircularBuffer.push(stringMsg);
     prevMID = mID;
   }
