@@ -99,26 +99,3 @@ void testOutboxes()
 // cubesState[6];
 // bool areFacesOpposite(int face1, int face2); // defined in defines.cpp
 // int oppositeFace(int face);                  // defined in defines.cpp
-
-void checkIfLine()
-{
-  int numberOfNeighbors = 0;
-  int firstNeighborFace = -1;
-  int secondNeighborFace = -1;
-  for(int i = 0; i < 6; i ++)
-  {
-    if(cubesState[i] > 0)
-    {
-      if(numberOfNeighbors > 1)
-        SecondNeighborFace = i;
-      else
-        firstNeighbor = i;
-      
-      if(numberOfNeighbors > 0)
-        firstNeighbor = 
-        
-      numberOfNeighbors++;
-    }
-  }
-  if(numberOfNeighbors)
-}
