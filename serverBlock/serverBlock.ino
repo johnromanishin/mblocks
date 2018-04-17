@@ -28,19 +28,31 @@ void setup()
   Serial.println(mesh.getNodeId());
   initializeOutboxes();
   espconn_tcp_set_max_con(6); // this is supposed to increase the maximum number of WIFI connections to 6
-
-
-
-
   
   testOutboxes();
+  
 }
+bool lineOfThree = false;
 
 void loop()
 {
-  updateBoxes(); // checks messages from the WiFi Message que
+  updateBoxes(); // checks messages from the WiFi Message queue
   interactWithRangeSensor(); // checks the range value to send messages based on user input
   wifiDelay(5);
+  for (int face=1; face<5; face<<1)
+  {
+    if ( (cubesState[face] != 0) && (cubesState[oppositeFace(face)] != 0) )
+      if (lineOfThree == false)
+      {
+        lineOfThree = true;
+        pushReverseMessage(TESTCUBE_ID);
+      }
+    else if (lineOfThree == true)
+    {
+      lineOfThree = false;
+      pushForwardMessage(TESTCUBE_ID);
+    }
+  }
 }
 
 void interactWithRangeSensor()
@@ -84,8 +96,29 @@ void testOutboxes()
 }
 
 /////////////////
-cubesState[6];
+// cubesState[6];
 // bool areFacesOpposite(int face1, int face2); // defined in defines.cpp
 // int oppositeFace(int face);                  // defined in defines.cpp
 
-
+void checkIfLine()
+{
+  int numberOfNeighbors = 0;
+  int firstNeighborFace = -1;
+  int secondNeighborFace = -1;
+  for(int i = 0; i < 6; i ++)
+  {
+    if(cubesState[i] > 0)
+    {
+      if(numberOfNeighbors > 1)
+        SecondNeighborFace = i;
+      else
+        firstNeighbor = i;
+      
+      if(numberOfNeighbors > 0)
+        firstNeighbor = 
+        
+      numberOfNeighbors++;
+    }
+  }
+  if(numberOfNeighbors)
+}
