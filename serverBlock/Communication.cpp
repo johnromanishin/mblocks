@@ -66,10 +66,10 @@ void updateBoxes()
   {
     if (outbox[outboxTail].mID == inbox.mID) // This means that we successfully acknowledged a message
     {
-       //if inbox is ack for outbox
-       updateStateModel(); //process ack
+       // if inbox is ack for outbox
+       updateStateModel(); // process ack
        outbox[outboxTail].mID = 0; // clear outbox entry
-       advanceOutboxTail(); //move on to next outbox slot
+       advanceOutboxTail(); // move on to next outbox slot
     }
     else 
     {       

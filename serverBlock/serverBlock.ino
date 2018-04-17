@@ -82,3 +82,10 @@ void testOutboxes()
   pushForwardMessage(TESTCUBE_ID);
   pushBlinkMessage(TESTCUBE_ID);
 }
+
+/////////////////
+cubesState[6];
+// bool areFacesOpposite(int face1, int face2); // defined in defines.cpp
+// int oppositeFace(int face);                  // defined in defines.cpp
+
+

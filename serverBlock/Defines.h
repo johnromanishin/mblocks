@@ -10,5 +10,9 @@ uint32_t getAddressFromCubeID(int CubeID);
 #define TESTCUBE_ID 0
 #define OUTBOX_SIZE 10
 
+bool areFacesOpposite(int face1, int face2);
+int oppositeFace(int face);
+
+
 void wifiDelay(int delayTime);
 #endif

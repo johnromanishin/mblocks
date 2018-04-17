@@ -9,10 +9,7 @@
 
 #define WINDOW_SIZE 1
 #define NUM_CUBES 17
-
 #define AVERAGE_FIRST_DELAY_MS 100
-
-//
 
 struct outboxEntry
 {
@@ -27,7 +24,7 @@ struct inboxEntry
 {
   uint32_t mID;
   int bottomFace;
-  int faceStates;
+  int faceStates[6];
   long timeStamp;
 };
 
@@ -64,6 +61,8 @@ void advanceInboxHead();
 void advanceInboxTail();
 bool inboxIsFull();
 void initializeOutboxes();
+
+void updateStateModel();
 
 #endif
 

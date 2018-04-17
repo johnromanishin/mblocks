@@ -46,6 +46,25 @@ uint32_t getAddressFromCubeID(int CubeID)
   }
 }
 
+bool areFacesOpposite(int face1, int face2)
+{
+  if(face1 == oppositeFace(face2))
+    return(true);
+  else
+    return(false);
+}
+
+int oppositeFace(int face)
+{
+  if(face == 0){return(2);}
+  else if(face == 1){return(3);}
+  else if(face == 2){return(0);}
+  else if(face == 3){return(1);}
+  else if(face == 4){return(5);}
+  else if(face == 5){return(4);}
+  else{return(-1);}
+}
+
 void wifiDelay(int delayTime)
 {
   long releaseTime = millis() + delayTime;
