@@ -23,13 +23,14 @@ struct outboxEntry
 struct inboxEntry
 {
   uint32_t mID;
+  int senderID;
   int bottomFace;
   int faceStates[6];
 };
 
 
 extern painlessMesh mesh;
-extern int cubesState[6];
+extern int cubesState[NUM_CUBES][6];
 
 ///
 bool sendMessage(int recipientID, String msg);
@@ -54,15 +55,17 @@ void pushForwardMessage(int cubeID);
 void pushReverseMessage(int cubeID);
 void pushStatusMessage(int cubeID);
 
-void advanceOutboxHead();
-void advanceOutboxTail();
-bool outboxIsFull();
+void advanceOutboxHead(int cubeID);
+void advanceOutboxTail(int cubeID);
+bool outboxIsFull(int cubeID);
+
 void advanceInboxHead();
 void advanceInboxTail();
 bool inboxIsFull();
+
 void initializeOutboxes();
 
-void updateStateModel();
+void updateStateModel(int cubeID);
 
 #endif
 
