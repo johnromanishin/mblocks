@@ -51,14 +51,14 @@ Color teal  =   {0, 1, 1};
 Color white =   {1, 1, 1};
 Color off   =   {0, 0, 0};
 
-int thisCubeID = 1;
+int thisCubeID = 0;
 extern String Game = "nothing";
 extern int GlobalplaneChangeTime;
 extern int GlobalplaneChangeRPM;
 extern int GlobalPlaneAccel = 2100;
 extern bool magicTheLight = false;
 extern int magicVariable = 0;
-extern int MAGIC_DEBUG = 1;
+extern int MAGIC_DEBUG = 0;
 extern int magicFace = 0;
 extern int magicVariable_0 = 0;
 extern int magicVariable_1 = 0;
@@ -121,7 +121,7 @@ uint32_t getAddressFromCubeID(int CubeID)
     case 14:
       break;
     case 15:
-      break;
+      return(2131666780);
     case 16:
       break;
   }

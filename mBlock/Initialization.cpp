@@ -50,7 +50,7 @@ void initializeCube()
         {Serial.println("sleep"); delay(500);} // Go to sleep...
     }
   }
-  if(MAGIC_DEBUG) Serial.println("Leaving itializeCube");
+  if(MAGIC_DEBUG) Serial.println("Leaving ititializeCube");
 }
 
 bool checkIfConnected()
@@ -293,7 +293,7 @@ void lookUpCalibrationValues(long wifiID)
       CC_BRAKETIME_R = 10;
       break;
     //********************************
-    case 348: //960348 PEI GREEN | EC:47:A9:35:1F:02
+    case 2131666780: //960348 PEI GREEN | EC:47:A9:35:1F:02
       thisCubeID = 15;
 
       TRAVERSE_RPM_F = 6500;

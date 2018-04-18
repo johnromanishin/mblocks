@@ -75,7 +75,7 @@ bool Cube::processState()
  */
 {
   bool succeed = false; // This variable stores the status of the updateBothImu command
-  if(this->updateBothIMUs() == true) // this runs the code to check on the two MPU6050 accelerometers
+  if((this->updateBothIMUs() == true) || (this->cubeID == 0)) // this runs the code to check on the two MPU6050 accelerometers
   {
     wifiDelay(4);
     succeed = true;
@@ -805,7 +805,7 @@ int Cube::wifiDelayWithMotionDetection(int delayTime) //**WIP
   while((millis() - millisNow) < delayTime)
   {
     mesh.update();
-    if(this->cubeID < 30)
+    if(this->cubeID < 30 && this->cubeID > 0)
     {
       if(this->updateCoreIMU())
       {
@@ -1213,7 +1213,7 @@ void Cube::updateCubeID(int idNUM, long wifiAddress)
   Serial.println(this->cubeID);
   Serial.print("and my wifiAddress is: ");
   Serial.println(this->cubeWifiAddress);
-  if(thisCubeID >= 99) // stationary cube
+  if(thisCubeID == 0) // stationary cube
   {
     Serial.print("Printing Debugging Information");
     //MAGIC_DEBUG = 1;

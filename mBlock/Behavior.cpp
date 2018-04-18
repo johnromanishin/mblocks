@@ -38,17 +38,26 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
       if (receivedCMD == "b")
       {
         uint32_t mID = jsonMsg["mID"];
-        Serial.print("Recieved Message ID = ");
-        Serial.println(mID);
+        //Serial.print("Recieved Message ID = ");
+        Serial.println("BLINKING!!");
         //c->lightCube(&red);
-        c->superSpecialBlink(&red, 50);
-        // wifiDelay(500);
+        c->superSpecialBlink(&red, 100);
+        //wifiDelay(200);
         // c->lightCube(&off);
         //blinkFaceLeds(c, 50);
       }
       else if(receivedCMD == "r")
       {
         c->lightCube(&red);
+        mesh.update();
+      }
+      else if(receivedCMD == "s")
+      {
+        c->shutDown();
+      }
+      else if(receivedCMD == "y")
+      {
+        c->lightCube(&yellow);
         mesh.update();
       }
       else if(receivedCMD == "p")
@@ -95,7 +104,8 @@ Behavior demo(Cube* c)
   {
     nextBehavior = basicUpkeep(c, nextBehavior);
     mesh.update();
-    Serial.println(loopCounter++);
+    //Serial.println(loopCounter++);
+    wifiDelay(200);
     //String Messagee = "WHAT IS GOING ON";
     //sendMessage(-1, Messagee);
     //mesh.sendBroadcast(Messagee);

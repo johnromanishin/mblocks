@@ -37,6 +37,8 @@ void setup() // starts up the various electronic hardware...
   c.superSpecialBlink(&white, 100);
   c.blinkRingAll();
   c.lightCube(&off);
+  Serial.println("WIFI ID: ");
+  Serial.println(mesh.getNodeId());
 }
 
 void loop() // Main Loop... Just continually loops, most of the action happens in checkForBehaviors...
