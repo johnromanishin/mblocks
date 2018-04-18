@@ -21,6 +21,7 @@ void testOutboxes()
 {
   pushBlinkMessage(TESTCUBE_ID);
   pushBlinkMessage(15);
+  pushBlinkMessage(4);
 }
 
 void interactWithRangeSensor()
@@ -36,6 +37,7 @@ void interactWithRangeSensor()
     {
       Serial.println("Putting cubs to sleep");
       pushSleepMessage(15);
+      pushSleepMessage(4);
     }
   }
   else if (rangeValue > 20 && rangeValue < 50)
@@ -51,6 +53,7 @@ void interactWithRangeSensor()
   else if (rangeValue > 100 && rangeValue < 200)
   {
     pushBlinkMessage(15);
+    pushBlinkMessage(4);
     wifiDelay(300);
   }
 }
