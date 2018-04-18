@@ -7,6 +7,8 @@
 uint32_t getAddressFromCubeID(int CubeID)
 {
   switch (CubeID) { // used to be ESP.getChipID
+    default:
+      return (0);
     case 99:                   //  ESP WIFI  885790061 || Server
       return (885790061);
     case 0:                  //  ESP WIFI 2133796284 ||  Test Mblock
@@ -40,7 +42,7 @@ uint32_t getAddressFromCubeID(int CubeID)
     case 14:
       break;
     case 15:
-      break;
+      return(2131666780);
     case 16:
       break;
   }

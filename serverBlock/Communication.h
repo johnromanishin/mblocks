@@ -54,6 +54,7 @@ void pushBlinkMessage(int cubeID);
 void pushForwardMessage(int cubeID);
 void pushReverseMessage(int cubeID);
 void pushStatusMessage(int cubeID);
+void pushSleepMessage(int cubeID);
 
 void advanceOutboxHead(int cubeID);
 void advanceOutboxTail(int cubeID);

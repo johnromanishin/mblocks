@@ -20,6 +20,7 @@
 void testOutboxes()
 {
   pushBlinkMessage(TESTCUBE_ID);
+  pushBlinkMessage(15);
 }
 
 void interactWithRangeSensor()
@@ -28,7 +29,14 @@ void interactWithRangeSensor()
   if (rangeValue < 20)
   {
     //sendBroadcastMessage(createJsonStringFlood(-1, "sleep"));
-    Serial.println("Putting the cubes to sleep...");
+    //Serial.println("Putting the cubes to sleep...");
+    wifiDelay(1000);
+    rangeValue = readRangeSensor();
+    if(rangeValue < 20)
+    {
+      Serial.println("Putting cubs to sleep");
+      pushSleepMessage(15);
+    }
   }
   else if (rangeValue > 20 && rangeValue < 50)
   {
@@ -42,7 +50,7 @@ void interactWithRangeSensor()
 
   else if (rangeValue > 100 && rangeValue < 200)
   {
-    pushStatusMessage(TESTCUBE_ID);
+    pushBlinkMessage(15);
     wifiDelay(300);
   }
 }
@@ -86,15 +94,13 @@ void loop()
     {
       lineOfThree = true;
       pushReverseMessage(TESTCUBE_ID);
-      pushReverseMessage(cubesState[TESTCUBE_ID][foundFlag]/100);
-      pushReverseMessage(cubesState[TESTCUBE_ID][oppositeFace(foundFlag)]/100);
 
     }
   }
   else if (lineOfThree == true)
   {
     lineOfThree = false;
-    pushBlinkMessage(-1);
+    pushForwardMessage(TESTCUBE_ID);
   }
 
 }

@@ -62,14 +62,20 @@ void initializeOutboxes()
 void updateBoxes()
 {
   // Clear out the inbox
-  while (!inboxIsEmpty) // This means there is something in the inbox
+  while (!inboxIsEmpty()) // This means there is something in the inbox
   {
+    Serial.println("Checking to see if message matches...");
+    Serial.print("senderID: ");
+    Serial.println(inbox[inboxTail].senderID);
     if (outbox[inbox[inboxTail].senderID][outboxTail[inbox[inboxTail].senderID]].mID == inbox[inboxTail].mID) // This means that we successfully acknowledged a message
     {
        // if inbox is ack for outbox
        updateStateModel(inbox[inboxTail].senderID); // process ack for the cube 
        outbox[inbox[inboxTail].senderID][outboxTail[inbox[inboxTail].senderID]].mID = 0; // clear outbox entry
        advanceOutboxTail(inbox[inboxTail].senderID); // move on to next outbox slot
+       Serial.print("senderID: ");
+       Serial.println(inbox[inboxTail].senderID);
+       Serial.println("Clearing out Message");
     }
     else 
     {       
@@ -91,17 +97,17 @@ void updateBoxes()
         // set the next deadline using exponential backoff,
         outbox[cubeID][outboxTail[cubeID]].backoff++;
         // and increment the counter to reflect the number of tries.
-        Serial.print(" Just Processed outbox for Cube # :");
+        Serial.print(" Just Processed outbox for Cube #:");
         Serial.println(cubeID);
-        Serial.println("mID ");
+        Serial.print("mID: ");
         Serial.println(String(outbox[cubeID][outboxTail[cubeID]].mID));
-        Serial.println("cmd ");
+        Serial.print("cmd: ");
         Serial.println(String(outbox[cubeID][outboxTail[cubeID]].cmd));
-        Serial.println("backoff ");
+        Serial.print("backoff: ");
         Serial.println(String(outbox[cubeID][outboxTail[cubeID]].backoff));
-        Serial.println("mDeadline ");
+        Serial.print("mDeadline: ");
         Serial.println(String(outbox[cubeID][outboxTail[cubeID]].mDeadline));
-        Serial.println("senderID ");
+        Serial.print("senderID: ");
         Serial.println(String(outbox[cubeID][outboxTail[cubeID]].senderID));
       }
     }
@@ -179,25 +185,42 @@ String generateMessageText(String cmd, uint32_t mID)
 void pushBlinkMessage(int cubeID)
 {
   pushMessage(cubeID, "b");
+  Serial.println("Pushing Blink Message to: ");
+  Serial.println(cubeID);
 }
 
 void pushForwardMessage(int cubeID)
 {
   pushMessage(cubeID, "f");
+  Serial.println("Pushing Forward Message to: ");
+  Serial.println(cubeID);
 }
 
 void pushReverseMessage(int cubeID)
 {
   pushMessage(cubeID, "r");
+  Serial.println("Pushing Reverse Message to: ");
+  Serial.println(cubeID);
+}
+
+void pushSleepMessage(int cubeID)
+{
+  pushMessage(cubeID, "s");
+  Serial.println("Pushing Sleep Message to: ");
+  Serial.println(cubeID);
 }
 
 void pushStatusMessage(int cubeID)
 {
   pushMessage(cubeID, "q");
+  Serial.println("Pushing Status Message to: ");
+  Serial.println(cubeID);
 }
 
 void pushMessage(int cubeID, String command)
 {
+  if (getAddressFromCubeID(cubeID) == 0)
+    return;
   if (outboxIsFull(cubeID))
     return;
   outbox[cubeID][outboxHead[cubeID]].mID = advanceLfsr();
