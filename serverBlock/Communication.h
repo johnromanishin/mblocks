@@ -62,6 +62,7 @@ bool outboxIsFull(int cubeID);
 void advanceInboxHead();
 void advanceInboxTail();
 bool inboxIsFull();
+bool inboxIsEmpty();
 
 void initializeOutboxes();
 

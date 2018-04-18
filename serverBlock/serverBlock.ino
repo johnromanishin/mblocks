@@ -14,7 +14,6 @@
 #include <VL6180X.h>
 
 // Header Files
-char storage[512]; // This creates storage space for decoding serial messages
 //extern inboxEntry inbox;
 //extern outboxEntry outbox[2];
 
@@ -44,7 +43,7 @@ void interactWithRangeSensor()
   else if (rangeValue > 100 && rangeValue < 200)
   {
     pushStatusMessage(TESTCUBE_ID);
-    wifiDelay(500);
+    wifiDelay(300);
   }
 }
 
@@ -65,32 +64,37 @@ void setup()
 
 }
 bool lineOfThree = false;
-bool foundFlag;
+int foundFlag;
 void loop()
 {
   updateBoxes(); // checks messages from the WiFi Message queue
   interactWithRangeSensor(); // checks the range value to send messages based on user input
-  wifiDelay(10);
+  wifiDelay(5);
 
-  foundFlag = false;
+  foundFlag = 0;
   for (int face = 1; face < 5; face <<= 1)
   {
-    if ( (cubesState[face] != 0) && (cubesState[oppositeFace(face)] != 0) )
+    if ( (cubesState[TESTCUBE_ID][face] != 0) && (cubesState[TESTCUBE_ID][oppositeFace(face)] != 0) )
     {
-      foundFlag = true;
+      foundFlag = face;
     }
   }
-  if (foundFlag == true)
+
+  if (foundFlag != 0)
   {
     if (lineOfThree == false)
     {
       lineOfThree = true;
       pushReverseMessage(TESTCUBE_ID);
+      pushReverseMessage(cubesState[TESTCUBE_ID][foundFlag]/100);
+      pushReverseMessage(cubesState[TESTCUBE_ID][oppositeFace(foundFlag)]/100);
+
     }
   }
   else if (lineOfThree == true)
   {
     lineOfThree = false;
-    pushForwardMessage(TESTCUBE_ID);
+    pushBlinkMessage(-1);
   }
+
 }

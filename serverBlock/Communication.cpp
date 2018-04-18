@@ -32,8 +32,8 @@ int inboxTail = 0; // The oldest message in the buffer... first one to process
     outbox[5][outboxTail[5]...
 */
 outboxEntry outbox[NUM_CUBES][OUTBOX_SIZE] ; // 2D Array of OutboxEntry Instances
-int outboxHead[NUM_CUBES] = {}; 
-int outboxTail[NUM_CUBES] = {}; 
+int outboxHead[NUM_CUBES] = {};
+int outboxTail[NUM_CUBES] = {};
 
 
 /**
@@ -44,36 +44,32 @@ int outboxTail[NUM_CUBES] = {};
 */
 
 
-void initializeOutboxes() 
 /*
  * This function loops over all of the inboxes and 
  * sets the mID for the head to be zero.
  */
+void initializeOutboxes() 
 {
-  for(int cube = 0; cube < NUM_CUBES; cube++)
-  {
-      outbox[cube][outboxHead[cube]].mID=0;
-  }
+  mesh.update();
 }
 
-void updateBoxes()
 /*
    This function checks the inbox to see if it is an ack for a message currently in the outbox.
    If so, it clears both the inbox and the outbox.
    If not, or if no message is in the inbox, it checks to see if the outbox message needs to be resent 
    (and does so if needed).
 */
+void updateBoxes()
 {
   // Clear out the inbox
-  if (inbox[inboxTail].mID != 0) // This means there is something in the inbox
+  while (!inboxIsEmpty) // This means there is something in the inbox
   {
-    int cubeIDforCurrentMessage = inbox[inboxTail].senderID;
-    if (outbox[cubeIDforCurrentMessage][outboxTail[cubeIDforCurrentMessage]].mID == inbox[inboxTail].mID) // This means that we successfully acknowledged a message
+    if (outbox[inbox[inboxTail].senderID][outboxTail[inbox[inboxTail].senderID]].mID == inbox[inboxTail].mID) // This means that we successfully acknowledged a message
     {
        // if inbox is ack for outbox
-       updateStateModel(cubeIDforCurrentMessage); // process ack for the cube 
-       outbox[cubeIDforCurrentMessage][outboxTail[cubeIDforCurrentMessage]].mID = 0; // clear outbox entry
-       advanceOutboxTail(cubeIDforCurrentMessage); // move on to next outbox slot
+       updateStateModel(inbox[inboxTail].senderID); // process ack for the cube 
+       outbox[inbox[inboxTail].senderID][outboxTail[inbox[inboxTail].senderID]].mID = 0; // clear outbox entry
+       advanceOutboxTail(inbox[inboxTail].senderID); // move on to next outbox slot
     }
     else 
     {       
@@ -82,7 +78,8 @@ void updateBoxes()
     inbox[inboxTail].mID = 0; // clear inbox
     advanceInboxTail();
   }
-  for(int cubeID = 0; cubeID < NUM_CUBES; cubeID++) // loop over all cubes, send messages when ready...
+  mesh.update();
+  for(int cubeID = 0; cubeID < NUM_CUBES; cubeID++) // loop over all cubes, send outbox messages if the time has come...
   {
     if (outbox[cubeID][outboxTail[cubeID]].mID != 0) // for the outbox queues with messages in them...
     { 
@@ -90,8 +87,7 @@ void updateBoxes()
       {
         //generate message
         sendMessage(cubeID, generateMessageText(outbox[cubeID][outboxTail[cubeID]].cmd, outbox[cubeID][outboxTail[cubeID]].mID)); // send it...
-        outbox[cubeID][outboxTail[cubeID]].mDeadline = millis() + 
-        random((1UL << outbox[cubeID][outboxTail[cubeID]].backoff) * AVERAGE_FIRST_DELAY_MS * 2);
+        outbox[cubeID][outboxTail[cubeID]].mDeadline = millis() + random((1UL << outbox[cubeID][outboxTail[cubeID]].backoff) * AVERAGE_FIRST_DELAY_MS * 2);
         // set the next deadline using exponential backoff,
         outbox[cubeID][outboxTail[cubeID]].backoff++;
         // and increment the counter to reflect the number of tries.
@@ -120,16 +116,16 @@ void receivedCallback(uint32_t from, String & stringMsg)
  * list of messages to be processed by inboxbuffer
  */
 {
-  Serial.print("Received message from: ");
+  Serial.print("Received message from ");
   Serial.println(from);
-  Serial.print("Message Contents: ");
+  Serial.println("Message Contents:");
   Serial.println(stringMsg);
   // if Inbox is full...
   // Use bool inboxIsFull()
 
   if (inbox[inboxHead].mID == 0) //if there is space in the inbox circular buffer
   {
-    StaticJsonBuffer<512> jsonMsgBuffer; // allocate memory for json
+    StaticJsonBuffer<256> jsonMsgBuffer; // allocate memory for json
     JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg); // parse message
     inbox[inboxHead].bottomFace = jsonMsg["bFace"];
     inbox[inboxHead].mID = jsonMsg["mID"];
@@ -141,6 +137,7 @@ void receivedCallback(uint32_t from, String & stringMsg)
     inbox[inboxHead].faceStates[3] = jsonMsg["f3"];
     inbox[inboxHead].faceStates[4] = jsonMsg["f4"];
     inbox[inboxHead].faceStates[5] = jsonMsg["f5"];
+    advanceInboxHead();
   }
 }
 
@@ -212,47 +209,44 @@ void pushMessage(int cubeID, String command)
 }
 
 // Outbox circular buffer functions
-void advanceOutboxHead(int cubeID){
+void advanceOutboxHead(int cubeID)
+{
   outboxHead[cubeID]++;
   if (outboxHead[cubeID] == OUTBOX_SIZE) outboxHead[cubeID] = 0;
 }
 
-void advanceOutboxTail(int cubeID){
+void advanceOutboxTail(int cubeID)
+{
   outboxTail[cubeID]++;
   if (outboxTail[cubeID] == OUTBOX_SIZE) outboxTail[cubeID] = 0;
 }
 
-bool outboxIsFull(int cubeID){
-  if (outboxHead[cubeID] == outboxTail[cubeID]){
-    if (outbox[cubeID][outboxHead[cubeID]].mID == 0) 
-      return false;
-    else 
-      return true;
-  }
-  return false;
+bool outboxIsFull(int cubeID)
+{
+  return outbox[cubeID][outboxHead[cubeID]].mID != 0;
 }
 
 // Inbox circular buffer functions
-void advanceInboxHead(){
+void advanceInboxHead()
+{
   inboxHead++;
   if (inboxHead == NUM_CUBES) inboxHead = 0;
 }
 
-void advanceInboxTail(){
+void advanceInboxTail()
+{
   inboxTail++;
   if (inboxTail == NUM_CUBES) inboxTail = 0;
 }
 
 bool inboxIsFull()
 {
-  if (inboxHead == inboxTail)
-  {
-    if (inbox[inboxHead].mID == 0) 
-      return false;
-    else 
-      return true;
-  }
-  return false;
+  return inbox[inboxHead].mID != 0;
+}
+
+bool inboxIsEmpty()
+{
+  return (inbox[inboxTail].mID == 0);
 }
 
 // Cube Data Object
