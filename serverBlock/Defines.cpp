@@ -10,41 +10,41 @@ uint32_t getAddressFromCubeID(int CubeID)
     default:
       return (0);
     case 99:                   //  ESP WIFI  885790061 || Server
-      return (885790061);
+      return (wifiAddress_SERVER);
     case 0:                  //  ESP WIFI 2133796284 ||  Test Mblock
-      return (2133796284);
+      return (wifiAddress_cube00);
     case 1:
-      break;
+      return (wifiAddress_cube01);
     case 2:
-      break;
+      return (wifiAddress_cube02);
     case 3:
-      break;
+      return (wifiAddress_cube03);
     case 4:
-      break;
+      return (wifiAddress_cube04);
     case 5:                   //  960427 PEI RED  D0:D5:6F:CB:32:4C
-      return (2131666859);
+      return (wifiAddress_cube05);
     case 6:
-      break;
+      return (wifiAddress_cube06);
     case 7:
-      break;
+      return (wifiAddress_cube07);
     case 8:
-      break;
+      return (wifiAddress_cube08);
     case 9:
-      break;
+      return (wifiAddress_cube09);
     case 10:
-      break;
+      return (wifiAddress_cube10);
     case 11:
-      break;
+      return (wifiAddress_cube11);
     case 12:
-      break;
+      return (wifiAddress_cube12);
     case 13:
-      break;
+      return (wifiAddress_cube13);
     case 14:
-      break;
+      return (wifiAddress_cube14);
     case 15:
-      return(2131666780);
+      return (wifiAddress_cube15);
     case 16:
-      break;
+      return (wifiAddress_cube16);
   }
 }
 

@@ -102,5 +102,128 @@ void loop()
     lineOfThree = false;
     pushForwardMessage(TESTCUBE_ID);
   }
-
 }
+
+/////////// NOTES////
+//bool Cube::isPlaneInPlaneOfFaces(int face1, int face2)
+///*
+// * 
+// */
+//{
+//  bool result = false;
+//  if((face1 > -1) && (face1 < 6))
+//  {
+//    if((face2 > -1) && (face2 < 6))
+//    {
+//      if(this->currentPlaneBuffer.access(0) == returnPlane(face1, face2))
+//      {
+//        result = true;
+//      }
+//    }
+//  }
+//  return(result);
+//}
+//
+//bool Cube::goToPlaneIncludingFaces(int face1, int face2)
+///*
+// * 
+// */
+//{
+//  bool result = false;
+//  if((face1 > -1) && (face1 < 6))
+//  {
+//    if((face2 > -1) && (face2 < 6))
+//    {
+//      result = this->setCorePlaneSimple(returnPlane(face1, face2));
+//    }
+//  }
+//  return(result);
+//}
+//
+//bool Cube::isPlaneParallel(int faceExclude)
+///*
+// * 
+// */
+//{
+//  bool result = false;
+//  if((faceExclude == 4 )|| (faceExclude == 5))
+//  {
+//    if(this->currentPlaneBuffer.access(0) == PLANE0123)
+//      result = true;
+//  }
+//  else if((faceExclude == 1) ||( faceExclude == 3))
+//  {
+//    if(this->currentPlaneBuffer.access(0) == PLANE0425)
+//      result = true;
+//  }
+//  else if((faceExclude == 0) || (faceExclude == 2))
+//  {
+//    if(this->currentPlaneBuffer.access(0) == PLANE1453)
+//      result = true;
+//  }
+//return(result);
+//}
+
+//int Cube::whichFaceHasNeighbor(int index)
+///*
+// * This is designed to return the face number for each face connection...
+// * it works like this, you say
+// * whichFaceHasNeighbor(0) // or default - and it returns the first face, counting from 0
+// * that has a neighbor connected.
+// * 
+// * whichFaceHasNeighbor(1) will return the next connected face...
+// * 
+// * So if the cube has neighbors on faces, 2, 4, and 5,
+// * this SHOULD be the result...
+// * 
+// * whichFaceHasNeighbor(0) -> 2
+// * whichFaceHasNeighbor(1) -> 4
+// * whichFaceHasNeighbor(2) -> 5
+// * whichFaceHasNeighbor(3) -> -1 -- no faces...
+// * 
+// * Yeah I am sure there is a fancier way to do this...
+// * but I don't want to think about it right at this moment.
+// */
+//{
+//  int facesNeighbors[6] = {-1, -1, -1, -1, -1, -1}; 
+//  
+//  int facesCount = 0;
+//  for(int face = 0; face < 6; face++)
+//  {
+//    if((this->faces[face].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) ||
+//       (this->faces[face].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE))
+//    {
+//      facesCount++;
+//      if(facesCount > 0)
+//        facesNeighbors[facesCount-1] = face;
+//    }
+//  }
+//return(facesNeighbors[index]);
+//}
+//int Cube::numberOfNeighbors(int index, bool doIlightFace)
+///*
+// * This function returns an integer number corresponding to how many 
+// * neighbors that it thinks that it has.
+// * 
+// * if doIlightFace is TRUE, it will light up each face that it thinks that it has a neighbor on
+// */
+//{
+//  int neighbors = 0; // initialize a empty integer
+//  for(int face = 0; face < 6; face++)
+//    {
+//    if((this->faces[face].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) ||
+//       (this->faces[face].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE))
+//    {
+//      neighbors++;
+//      if(doIlightFace) 
+//      {
+//        this->lightFace(face,&green);
+//        wifiDelay(200);
+//      }
+//    }
+//  }
+//return(neighbors);
+//}
+
+
+

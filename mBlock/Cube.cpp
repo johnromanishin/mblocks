@@ -1205,7 +1205,7 @@ int oppositeFace(int face)
   else{return(-1);}
 }
 
-void Cube::updateCubeID(int idNUM, long wifiAddress)
+void Cube::updateCubeID(int idNUM, uint32_t wifiAddress)
 {
   this->cubeID = idNUM;
   this->cubeWifiAddress = wifiAddress;
@@ -1213,10 +1213,10 @@ void Cube::updateCubeID(int idNUM, long wifiAddress)
   Serial.println(this->cubeID);
   Serial.print("and my wifiAddress is: ");
   Serial.println(this->cubeWifiAddress);
-  if(thisCubeID == 0) // stationary cube
+  if((thisCubeID == 0) || (thisCubeID == 99)) // stationary cube
   {
-    Serial.print("Printing Debugging Information");
-    //MAGIC_DEBUG = 1;
+    Serial.print("Printing Debugging Information Becuase I am not a real cube");
+    MAGIC_DEBUG = 1;
   }
 }
 
