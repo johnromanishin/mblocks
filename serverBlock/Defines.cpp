@@ -9,9 +9,9 @@ uint32_t getAddressFromCubeID(int CubeID)
   switch (CubeID) { // used to be ESP.getChipID
     default:
       return (0);
-    case 99:                   //  ESP WIFI  885790061 || Server
+    case 99:                      //  ESP WIFI  885790061 || Server
       return (wifiAddress_SERVER);
-    case 0:                  //  ESP WIFI 2133796284 ||  Test Mblock
+    case 0:                       //  ESP WIFI 2133796284 ||  Test Mblock
       return (wifiAddress_cube00);
     case 1:
       return (wifiAddress_cube01);
@@ -21,7 +21,7 @@ uint32_t getAddressFromCubeID(int CubeID)
       return (wifiAddress_cube03);
     case 4:
       return (wifiAddress_cube04);
-    case 5:                   //  960427 PEI RED  D0:D5:6F:CB:32:4C
+    case 5:                       //  960427 PEI RED  D0:D5:6F:CB:32:4C
       return (wifiAddress_cube05);
     case 6:
       return (wifiAddress_cube06);
@@ -49,6 +49,13 @@ uint32_t getAddressFromCubeID(int CubeID)
 }
 
 bool areFacesOpposite(int face1, int face2)
+/*
+ * This function takes two integers, and returns true if they are
+ * any of the following pairs, 
+ * (0,2), or (2,0)
+ * (1,3), or (3,1)
+ * (4,5), or (5,4)
+ */
 {
   if(face1 == oppositeFace(face2))
     return(true);

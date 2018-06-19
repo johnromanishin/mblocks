@@ -54,6 +54,7 @@ void interactWithRangeSensor()
   {
     pushBlinkMessage(15);
     pushBlinkMessage(4);
+    pushBlinkMessage(TESTCUBE_ID);
     wifiDelay(300);
   }
 }
@@ -72,10 +73,11 @@ void setup()
   wifiDelay(1000);
 
   testOutboxes();
-
 }
+
 bool lineOfThree = false;
 int foundFlag;
+
 void loop()
 {
   updateBoxes(); // checks messages from the WiFi Message queue
