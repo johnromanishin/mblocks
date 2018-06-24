@@ -29,25 +29,12 @@ int inboxTail = 0; // The oldest message in the buffer... first one to process
    In the outbox, we need to keep track of each message that we are transmitting
    We represent the outbox as a 2D array of outboxEntry Objects.
    To access the current message for cube with ID # 4, we would access it with:
-    outbox[5][outboxTail[5]...
+      outbox[5][outboxTail[5]...
 */
 outboxEntry outbox[NUM_CUBES][OUTBOX_SIZE] ; // 2D Array of OutboxEntry Instances
 int outboxHead[NUM_CUBES] = {};
 int outboxTail[NUM_CUBES] = {};
 
-
-/**
-   This function looks through newly-recieved messages, and prunes waiting
-   messages in the outbox, sending them if appropriate.
-
-   It also updates the state of the cube data model
-*/
-
-
-/*
- * This function loops over all of the inboxes and 
- * sets the mID for the head to be zero.
- */
 void initializeOutboxes() 
 {
   mesh.update();
@@ -217,6 +204,13 @@ void pushStatusMessage(int cubeID)
   Serial.println(cubeID);
 }
 
+void pushColorMessage(int cubeID, char Color)
+{
+  //pushMessage(cubeID, char(Color));
+  Serial.println("Pushing Color Message to: ");
+  Serial.println(cubeID);
+}
+
 void pushMessage(int cubeID, String command)
 {
   if (getAddressFromCubeID(cubeID) == 0)
@@ -314,7 +308,7 @@ void initializeWifiMesh()
 
 bool sendMessage(int recipientID, String msg)
 {
-  Serial.println("sendMessage sending: ");
+  Serial.println("sending: ");
   Serial.println(msg);
   if (recipientID == -1)
   {

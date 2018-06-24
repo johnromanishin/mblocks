@@ -6,6 +6,10 @@
 
 uint32_t getAddressFromCubeID(int CubeID)
 {
+  /*
+   * This functions returns the Wifi Address (long) from the short digit ID number (1-16)
+   * The values are from a lookup table in defines.h
+   */
   switch (CubeID) { // used to be ESP.getChipID
     default:
       return (0);
@@ -49,6 +53,7 @@ uint32_t getAddressFromCubeID(int CubeID)
 }
 
 bool areFacesOpposite(int face1, int face2)
+
 /*
  * This function takes two integers, and returns true if they are
  * any of the following pairs, 

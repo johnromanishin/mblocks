@@ -6,6 +6,7 @@
 #include <ArduinoJson.h>
 #include "CBuff.h"
 #include "espconn.h"
+#include "ConfigurationModel.h"
 
 #define WINDOW_SIZE 1
 #define NUM_CUBES 17
@@ -55,6 +56,8 @@ void pushForwardMessage(int cubeID);
 void pushReverseMessage(int cubeID);
 void pushStatusMessage(int cubeID);
 void pushSleepMessage(int cubeID);
+void pushColorMessage(int cubeID, char Color);
+
 
 void advanceOutboxHead(int cubeID);
 void advanceOutboxTail(int cubeID);
@@ -70,4 +73,3 @@ void initializeOutboxes();
 void updateStateModel(int cubeID);
 
 #endif
-

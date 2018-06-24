@@ -18,6 +18,10 @@
 //extern outboxEntry outbox[2];
 
 void testOutboxes()
+/*
+ * This loads specific outboxes with specific message for testing and 
+ * debugging purposes
+ */
 {
   pushBlinkMessage(TESTCUBE_ID);
   pushBlinkMessage(15);
@@ -31,7 +35,7 @@ void interactWithRangeSensor()
   {
     //sendBroadcastMessage(createJsonStringFlood(-1, "sleep"));
     //Serial.println("Putting the cubes to sleep...");
-    wifiDelay(1000);
+    wifiDelay(500);
     rangeValue = readRangeSensor();
     if(rangeValue < 20)
     {
@@ -83,33 +87,38 @@ void loop()
   updateBoxes(); // checks messages from the WiFi Message queue
   interactWithRangeSensor(); // checks the range value to send messages based on user input
   wifiDelay(5);
-
-  foundFlag = 0;
-  for (int face = 1; face < 5; face <<= 1)
-  {
-    if ( (cubesState[TESTCUBE_ID][face] != 0) && (cubesState[TESTCUBE_ID][oppositeFace(face)] != 0) )
-    {
-      foundFlag = face;
-    }
-  }
-
-  if (foundFlag != 0)
-  {
-    if (lineOfThree == false)
-    {
-      lineOfThree = true;
-      pushReverseMessage(TESTCUBE_ID);
-
-    }
-  }
-  else if (lineOfThree == true)
-  {
-    lineOfThree = false;
-    pushForwardMessage(TESTCUBE_ID);
-  }
 }
 
 /////////// NOTES////
+
+
+// Old version of finding if cubes are in a line...
+
+//  foundFlag = 0;
+//  for (int face = 1; face < 5; face <<= 1)
+//  {
+//    if ( (cubesState[TESTCUBE_ID][face] != 0) && (cubesState[TESTCUBE_ID][oppositeFace(face)] != 0) )
+//    {
+//      foundFlag = face;
+//    }
+//  }
+//
+//  if (foundFlag != 0)
+//  {
+//    if (lineOfThree == false)
+//    {
+//      lineOfThree = true;
+//      pushReverseMessage(TESTCUBE_ID);
+//
+//    }
+//  }
+//  else if (lineOfThree == true)
+//  {
+//    lineOfThree = false;
+//    pushForwardMessage(TESTCUBE_ID);
+//  }
+
+  
 //bool Cube::isPlaneInPlaneOfFaces(int face1, int face2)
 ///*
 // * 
