@@ -6,15 +6,51 @@
 #include "Communication.h"      // Includes wifi
 #include "Defines.h"
 
+
 //=============================================================================================
-//=============================WIFI Checking  CHECKING=========================================
-//======================================
-//=======================================================
+//=============================================================================================
+//=============================================================================================
+//=============================BASIC STATE MACHINE UPKEEP======================================
+//=============================================================================================
+//=============================================================================================
+//=============================================================================================
+
+Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
+{
+  c->update(); // actually read all of the sensors
+  Behavior newBehavior = checkForWifiCommands(c, inputBehavior);
+  if (MAGIC_DEBUG) {
+    Serial.print("nextBehavior is... ");
+    Serial.println(behaviorsToCmd(newBehavior));
+  }
+  int numberOfNeighborz = checkForMagneticTagsStandard(c);
+  if (MAGIC_DEBUG) {
+    Serial.print("nextBehavior is... ");
+    Serial.println(behaviorsToCmd(newBehavior));
+  }
+  if (Game == "lightSeek")
+  {
+    return(LightTrackingStateMachine(c, newBehavior));
+  }
+  else if (true)
+  {
+    wifiDelay(10);
+  }
+  return (newBehavior);
+}
+
+//=============================================================================================
+//=============================================================================================
+//=============================================================================================
+//=============================WIFI Checking CHECKING==========================================
+//=============================================================================================
+//=============================================================================================
+//=============================================================================================
 Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
 {
   if (MAGIC_DEBUG) Serial.println("CheckingForWifi Commands...");
   Behavior resultBehavior = currentBehavior;
-  if (!jsonCircularBuffer.empty()) // while there are still messages, and we haven't tried 5 times
+  if (!jsonCircularBuffer.empty()) // while there are still messages
   {
     StaticJsonBuffer<512> jb; // Create a buffer to store our Jason Objects...
     JsonObject& jsonMsg = jb.parseObject(jsonCircularBuffer.pop());
@@ -27,7 +63,6 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
           If it doesn't we default to the currentBehavior
       */
       //resultBehavior = cmdToBehaviors(receivedCMD, currentBehavior);
-
       //  If the command is an update request, nothing should happen, and an ack will be sent
       
 
@@ -85,12 +120,111 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
       {
         String receivedCMD = jsonMsg["cmd"];
         String senderID = jsonMsg["sID"];
-        String stringMsg = "Message from: " + senderID + " to: " + thisCubeID + " Command is: " + receivedCMD;// + " Command is: ";
+        String stringMsg = "Message from: " + senderID + " to: " + 
+        thisCubeID + " Command is: " + receivedCMD;// + " Command is: ";
         Serial.println(stringMsg);
       }
   }
   return (resultBehavior);
 }
+
+//=============================================================================================
+//=============================================================================================
+//=============================================================================================
+//=============================MAGNETIC TAGS CHECKING==========================================
+//=============================================================================================
+//=============================================================================================
+//=============================================================================================
+
+//bool returnNeighborPresence(int index);
+//int returnNeighborID(int index);
+//int returnNeighborAngle(int index);
+//int returnNeighborFace(int index);
+//TagType returnNeighborType(int index);
+//TagCommand returnNeighborCommand(int index);
+
+int checkForMagneticTagsStandard(Cube* c)
+/*
+   This function processes the 6 magnetic tags on all 6 faces...
+   It returns an integer corresponding to how many actual cube neighbors the cube has at that instant.
+   // Additional actions need to be performed immedediatly from the 
+   //
+   // For reasons which are very difficult to explain this function also changes planes...
+*/
+
+  int neighbors = 0; // running count of how many actual cube neighbors we have...
+  if (MAGIC_DEBUG) {
+    Serial.println("Checking for MAGNETIC TAGS...");
+  }
+  for (int face = 0; face < 6; face++)
+  {
+    /* This gets activated if we are attached to an actual cube or passive cube
+       for at least two time steps...
+    */
+    if ((c->faces[face].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE) ||
+        (c->faces[face].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE))
+    {
+      neighbors++;
+      if (c->faces[face].returnNeighborAngle(0) > -1)
+      {
+        //c->lightFace(faceArrowPointsTo(face, c->faces[face].returnNeighborAngle(0)), &purple);
+        //wifiDelay(200);
+        //c->lightCube(&off);
+      }
+    }
+    /*
+     * This section changes the planes of the module, either if the global variable "magicvariable"
+     * is set to one... This is done this way becuase it crashes if it is done any other way. I have no
+     * idea why this is the behavior
+     */
+    if ((c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_PURPLE) ||
+        (magicVariable == 1))
+    {
+      int z = face;
+      if (magicVariable)
+      {
+        z = magicFace;
+        magicFace = 0;
+      }
+      magicVariable = 0;
+      c->goToPlaneParallel(z);
+    }
+    /*
+     * End plane changing section
+     */
+
+    /*
+     * This section checks for specific commaands, and does an action if that is appropriate
+     */
+    if (c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_SLEEP)
+      wifiDelay(100);
+      
+    else if (c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_27)
+      wifiDelay(100); // Do Something?
+
+    else if (c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_19)
+      wifiDelay(100); // Do Something?
+
+    else if (c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_23)
+    {
+      c->shutDown();
+    }
+
+    else if (c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_13_ESPOFF)
+      c->shutDownESP();
+    /*
+     *  End Else/if tree for specific commands
+     */
+  }
+  return (neighbors);
+}
+
+//=============================================================================================
+//=============================================================================================
+//=============================================================================================
+//=============================================================================================
+//=============================================================================================
+
 
 //================================================================
 //==========================DEMO==============================
@@ -117,29 +251,7 @@ Behavior demo(Cube* c)
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
-Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
-{
-  c->update(); // actually read all of the sensors
-  Behavior newBehavior = checkForWifiCommands(c, inputBehavior);
-  if (MAGIC_DEBUG) {
-    Serial.print("nextBehavior is... ");
-    Serial.println(behaviorsToCmd(newBehavior));
-  }
-  int numberOfNeighborz = checkForMagneticTagsStandard(c);
-  if (MAGIC_DEBUG) {
-    Serial.print("nextBehavior is... ");
-    Serial.println(behaviorsToCmd(newBehavior));
-  }
-  if (Game == "lightSeek")
-  {
-    return (LightTrackingStateMachine(c, newBehavior));
-  }
-  else if (true)
-  {
-    wifiDelay(10);
-  }
-  return (newBehavior);
-}
+
 
 Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior)
 
@@ -222,7 +334,9 @@ Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior)
       newBehavior = MULTI_LIGHT_TRACK;
     }
     else if ((c->numberOfNeighbors(5, 0) == 2) &&
-             (c->numberOfNeighbors(0, 0) == 2)) // if we have been connected for a while to two cubes, and haven't seen the light... we BOUNCE... disconnect
+             (c->numberOfNeighbors(0, 0) == 2)) // if we have been connected for a while to two cubes, 
+             //and haven't seen the light
+             //... we BOUNCE... disconnect
     {
       if (MAGIC_DEBUG) {
         Serial.println(" SO IT HAS COME TO THIS.... PEACE OUT BROTHERS...");
@@ -283,7 +397,8 @@ Behavior followArrows(Cube* c) // purple
       if ((c->faces[i].returnNeighborAngle(0) > -1) && // If the same face shows valid angles
           (c->faces[i].returnNeighborAngle(1) > -1))// twice in a row...
       {
-        int otherFace = faceArrowPointsTo(i, c->faces[i].returnNeighborAngle(0)); // find out which direction the arrow points
+        int otherFace = faceArrowPointsTo(i, c->faces[i].returnNeighborAngle(0)); // find out which direction 
+        //the arrow points
         if (c->goToPlaneIncludingFaces(i, otherFace) == true) // then go to plane parallel to these two faces...
         {
           int CW_or_CCW = faceClockiness(otherFace, i);
@@ -320,7 +435,8 @@ Behavior Pre_Solo_Light(Cube* c)
   }
   long loopCounter = 0;
   Behavior nextBehavior = PRE_SOLO_LIGHT;
-  while (((nextBehavior == PRE_SOLO_LIGHT) || (nextBehavior == SOLO_LIGHT_TRACK)) && loopCounter < 3) // loop until something changes the next behavior
+  while (((nextBehavior == PRE_SOLO_LIGHT) || (nextBehavior == SOLO_LIGHT_TRACK)) && loopCounter < 3) // loop until 
+  //something changes the next behavior
   {
     nextBehavior = basicUpkeep(c, nextBehavior);
     wifiDelay(100);
@@ -408,7 +524,8 @@ Behavior soloSeekLight(Cube* c) // green
         // If we fail to move, we try to move plane parallel to ground
         // int attempts = 3;
         int topFace = c->returnTopFace();
-        if ((topFace > -1) && (topFace < FACES)) // if this is true we are on the ground... so we should try to change planes
+        if ((topFace > -1) && (topFace < FACES)) // if this is true we are on the ground... so we should try to 
+        //change planes
         {
           magicFace = topFace;
           magicVariable = 1; // this triggers a plane change later in the program...
@@ -565,6 +682,12 @@ Behavior attractive(Cube* c)
   return (nextBehavior);
 }
 
+/*----------------------------------------------------------------------------------------------
+ *---------------------------------------------------------------------------------------------- 
+ *---------------------------------DUO SEEK LIGHT----------------------------------------
+ *----------------------------------------------------------------------------------------------
+ *----------------------------------------------------------------------------------------------
+ */
 Behavior duoSeekLight(Cube* c)
 /*
    This tries to drive two robots together towards a light source
@@ -588,7 +711,8 @@ Behavior duoSeekLight(Cube* c)
   // perform basic upkeep... this involves updating sensors...
   nextBehavior = basicUpkeep(c, nextBehavior);
 
-  if (c->returnForwardFace() == -1) // we try to nudge ourself into the correct orientation in the case that we are wrong...
+  if (c->returnForwardFace() == -1) // we try to nudge ourself into the correct orientation in the 
+  //case that we are wrong...
   {
     for (int i = 0; i++; i < 2)
     {
@@ -671,7 +795,8 @@ Behavior duoSeekLight(Cube* c)
       */
       if (failedMoveCounter > 2)
       {
-        if ((c->returnTopFace(0) > -1) && (c->returnTopFace(0) < FACES) && (c->returnForwardFace() != -1)) // if this is true we are on the ground... so we should try to change planes
+        if ((c->returnTopFace(0) > -1) && (c->returnTopFace(0) < FACES) && (c->returnForwardFace() != -1))
+        // if this is true we are on the ground... so we should try to change planes
         {
           magicFace = c->returnTopFace();
           magicVariable = 1; // this triggers a plane change later in the program...
@@ -714,6 +839,12 @@ Behavior duoSeekLight(Cube* c)
   return (nextBehavior);
 }
 
+/*----------------------------------------------------------------------------------------------
+ *---------------------------------------------------------------------------------------------- 
+ *---------------------------------MULTI SEEK LIGHT----------------------------------------
+ *----------------------------------------------------------------------------------------------
+ *----------------------------------------------------------------------------------------------
+ */
 Behavior multiSeekLight(Cube* c)
 {
   // General Starting things... initialize flags, etc...
@@ -740,7 +871,7 @@ Behavior multiSeekLight(Cube* c)
   {
     if (correctPlane == false)
     {
-      if (c->isPlaneParallel(connectedFace1) == true) // if our plane is alligned with the direction we want to move...
+      if (c->isPlaneParallel(connectedFace1) == true) // if our plane is alligned with the direction we want to move
       {
         correctPlane = true;
       }
@@ -778,7 +909,8 @@ Behavior multiSeekLight(Cube* c)
       */
       if (failedMoveCounter > 2)
       {
-        if ((c->returnTopFace(0) > -1) && (c->returnTopFace(0) < FACES) && (c->returnForwardFace() != -1)) // if this is true we are on the ground... so we should try to change planes
+        if ((c->returnTopFace(0) > -1) && (c->returnTopFace(0) < FACES) && (c->returnForwardFace() != -1)) // if 
+        //this is true we are on the ground... so we should try to change planes
         {
           magicFace = c->returnTopFace();
           magicVariable = 1; // this triggers a plane change later in the program...
@@ -821,76 +953,8 @@ Behavior multiSeekLight(Cube* c)
   return (nextBehavior);
 }
 
-//=============================================================================================
-//=============================MAGNETIC TAGS CHECKING==========================================
-//=============================================================================================
-//bool returnNeighborPresence(int index);
-//int returnNeighborID(int index);
-//int returnNeighborAngle(int index);
-//int returnNeighborFace(int index);
-//TagType returnNeighborType(int index);
-//TagCommand returnNeighborCommand(int index);
 
-int checkForMagneticTagsStandard(Cube* c)
-/*
-   This function processes the 6 magnetic tags on all 6 faces...
-*/
-{
-  int neighbors = 0; // running count of how many actual cube neighbors we have...
-  if (MAGIC_DEBUG) {
-    Serial.println("Checking for MAGNETIC TAGS...");
-  }
-  for (int face = 0; face < 6; face++)
-  {
-    /* This gets activated if we are attached to an actual cube or passive cube
-       for at least two time steps...
-    */
-    if ((c->faces[face].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE) ||
-        (c->faces[face].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE))
-    {
-      neighbors++;
-      if (c->faces[face].returnNeighborAngle(0) > -1)
-      {
-        //c->lightFace(faceArrowPointsTo(face, c->faces[face].returnNeighborAngle(0)), &purple);
-        //wifiDelay(200);
-        //c->lightCube(&off);
-      }
-    }
 
-    /* The following is the behavior we want to trigger if we see a specific
-       tag.*/
-    if (c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_SLEEP)
-      wifiDelay(100);
-
-    if ((c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_PURPLE) ||
-        (magicVariable == 1))
-    {
-      int z = face;
-      if (magicVariable)
-      {
-        z = magicFace;
-        magicFace = 0;
-      }
-      magicVariable = 0;
-      c->goToPlaneParallel(z);
-    }
-
-    if (c->faces[face].returnNeighborCommand(0)      == TAGCOMMAND_27)
-      wifiDelay(100);
-
-    else if (c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_19)
-      wifiDelay(100);
-
-    else if (c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_23)
-    {
-      c->shutDown();
-    }
-
-    else if (c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_13_ESPOFF)
-      c->shutDownESP();
-  }
-  return (neighbors);
-}
 
 /*********************************************************
     Everything involving adding/removing behaviors is here...
@@ -958,39 +1022,51 @@ String behaviorsToCmd(Behavior inputBehavior)
      If the string doesn't match, it returns an empty string.
 */
 {
-  if (inputBehavior == SOLO_LIGHT_TRACK)      {
+  if (inputBehavior == SOLO_LIGHT_TRACK)
+  {
     return ("solo_light_track");
   }
-  else if (inputBehavior == DUO_LIGHT_TRACK)       {
+  else if (inputBehavior == DUO_LIGHT_TRACK)        
+  {
     return ("duo_light_track");
   }
-  else if (inputBehavior == FOLLOW_ARROWS)         {
+  else if (inputBehavior == FOLLOW_ARROWS)          
+  {
     return ("follow_arrows");
   }
-  else if (inputBehavior == CHILLING)              {
+  else if (inputBehavior == CHILLING)               
+  {
     return ("chilling");
   }
-  else if (inputBehavior == CLIMB)                 {
+  else if (inputBehavior == CLIMB)                  
+  {
     return ("climb");
   }
-  else if (inputBehavior == DEMO)                  {
+  else if (inputBehavior == DEMO)                   
+  {
     return ("demo");
   }
-  else if (inputBehavior == ATTRACTIVE)            {
+  else if (inputBehavior == ATTRACTIVE)            
+  {
     return ("attractive");
   }
-  else if (inputBehavior == SHUT_DOWN)             {
+  else if (inputBehavior == SHUT_DOWN)             
+  {
     return ("shut_down");
   }
-  else if (inputBehavior == SLEEP)                 {
+  else if (inputBehavior == SLEEP)                 
+  {
     return ("sleep");
   }
-  else if (inputBehavior == MULTI_LIGHT_TRACK)     {
+  else if (inputBehavior == MULTI_LIGHT_TRACK)     
+  {
     return ("multi_light_track");
   }
-  else if (inputBehavior == PRE_SOLO_LIGHT)        {
+  else if (inputBehavior == PRE_SOLO_LIGHT)        
+  {
     return ("pre_solo_light");
   }
+  // Nothing returned, so we return empty string
   return ("");
 }
 

@@ -58,15 +58,16 @@ uint32_t initializeWifiMesh()
 #define messageDebug 1
 void receivedCallback(uint32_t from, String & stringMsg)
 {
-   Serial.print("Message Received from: ");
-   Serial.println(from);
-   Serial.print("Message Contents: ");
-   Serial.println(stringMsg);
-
+  if(messageDebug)
+  {
+    Serial.print("Message Received from: ");
+    Serial.println(from);
+    Serial.print("Message Contents: ");
+    Serial.println(stringMsg);
+  }
 
   // Check and see if this message is a dupe by "manually" extracting the message
   // id field.
-  
   
   //check to see if it's new, if so, do something with it
   StaticJsonBuffer<256> jsonMsgBuffer;
