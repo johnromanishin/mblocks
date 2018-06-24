@@ -106,7 +106,8 @@ class Face
     
       // Circular Buffers for Magnetic Tag Variables
     CircularBuffer<TagType>     neighborTypeBuffer;     // This stores the type of the tag on this face
-    CircularBuffer<TagCommand>  neighborCommandBuffer;  // this stores the "command" associated with the tag... if any.
+    CircularBuffer<TagCommand>  neighborCommandBuffer;  // this stores the "command" associated 
+    //with the tag... if any.
     CircularBuffer<int>         neighborIDBuffer;       
     CircularBuffer<int>         neighborFaceBuffer;
     CircularBuffer<int>         neighborAngleBuffer;
@@ -117,9 +118,9 @@ class Face
       // Constructors
     Face();   
     Face(int expanderAddress);
-//*******************************************************************************************************************
+//**************************************************************************************************************
     bool updateFace(); // Enables sensors, Updates ambient values, updates magnetic sensors, neighbors...
-//*******************************************************************************************************************
+//**************************************************************************************************************
 
       // Public Variables
     const int r_0 = 13; // Pins on PCF7585 IO expander on each face.
@@ -187,6 +188,7 @@ int readMagnetSensorAngle(int i2cAddress);
 int readMagnetSensorFieldStrength(int i2cAddress);
 int magnetSensorRead(int i2cAddress, byte dataRegisterAddress);
 void analyzeTag(int angle1, int agc1, int angle2, int agc2, Tag*);
-int returnFaceNumber(int magDigit); // gives the value of the face given magnetic Digits... converts from 0-30 to 
+int returnFaceNumber(int magDigit); // gives the value of the face given magnetic Digits... 
+//converts from 0-30 to 
 
 #endif

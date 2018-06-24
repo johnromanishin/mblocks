@@ -24,8 +24,9 @@ class Cube
       // i2c Addresses
     const int frameIMUaddress = 0x69;
     const int coreIMUaddress  = 0x68;
-    const int faceExpanderAddresses[6] = {0x20, 0x21, 0x22, 0x23, 0x24, 0x25};  // these are the hardcoded I2C addresses for 
-                                                                                // each of the processors in the face boards
+    const int faceExpanderAddresses[6] = {0x20, 0x21, 0x22, 0x23, 0x24, 0x25};  
+    // these are the hardcoded I2C addresses for 
+    // each of the processors in the face boards
 
       // Data storage spaces
 
@@ -58,12 +59,16 @@ class Cube
     int cubeID = 0; // this is the shortened ID number (1-16) of the cubes that have been built
 
     // Functions
-    void updateCubeID(int idNUM, uint32_t wifiAddress); // this uses a lookup table to populate the cubeID based on a table of mac addresses in defines.h file
+    void updateCubeID(int idNUM, uint32_t wifiAddress); // this uses a lookup table to 
+    //populate the cubeID based on a 
+    //table of mac addresses in defines.h file
     void disconnectI2C(); // turns off the I2C Bus
     void reconnectI2C();  // turns the I2C bus back on
     void resetI2C();      // does (disconnect) and the (connect) of the i2C
-    void blinkParasiteLED(int blinkTime = 100); // blinks the tiny LED attached to the "parasite" board - difficult to see from outside
-    int wifiDelayWithMotionDetection(int delayTime); // This function returns the accumulated sum of the gyros while waiting
+    void blinkParasiteLED(int blinkTime = 100); // blinks the tiny LED attached to the "parasite" board 
+    //- difficult to see from outside
+    int wifiDelayWithMotionDetection(int delayTime); // This function returns the accumulated 
+    //sum of the gyros while waiting
     int shutDownTime = (60000*10); // time until board goes to sleep with the units in milliseconds
 
       // Update Functions involving SENSORS
@@ -71,17 +76,23 @@ class Cube
     bool update(); // Updates almost everything on the cube...
 //*******************************************************************
     int numberOfNeighbors(int index = 0, bool lightFace = false);
-    int numberOfNeighborsCheckNow(); //quickly checks the magnetic field sensors to see if there are any neighbors
-    int whichFaceHasNeighbor(int index = 0); // returns the face number for the first neighboring face that it finds
+    
+    int numberOfNeighborsCheckNow(); 
+    //quickly checks the magnetic field sensors to see if there are any neighbors
+    
+    int whichFaceHasNeighbor(int index = 0); 
+    // returns the face number for the first neighboring face that it finds
     
     bool updateBothIMUs(); // updates BOTH IMU's
     bool updateFrameIMU(); // only update the Frame IMU
     bool updateCoreIMU();  // only update the Core IMU
     bool wakeIMU(int i2cAddress); // turns the IMU on
     
-    int returnXthBrightestFace(int index, bool ExcludeTop = true); // This returns the face number corresponding to the brighest light value
+    int returnXthBrightestFace(int index, bool ExcludeTop = true); // This returns the face number 
+    //corresponding to the brighest light value
     int returnSumOfAmbient(); // returns the sum of all of the light sensors
-    bool areFacesOpposite(int face1, int face2); // returns true if face1 and face2 are on opposite sides of the module
+    bool areFacesOpposite(int face1, int face2); 
+    // returns true if face1 and face2 are on opposite sides of the module
     
         // Functions involving motion
     bool moveOnLattice(Motion* motion); // tries to move on a lattice

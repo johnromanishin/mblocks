@@ -29,6 +29,12 @@ bool calc_delay = false;
 SimpleList<uint32_t> nodes;
 
 bool sendMessage(int cubeID, String msg)
+/*
+ * This command attempts to send an already formatted STRING message
+ * to the address cubeID - If cubeID is -1, it sends it as a broadcast
+ * The message already needs to be formatted as a json before getting 
+ * passed into this function
+ */
 {
   if(cubeID == -1)
   {
@@ -36,7 +42,7 @@ bool sendMessage(int cubeID, String msg)
   }
   else
   {
-    uint32_t address = getAddressFromCubeID(cubeID);
+    uint32_t address = getAddressFromCubeID(cubeID); // this convers to MAC address space
     return(mesh.sendSingle(address, msg));
   }
 }
@@ -72,15 +78,24 @@ void receivedCallback(uint32_t from, String & stringMsg)
   //check to see if it's new, if so, do something with it
   StaticJsonBuffer<256> jsonMsgBuffer;
   JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg);
-  //String mIDstring = jsonMsg["mID"];
+  
   uint32_t mID = jsonMsg["mID"];
   String command = jsonMsg["cmd"];
+  
   if (command == "q")
+  /*
+   * If the commands is "q" then we quickly return an ack, and then go back to the 
+   * regularly scheduled programming...
+   */
   {
     sendAck(mID);
     return;
   }
-  
+
+  /*
+   * If the command is anything else, we check to make sure the mID is new
+   * If it is new, we add it to our circular buffer of commands
+   */
   if (mID != prevMID)
   {
     Serial.println("Adding to Buffer...");

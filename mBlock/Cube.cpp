@@ -75,7 +75,8 @@ bool Cube::processState()
  */
 {
   bool succeed = false; // This variable stores the status of the updateBothImu command
-  if((this->updateBothIMUs() == true) || (this->cubeID == 0)) // this runs the code to check on the two MPU6050 accelerometers
+  if((this->updateBothIMUs() == true) || (this->cubeID == 0)) 
+  // this runs the code to check on the two MPU6050 accelerometers
   {
     wifiDelay(4);
     succeed = true;
@@ -83,9 +84,10 @@ bool Cube::processState()
   else // This means that one or both of the acellerometers are not functioning correctly
   {
     wifiDelay(200); // We wait a little while(While checking on WIFI stuff) to figure out WHAT IS GOING ON
-    if((this->updateBothIMUs() == true) || (this->cubeID > 60)) // Try to update the two IMUS, if the cubeID is larger than 
-                                                                // 60, then it isn't a real cube, so we say that the update 
-                                                                // succedded just so we can keep going...
+    if((this->updateBothIMUs() == true) || (this->cubeID > 60)) 
+      // Try to update the two IMUS, if the cubeID is larger than 
+      // 60, then it isn't a real cube, so we say that the update 
+      // succedded just so we can keep going...
     {
       succeed = true;
     }
@@ -102,9 +104,12 @@ bool Cube::processState()
        }
     }
   }    
-  this->determineTopFace();     // This checks the gravity vector of the frame, to determine which face (IF ANY) is pointed vertically updwards
-  this->determineForwardFace(); // this combines the internal state of the core (Which plane it is in) with the TOP FACE to 
-                                //figure out which face it will move towards
+  this->determineTopFace();     
+  // This checks the gravity vector of the frame, to determine which face (IF ANY) is
+  //  pointed vertically updwards
+  this->determineForwardFace(); 
+  // this combines the internal state of the core (Which plane it is in) with the TOP FACE to 
+  //figure out which face it will move towards
   return(succeed);
 }
 
@@ -125,9 +130,11 @@ bool Cube::roll(bool forwardReverse, int rpm)
   int timeToDelayBeforeBrake = (1700 + (rpm-6000)); // wait long eneough for flywheel to get to speed
   int faceUpBeginning = this->returnTopFace(); // record which face is pointing upwards when we start...
   bool succeed = false; // start out with the assumption that we haven't moved
-  int shakingThreshold = 10000; // this variable repeatedly checks the GYRO readings while it should be moving to 
+  int shakingThreshold = 10000; 
+  // this variable repeatedly checks the GYRO readings while it should be moving to 
                                 // see if we moved, but ended up in the same face anyway
-  String CW_CCW; // this is an empty string which checks whether we move in a clockwise or a counter-clockwise direction
+  String CW_CCW; 
+  // this is an empty string which checks whether we move in a clockwise or a counter-clockwise direction
   
   if(forwardReverse == false) // if the input arguement is false, we move in reverse...
   {
@@ -140,14 +147,17 @@ bool Cube::roll(bool forwardReverse, int rpm)
     CW_CCW = " f ";
   }
   
-  String stringToPrint = "bldcspeed" + CW_CCW + String(rpm); // generate String to print on the serial port to the motor controller PCBa
-  this->printString(stringToPrint); // we use the function "printString" since it checks for an acknowledgement to our string...
+  String stringToPrint = "bldcspeed" + CW_CCW + String(rpm); 
+  // generate String to print on the serial port to the motor controller PCBa
+  this->printString(stringToPrint); 
+  // we use the function "printString" since it checks for an acknowledgement to our string...
   
   wifiDelay(timeToDelayBeforeBrake); // motor is now getting up to speed...
 
   this->printString("bldcstop b");
-  int shakingAmmount = wifiDelayWithMotionDetection(3400); // this delays for the specified time, but also periodically adds the 
-                                                           // values of the gyroscopes, and then returns the sum at the end.
+  int shakingAmmount = wifiDelayWithMotionDetection(3400); 
+  // this delays for the specified time, but also periodically adds the 
+  // values of the gyroscopes, and then returns the sum at the end.
   
   if(MAGIC_DEBUG) 
   {
@@ -157,7 +167,8 @@ bool Cube::roll(bool forwardReverse, int rpm)
   
   this->processState(); // process state again, now we would know if the "TOPFACE" has changed...
   wifiDelay(100);
-  if((this->returnTopFace() == faceUpBeginning) || (this->returnTopFace() == -1)) // If the same face is pointing up... or it failed
+  if((this->returnTopFace() == faceUpBeginning) || (this->returnTopFace() == -1)) 
+  // If the same face is pointing up... or it failed
   {
     if(shakingAmmount > shakingThreshold) // if we shook a bunch... but same face is up...
     {
@@ -181,7 +192,8 @@ bool Cube::roll(bool forwardReverse, int rpm)
     succeed = true;
   }
   
-  this->moveSuccessBuffer.push(succeed); // store the results in a buffer, so that if we fail to move repeatedly, we know something is wrong...
+  this->moveSuccessBuffer.push(succeed); 
+  // store the results in a buffer, so that if we fail to move repeatedly, we know something is wrong...
   return(succeed);
 }
 
@@ -210,7 +222,8 @@ bool Cube::moveBLDCACCEL(bool forwardReverse, int current, int lengthOfTime)
     CW_CCW = " f ";
   }
   wifiDelay(20);
-  stringToPrint = "bldcaccel" + CW_CCW + String(current) + singleSpace + String(lengthOfTime); // generate String for motor
+  stringToPrint = "bldcaccel" + CW_CCW + String(current) + singleSpace + String(lengthOfTime); 
+  // generate String for motor
   Serial.println(stringToPrint); // this actually tells the thing to move.
   wifiDelay(200+lengthOfTime);
   Serial.println("bldcstop b"); // this actually tells the Cube to start rolling
@@ -219,7 +232,8 @@ bool Cube::moveBLDCACCEL(bool forwardReverse, int current, int lengthOfTime)
   if(MAGIC_DEBUG) {Serial.print("We detected this ammount of Shaking: ");Serial.println(shakingAmmount);}
   this->processState();
   wifiDelay(100);
-  if((this->returnTopFace() == faceUpBeginning) || (this->returnTopFace() == -1)) // If the same face is pointing up... or it failed
+  if((this->returnTopFace() == faceUpBeginning) || (this->returnTopFace() == -1)) 
+  // If the same face is pointing up... or it failed
   {
     if(shakingAmmount > shakingThreshold) // if we shook a bunch... but same face is up...
     {
@@ -280,7 +294,12 @@ bool Cube::moveOnLattice(Motion* motion)
     bool succeed = false;
   
     // Actually send the action to Kyles Board...
-    String iaString = "ia " + String(motion->for_rev)+ " " + String(motion->rpm) + " " + String(motion->current) + " " + String(motion->brakeTime) + " e 15";
+    String iaString = "ia " 
+    + String(motion->for_rev)+ " " 
+    + String(motion->rpm) + " " 
+    + String(motion->current) + " " 
+    + String(motion->brakeTime) + " e 15";
+    
     this->printString(iaString); // print the command to kyles Board
     wifiDelay(motion->timeout); // wait for the action to complete
   
@@ -621,10 +640,12 @@ PlaneEnum Cube::findPlaneStatus(bool reset)
     const int validPlaneThreshold = 220; // This number is what determines if it is actually in a proper plane
     const int gyroMovingThreshold  = 1700; // This represents what "moving" is in terms GYRO values
     
-    int32_t coreAccel[3] =   {this->axCoreBuffer.access(0),     // Access the most recent X Y and Z Values for the accelerometer
-                              this->ayCoreBuffer.access(0),     // These should have just been updated...
+    int32_t coreAccel[3] =   {this->axCoreBuffer.access(0),     
+                              this->ayCoreBuffer.access(0),     
                               this->azCoreBuffer.access(0)};
-                              
+      // Access the most recent X Y and Z Values for the accelerometer
+      // These should have just been updated...
+         
     int32_t frameAccel[3] =  {this->axFrameBuffer.access(0), 
                               this->ayFrameBuffer.access(0),
                               this->azFrameBuffer.access(0)};
@@ -874,7 +895,8 @@ bool Cube::printString(String stringToPrint, int waitTime)
  */
 {
   Serial.println(stringToPrint); // tries to print the string...
-  if(this->anythingOnSerial(waitTime) == false) // if we see characters comming back withing waittime, we assume success...
+  if(this->anythingOnSerial(waitTime) == false) 
+  // if we see characters comming back withing waittime, we assume success...
   {
     this->blinkRingAll(20, 2); // just for fun blink a ring...
     Serial.println(stringToPrint);
@@ -1630,7 +1652,8 @@ String Cube::debugAccelerometers()
   {
     apply_3x3_mult(&rotationMatricies[i][0][0], coreAccel, &transformed[i][0]);
     distance[i] = vector_distance_squared(&transformed[i][0], frameAccel);
-    Serial.print("for index item: ");Serial.print(i);Serial.print(" result is: ");Serial.println(distance[i]);
+    Serial.print("for index item: ");Serial.print(i);Serial.print(" result is: ");
+    Serial.println(distance[i]);
   }
   int mindist = distance[0];
   int minidx = 0;
@@ -1643,7 +1666,8 @@ String Cube::debugAccelerometers()
       mindist = distance[i];
     }
   }
-  Serial.print("Smallest Index Item is: ");Serial.print(minidx);Serial.print(" result is: ");Serial.println(distance[minidx]);
+  Serial.print("Smallest Index Item is: ");Serial.print(minidx);Serial.print(" result is: ");
+  Serial.println(distance[minidx]);
   // At this point we should have a vector with the distance between the actual readings
   // and the perfect readings for each of the three planes... 
   // and we know the one with the lowest value: minidx

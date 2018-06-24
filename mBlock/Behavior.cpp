@@ -32,6 +32,11 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
   {
     return(LightTrackingStateMachine(c, newBehavior));
   }
+  else if(Game == "Line")
+  {
+    return(true);
+  }
+  
   else if (true)
   {
     wifiDelay(10);
@@ -73,13 +78,7 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
       if (receivedCMD == "b")
       {
         uint32_t mID = jsonMsg["mID"];
-        //Serial.print("Recieved Message ID = ");
-        Serial.println("BLINKING!!");
-        //c->lightCube(&red);
         c->superSpecialBlink(&red, 100);
-        //wifiDelay(200);
-        // c->lightCube(&off);
-        //blinkFaceLeds(c, 50);
       }
       else if(receivedCMD == "r")
       {
@@ -105,15 +104,18 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
         c->lightCube(&off);
         mesh.update();
       }
-      /*  A simple way to turn the cube to various colors works by receiving a message
-          that is just an integer, it will change to a color depending on the integer
-      */
 
       else if (receivedCMD == "lightSeek")
       {
         Game = "lightSeek";
       }
-      /* cubeID's over 40 means it is attached by a cable... not a real cube // so we print
+
+      else if (receivedCMD == "chill")
+      {
+        Game = "Nothing";
+      }
+      
+      /* cubeID's == 0 means it is attached by a cable... not a real cube // so we print
       */
 
       if (thisCubeID == 0)
@@ -173,8 +175,9 @@ int checkForMagneticTagsStandard(Cube* c)
       }
     }
     /*
-     * This section changes the planes of the module, either if the global variable "magicvariable"
-     * is set to one... This is done this way becuase it crashes if it is done any other way. I have no
+     * This section changes the planes of the module, either if the global variable 
+     * "magicvariable" is set to one... This is done this way becuase it crashes if it is 
+     * done any other way. I have no
      * idea why this is the behavior
      */
     if ((c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_PURPLE) ||
@@ -399,7 +402,7 @@ Behavior followArrows(Cube* c) // purple
       {
         int otherFace = faceArrowPointsTo(i, c->faces[i].returnNeighborAngle(0)); // find out which direction 
         //the arrow points
-        if (c->goToPlaneIncludingFaces(i, otherFace) == true) // then go to plane parallel to these two faces...
+        if (c->goToPlaneIncludingFaces(i, otherFace) == true) // then go to plane parallel to these two faces.
         {
           int CW_or_CCW = faceClockiness(otherFace, i);
           if (CW_or_CCW == 1)
@@ -665,8 +668,9 @@ Behavior attractive(Cube* c)
     {
       if ((i == c->returnTopFace()) || (i == c->returnBottomFace())) // This ensures we only
         delay(1);                                                   // turn on 4 faces in horizontal plane
-      //break;
-      else if (c->faces[i].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) // if we have a neighbor on that face....
+
+      // if we have a neighbor on that face....
+      else if (c->faces[i].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) 
       {
         c->faces[i].turnOnFaceLEDs(1, 1, 1, 1);
       }
@@ -674,7 +678,8 @@ Behavior attractive(Cube* c)
         delay(1);
       else
       {
-        c->faces[i].turnOnFaceLEDs(1, 1, 1, 1); // turns on LEDs on any exposed face thats not top/bottom/connected
+        c->faces[i].turnOnFaceLEDs(1, 1, 1, 1); 
+        // turns on LEDs on any exposed face thats not top/bottom/connected
       }
     }
     wifiDelay(4000); // delay 10 seconds...

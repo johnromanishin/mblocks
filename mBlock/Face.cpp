@@ -33,7 +33,8 @@ bool Face::updateFace()
                    this->updateMagneticBarcode() && // actually reads magnetic valuess
                    this->turnOffFaceLEDs());
  
-  this->neighborPresenceBuffer.push(this->processTag()); // actually processes Tag... adds whether there is anything to a buffer...
+  this->neighborPresenceBuffer.push(this->processTag()); // actually processes Tag...
+  //adds whether there is anything to a buffer...
   
 //  if(this->returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE)
 //  {
@@ -48,10 +49,11 @@ bool Face::updateFace()
 //    int numberOfSamplesToTake = 20;
 //    for(int i = 0; i < numberOfSamplesToTake; i++) // take 30 light samples
 //      this->updateAmbient(false);
-//    this->neighborLightDigitBuffer.push(this->processLightData(numberOfSamplesToTake)); // add the lightDigit to the buffer
+//    this->neighborLightDigitBuffer.push(this->processLightData(numberOfSamplesToTake)); 
+// add the lightDigit to the buffer
 //    
-//    if(magicTheLight == true) // This is supposed to light the faces up when we are in a specific mode, we might move this to
-//                              // a different part of the code...
+//    if(magicTheLight == true) // This is supposed to light the faces up when we are in a specific mode, 
+//we might move this to // a different part of the code...
 //      this->turnOnFaceLEDs(1,1,1,1);
 //  }
 //  else
@@ -115,7 +117,7 @@ bool Face::processTag()
   if(((agc1+agc2) < strengthThreshold) && (tagStrength > 0)) // this means there is a valid tag!! woo!
   {
     tagPresent = true; // THIS MEANS WE HAVE A TAG!!
-    /*============================================================================================================
+    /*========================================================================================================
     * CHECK IF TAG REPRESENTS A MODULE
     */
     if((magDigit1 >= 17 && magDigit1 <= 29) &&  // Means magdigit1 is a faceID
@@ -140,7 +142,7 @@ bool Face::processTag()
       else                 
           tagAngle = 3;
     }
-    /*============================================================================================================
+    /*=======================================================================================================
     * CHECK IF TAG REPRESENTS A PASSIVE MODULE
     */
     if((magDigit1 == 15 || magDigit1 == 16 || magDigit1 == 17 || // Means magdigit1 is a faceID
@@ -166,7 +168,8 @@ bool Face::processTag()
     /* ================================================================================================
     * CHECK IF TAG REPRESENTS A COMMAND TAG
     */
-    if((((magDigit1 - magDigit2) > -2) && ((magDigit1 - magDigit2) < 2)) &&  // if the difference between the two is small
+    if((((magDigit1 - magDigit2) > -2) && ((magDigit1 - magDigit2) < 2)) &&  // if the difference
+    //between the two is small
        (magDigit1 != 17 && magDigit2 != 17) && (magDigit1 != 30 && magDigit2 != 30))
     {
       tagType = TAGTYPE_COMMAND;
@@ -689,7 +692,8 @@ int readMagnetSensorAngle(int i2cAddress) {
 }
 
 int readMagnetSensorFieldStrength(int i2cAddress) {
-  // AGC is the "strength" of the magnet returned as an 8-bit number, 255 = magnet field is too weak, 0 = very strong magnetic field.
+  // AGC is the "strength" of the magnet returned as an 8-bit number, 255 = magnet field is too weak, 
+  //0 = very strong magnetic field.
   return(magnetSensorRead(i2cAddress, byte(0xFA)));
 }
 
