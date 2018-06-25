@@ -112,7 +112,10 @@ Behavior climb(Cube* c);
 
  //==================Utilities===============================
 void blinkFaceLeds(Cube* c, int waitTime = 50); // blinks LED's Once for a default time of 50ms
-void wifiLightChange(Cube*c, int number, bool turnOff = true); // this turns the lights to a specific color based on the received integer 
+
+void wifiLightChange(Cube*c, int number, bool turnOff = true);
+  // this turns the lights to a specific color based on the received integer 
+  
 String behaviorsToCmd(Behavior inputBehavior);
 Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior);
 void wifiTargetFace(Cube* c, int faceToSend, int recipientCube = -1);

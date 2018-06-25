@@ -38,7 +38,6 @@ void initializeCube()
   setMotionDataGlobalVariables();
   wifiDelay(200);
   int count = 0;
-  Serial.println("madeithere...");
   while(!checkIfConnected()) // check to see if face boards are connected
   {
     whatToDoIfIamNotConnectedAtBeginning(); // assuming we are not connected...
@@ -50,7 +49,6 @@ void initializeCube()
         {Serial.println("sleep"); delay(500);} // Go to sleep...
     }
   }
-  if(MAGIC_DEBUG) Serial.println("Leaving ititializeCube");
 }
 
 bool checkIfConnected()
