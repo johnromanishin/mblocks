@@ -1,5 +1,4 @@
 #include "Defines.h"
-#include "Communication.h"
 #include "espconn.h"
 #include <Arduino.h>              // library with basic arduino commands
 #include <painlessMesh.h> // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh

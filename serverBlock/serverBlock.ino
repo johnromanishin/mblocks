@@ -44,6 +44,7 @@ void interactWithRangeSensor()
       pushSleepMessage(4);
     }
   }
+  
   else if (rangeValue > 20 && rangeValue < 50)
   {
     //sendBroadcastMessage(createJsonStringFlood(-1, "lightSeek"));
@@ -63,7 +64,6 @@ void interactWithRangeSensor()
   }
 }
 
-
 void setup()
 {
   Serial.begin(115200);
@@ -72,7 +72,6 @@ void setup()
   wifiDelay(1000);
   Serial.print("\n WIFI ID: ");
   Serial.println(mesh.getNodeId());
-  initializeOutboxes();
   espconn_tcp_set_max_con(6); // this is supposed to increase the maximum number of WIFI connections to 6
   wifiDelay(1000);
 
@@ -88,6 +87,20 @@ void loop()
   interactWithRangeSensor(); // checks the range value to send messages based on user input
   wifiDelay(5);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /////////// NOTES////
 

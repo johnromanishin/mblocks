@@ -1,13 +1,17 @@
 #ifndef DEFINES
 #define DEFINES
-#include <painlessMesh.h> // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
+
 #include "Communication.h"
+
+#include <painlessMesh.h> // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
 
 #define ARRAY_SIZEOF(x) ((sizeof(x) / sizeof(x[0])))
 #define SERVER_ID 99
 #define TESTCUBE_ID 0
 #define OUTBOX_SIZE 10
 #define INBOX_SIZE 20
+#define NUM_CUBES 17
+
 
 #define wifiAddress_SERVER  885790061   //  Sparkfun THing SERVER
 #define wifiAddress_cube00  2133796284  //  Sparkfun Thing LArge Breadboard

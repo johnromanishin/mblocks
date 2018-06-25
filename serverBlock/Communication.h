@@ -4,12 +4,11 @@
 #include <painlessMesh.h>
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include "CBuff.h"
 #include "espconn.h"
 #include "ConfigurationModel.h"
+#include "Defines.h"
 
 #define WINDOW_SIZE 1
-#define NUM_CUBES 17
 #define AVERAGE_FIRST_DELAY_MS 100
 
 struct outboxEntry
@@ -29,16 +28,16 @@ struct inboxEntry
   int faceStates[6];
 };
 
+void updateStateModel(int cubeID);
 
 extern painlessMesh mesh;
-extern int cubesState[NUM_CUBES][6];
+//extern int cubesState[NUM_CUBES][6];
 
 ///
 bool sendMessage(int recipientID, String msg);
 uint32_t advanceLfsr();
 
 void initializeBoxes();
-void initializeOutBoxes();
 void updateBoxes();
 
 void initializeWifiMesh();
@@ -67,9 +66,4 @@ void advanceInboxHead();
 void advanceInboxTail();
 bool inboxIsFull();
 bool inboxIsEmpty();
-
-void initializeOutboxes();
-
-void updateStateModel(int cubeID);
-
 #endif
