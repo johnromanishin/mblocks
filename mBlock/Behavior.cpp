@@ -34,7 +34,8 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
   }
   else if(Game == "Line")
   {
-    return(true);
+    delay(100);
+    //return(true);
   }
   
   else if (true)
@@ -153,7 +154,7 @@ int checkForMagneticTagsStandard(Cube* c)
    //
    // For reasons which are very difficult to explain this function also changes planes...
 */
-
+{
   int neighbors = 0; // running count of how many actual cube neighbors we have...
   if (MAGIC_DEBUG) {
     Serial.println("Checking for MAGNETIC TAGS...");

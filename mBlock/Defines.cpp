@@ -52,11 +52,11 @@ Color white =   {1, 1, 1};
 Color off   =   {0, 0, 0};
 
 int thisCubeID = 0;
-extern String Game = "nothing";
-extern int GlobalplaneChangeTime;
-extern int GlobalplaneChangeRPM;
-extern int GlobalPlaneAccel = 2100;
-extern bool magicTheLight = false;
+String Game = "nothing";
+int GlobalplaneChangeTime;
+int GlobalplaneChangeRPM;
+int GlobalPlaneAccel = 2100;
+bool magicTheLight = false;
 extern int magicVariable = 0;
 extern int MAGIC_DEBUG = 0;
 extern int magicFace = 0;
