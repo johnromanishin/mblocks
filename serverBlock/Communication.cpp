@@ -24,6 +24,8 @@
 #define   MESH_PASSWORD   "mblocks3d"
 #define   MESH_PORT       5555
 
+#define   MAXIMUM_MESSAGE_ATTEMPTS 7
+
 // Class instance for the WIFI mesh
 painlessMesh mesh;
 
@@ -96,8 +98,11 @@ void updateBoxes()
     {
        // if inbox is ack for outbox
        updateStateModel(inbox[inboxTail].senderID); // process ack for the cube 
+
+       //
        outbox[inbox[inboxTail].senderID][outboxTail[inbox[inboxTail].senderID]].mID = 0; // clear outbox entry
-       advanceOutboxTail(inbox[inboxTail].senderID); // move on to next outbox slot
+       advanceOutboxTail(inbox[inboxTail].senderID); // move on to next outbox slot...
+       
        Serial.print("senderID: ");
        Serial.println(inbox[inboxTail].senderID);
        Serial.println("Clearing out Message");
@@ -144,28 +149,37 @@ void updateBoxes()
       /*
        * Now we check to see if it is time to check the message by comparing
        * the system time (Long) to the outbox.cube_ID.Tail.Deadline 
+       *
+       *  We also check to see if the message has been sent more times than
+       *  MAXIMUM_MESSAGE_ATTEMPTS, which if this is true, we delete message 
+       *  from the que...
        */
       {
         //generate message
         sendMessage(cubeID, generateMessageText(outbox[cubeID][outboxTail[cubeID]].cmd, outbox[cubeID][outboxTail[cubeID]].mID)); // send it...
         outbox[cubeID][outboxTail[cubeID]].mDeadline = 
-        millis() + random((1UL << outbox[cubeID][outboxTail[cubeID]].backoff) * AVERAGE_FIRST_DELAY_MS * 2);
+          millis() + random((1UL << outbox[cubeID][outboxTail[cubeID]].backoff) * AVERAGE_FIRST_DELAY_MS * 2);
         // set the next deadline using exponential backoff,
         
         outbox[cubeID][outboxTail[cubeID]].backoff++;
         // and increment the counter to reflect the number of tries.
-        Serial.print(" Just Processed outbox for Cube #:");
-        Serial.println(cubeID);
-        Serial.print("mID: ");
-        Serial.println(String(outbox[cubeID][outboxTail[cubeID]].mID));
-        Serial.print("cmd: ");
+        Serial.print("Just Processed outbox for Cube #: "); Serial.println(cubeID);
         Serial.println(String(outbox[cubeID][outboxTail[cubeID]].cmd));
         Serial.print("backoff: ");
         Serial.println(String(outbox[cubeID][outboxTail[cubeID]].backoff));
-        Serial.print("mDeadline: ");
-        Serial.println(String(outbox[cubeID][outboxTail[cubeID]].mDeadline));
-        Serial.print("senderID: ");
-        Serial.println(String(outbox[cubeID][outboxTail[cubeID]].senderID));
+        //Serial.print("mDeadline: ");
+        //Serial.println(String(outbox[cubeID][outboxTail[cubeID]].mDeadline));
+        /*
+         * This means that we have tried to send the message a lot of times... remove from que
+         * now
+         */
+        if(outbox[cubeID][outboxTail[cubeID]].backoff > MAXIMUM_MESSAGE_ATTEMPTS)
+        {
+          // This effectivly deletes the current message.
+          outbox[cubeID][outboxTail[cubeID]].mID = 0; // clear outbox entry
+          advanceOutboxTail(cubeID); // move on to next outbox slot...
+          Serial.println("MESSAGE REMOVED DUE TO FAILURE TO DELIVER REPEATIDLY");
+        }
       }
     }
   }
@@ -202,14 +216,33 @@ void receivedCallback(uint32_t from, String & stringMsg)
     /*
      * Update the parameters in the database
      */
-    database[
-    database[senderCubeID][face_0] = jsonMsg["f0"];
-    database[senderCubeID][face_1] = jsonMsg["f1"];
-    database[senderCubeID][face_2] = jsonMsg["f2"];
-    database[senderCubeID][face_3] = jsonMsg["f3"];
-    database[senderCubeID][face_4] = jsonMsg["f4"];
-    database[senderCubeID][face_5] = jsonMsg["f5"];
-
+    database[senderCubeID][bottom_Face] = tempBottomFace;
+    if(jsonMsg.containsKey("f0"))
+      database[senderCubeID][face_0] = jsonMsg["f0"];
+    else
+      database[senderCubeID][face_0] = -1;
+    if(jsonMsg.containsKey("f1"))
+      database[senderCubeID][face_1] = jsonMsg["f1"];
+    else
+      database[senderCubeID][face_1] = -1;
+    if(jsonMsg.containsKey("f2"))
+      database[senderCubeID][face_2] = jsonMsg["f2"];
+    else
+      database[senderCubeID][face_2] = -1;
+    if(jsonMsg.containsKey("f3"))
+      database[senderCubeID][face_3] = jsonMsg["f3"];
+    else
+      database[senderCubeID][face_3] = -1;
+    if(jsonMsg.containsKey("f4"))
+      database[senderCubeID][face_4] = jsonMsg["f4"];
+    else
+      database[senderCubeID][face_4] = -1;
+    if(jsonMsg.containsKey("f5"))
+      database[senderCubeID][face_5] = jsonMsg["f5"];
+    else
+      database[senderCubeID][face_5] = -1;
+      
+    Serial.println("Just updated the database...");
     /*
      * We have now processed this message ... so message is 
      */

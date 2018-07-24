@@ -3,16 +3,16 @@
 
 #include "Communication.h"
 
+#define FACES 6
 #define NUM_CUBES   17
-#define tableWidth  11
 
 // Giant Data Table
 // Basic Data
 // [index] = ID number of the cube...
-extern int database[NUM_CUBES][tableWidth];  
+
 
 #define timeContacted       0
-#define topFace             1
+#define bottom_Face         1
 #define forwardFace         2
 // Neighbor Related
 #define numberOfNeighbors   3
@@ -24,7 +24,12 @@ extern int database[NUM_CUBES][tableWidth];
 #define face_5              9
 // Other Flags?
 #define inLine              10
-#define attribute           11
+#define changedFlag         11
+#define justMoved           12
+#define leaveAloneFor       13
+#define prevNeighbors       14
+#define tableWidth          15
+extern int database[NUM_CUBES][tableWidth];  
 
 
 #include <painlessMesh.h> // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
@@ -47,7 +52,7 @@ extern int database[NUM_CUBES][tableWidth];
 #define wifiAddress_cube05  2131666859  //  {960427, 5},    // PEI RED  D0:D5:6F:CB:32:4C
 #define wifiAddress_cube06  0           //  {8577715, 6},   // PC Brown  C5:FF:AB:04:3B:9D
 #define wifiAddress_cube07  0           //  {960242, 7},    // PEI ORANGE E6:F6:05:69:08:F2
-#define wifiAddress_cube08  0           //  {959709, 8},    // PC YELLOW  - FB:0D:8F:2C:3B:B4           
+#define wifiAddress_cube08  2131666141    //  {959709, 8},    // PC YELLOW  - FB:0D:8F:2C:3B:B4           
 #define wifiAddress_cube09  0           //  {8576514, 9},   // PC BLACK  E3:6B:C6:CE:DA:31
 #define wifiAddress_cube10  0          //  {960558, 10},   // PEI BLUE  f7:AE:59:2B:D9:4D
 #define wifiAddress_cube11  0          //  {8577103, 11},  // PC ORANGE  - E6:E5:82:26:C7:8B

@@ -41,9 +41,11 @@ void interactWithRangeSensor()
     rangeValue = readRangeSensor();
     if(rangeValue < 20)
     {
-      Serial.println("Putting the cubes to sleep");
-      pushSleepMessage(15);
-      pushSleepMessage(4);
+      //Serial.println("Putting the cubes to sleep");
+      //pushSleepMessage(15);
+      //pushSleepMessage(4);
+      testDatabase();
+      wifiDelay(1000);
     }
   }
   
@@ -59,7 +61,7 @@ void interactWithRangeSensor()
 
   else if (rangeValue > 100 && rangeValue < 200)
   {
-    //pushBlinkMessage(15);
+    pushBlinkMessage(15);
     //pushBlinkMessage(4);
     pushBlinkMessage(TESTCUBE_ID);
     wifiDelay(300);
@@ -71,15 +73,14 @@ void setup()
   Serial.begin(115200);
   initializeWifiMesh();
   initializeRangeSensor();
+  initializeDatabase();
   wifiDelay(500);
   Serial.print("\n WIFI ID: ");
   Serial.println(mesh.getNodeId());
   espconn_tcp_set_max_con(6); // this is supposed to increase the maximum number of WIFI connections to 6
-  wifiDelay(1000);
-  
-  database[5][4] = 99;
-  
+  wifiDelay(1000);  
   testOutboxes();
+  Serial.println("Exiting Setup");
 }
 
 bool lineOfThree = false;
@@ -91,8 +92,21 @@ void loop()
   updateBoxes(); // checks messages from the WiFi Message queue
   interactWithRangeSensor(); // checks the range value to send messages based on user input
   wifiDelay(5);
-  if(loopCounter < 2)
-    testThingNow();
+  if((loopCounter % 250) == 0)
+  {
+    pushBlinkMessage(TESTCUBE_ID);
+    
+    pushBlinkMessage(4);
+    pushBlinkMessage(8);
+    Serial.println("Added message to que");
+  }
+  if((loopCounter % 50) == 0)
+  {
+    //pushBlinkMessage(TESTCUBE_ID);
+    //Serial.println("Added message to que");
+    testDatabase();
+  }
+  //  testThingNow();
   loopCounter++;
 }
 

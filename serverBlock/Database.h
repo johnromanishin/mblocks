@@ -14,9 +14,13 @@
  */
  
 
-void testThingNow();
+void testDatabase();
 int determineAvailableCubes();
+int initializeDatabase();
 
+int countNeighborsFromDatabase(int cubeNumber);
+bool checkIfBottomIsConnected(int cubeNumber);
+void addTimeToNoContactTimer(int cubeNumber, int timeToAdd);
 
 
 #endif
