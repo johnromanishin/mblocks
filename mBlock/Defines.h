@@ -1,5 +1,6 @@
 #ifndef DEFINES
 #define DEFINES
+
 #include <Arduino.h>
   
 #define wifiAddress_SERVER  885790061   //  Sparkfun THing SERVER
@@ -35,7 +36,12 @@ extern String Game;
 extern int thisCubeID;
 extern bool magicTheLight;
 
+/*
+ * These Global variables are involved with sending an acknowledgement message
+ * back to the server...
+ */
 extern int bFace;
+extern int fFace;
 extern int f0;
 extern int f1;
 extern int f2;

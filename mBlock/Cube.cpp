@@ -347,8 +347,8 @@ int Cube::numberOfNeighbors(int index, bool doIlightFace)
   int neighbors = 0; // initialize a empty integer
   for(int face = 0; face < 6; face++)
     {
-    if((this->faces[face].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) ||
-       (this->faces[face].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE))
+    if((this->faces[face].returnNeighborType(index) == TAGTYPE_REGULAR_CUBE) ||
+       (this->faces[face].returnNeighborType(index) == TAGTYPE_PASSIVE_CUBE))
     {
       neighbors++;
       if(doIlightFace) 

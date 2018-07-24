@@ -10,13 +10,13 @@
 #include <Arduino.h>              // library with basic arduino commands
 
 // Header Files
-#include "Defines.h"
-#include "Initialization.h"       // Includes .h files for each of the "tabs" in arduino
-#include "Cube.h"                 // Includes .h files for each of the "tabs" in arduino
-#include "Face.h"                 // Includes .h files for each of the "tabs" in arduino
-#include "CBuff.h"                // Includes .h files for each of the "tabs" in arduino
-#include "Communication.h"        // Includes wifi
-#include "Behavior.h"
+#include "Defines.h"              // includes defines, helper functions, some global variables
+#include "Initialization.h"       // Includes cube specific Parameters
+#include "Cube.h"                 // Code relating to low level cube hardware
+#include "Face.h"                 // Code related to low leval hardware for each face
+#include "CBuff.h"                // Circular buffer library
+#include "Communication.h"        // Includes the wifi mesh library
+#include "Behavior.h"             // Includes the state machine code
 
 // Global Objects
 Cube c; // Initialize the Cube Object c globally so that things don't crash

@@ -77,9 +77,6 @@ bool Face::processTag()
  * Tag Command: TAGCOMMAND_NONE | ...
  */
 {
-  
-//  Serial.print("the Id of this face is: ");
-//  Serial.println(this->IOExpanderAddress);
     // Create temporary variables, and initialize them to be negative / invalid values
   bool tagPresent = false;
   TagType tagType = TAGTYPE_INVALID;        // Resets all of these values
@@ -185,71 +182,85 @@ bool Face::processTag()
         tagCommand = TAGCOMMAND_13_ESPOFF;
     }
   }
-/*
- * We have now processed the tag, we now push all of the values into the circular buffer
- * that each cube has internally.
- */
-this->neighborTypeBuffer.push(tagType); 
-this->neighborCommandBuffer.push(tagCommand); 
-this->neighborFaceBuffer.push(tagFace); 
-this->neighborAngleBuffer.push(tagAngle); 
-this->neighborIDBuffer.push(tagID); 
+   /*
+    * We have now processed the tag, we now push all of the values into the circular buffer
+    * that each cube has internally.
+    */
+  this->neighborTypeBuffer.push(tagType); 
+  this->neighborCommandBuffer.push(tagCommand); 
+  this->neighborFaceBuffer.push(tagFace); 
+  this->neighborAngleBuffer.push(tagAngle); 
+  this->neighborIDBuffer.push(tagID); 
 
-/*
- * However we also need to put the same information to global variables in order to send in wifi messages
- * So we turn the number to be an int representing the ID number, the Face number, and the Angle...
- * in this format: X X X     X
- *                [id][face][tagangle]
- */
+  /*
+  * However we also need to put the same information to global variables in order to send in wifi messages
+  * So we turn the number to be an int representing the ID number, the Face number, and the Angle...
+  * in this format: X X X     X
+  *                [id][face][tagangle]
+  */
 
-if(tagType == TAGTYPE_PASSIVE_CUBE)
-{
-  tagID = 18;
-}
-
-int numberToReturn;
-if(tagFace == -1)
-{
-  numberToReturn = tagID*100;
-}
-else
-{
-  if(tagID == -1)
+  if(tagType == TAGTYPE_PASSIVE_CUBE)
   {
-    numberToReturn = tagID*100 + tagFace*10;
+    tagID = 18;
   }
+
+  /*
+   * numberToReturn is a complicated way to get
+   * the neighbor information through the wifi...
+   * we start out by setting it to be -1 - meaning no neighbors
+   */
+  int numberToReturn;
+
+  /*
+   * Check to see if there is a tag...
+   */
+  if(tagPresent && tagID > -1)
+  {
+    /* First we check to see if we didn't detect a face (Likely a passive cube)
+     *  Then we only return the tag ID...
+     */
+    if(tagFace == -1)
+    {
+      numberToReturn = tagID*100;
+    }
+    else
+    {
+      numberToReturn = abs(tagID*100) + abs(tagFace*10) + abs(tagAngle);
+    }
+  }
+  /* This means that there is no tag, we return -1;
+   */
   else
   {
-    numberToReturn = tagID*100 + tagFace*10 + tagAngle;
+    numberToReturn = -1;
   }
-}
 
-switch (this->IOExpanderAddress)
-{
-  case 32:
-    f0 = numberToReturn;
-    break;
+  switch(this->IOExpanderAddress)
+  {
+    case 32:
+      f0 = numberToReturn;
+      break;
 
-  case 33:
-    f1 = numberToReturn;
-    break;
+    case 33:
+      f1 = numberToReturn;
+      break;
 
-  case 34:
-    f2 = numberToReturn;
-    break;
+    case 34:
+      f2 = numberToReturn;
+      break;
 
-  case 35:
-    f3 = numberToReturn;
-    break;
+    case 35:
+      f3 = numberToReturn;
+      break;
 
-  case 36:
-    f4 = numberToReturn; 
-    break;
+    case 36:
+      f4 = numberToReturn; 
+      break;
 
-  case 37:
-    f5 = numberToReturn;
-    break;
-}
+    case 37:
+      f5 = numberToReturn;
+      break;
+  }
   
 return(tagPresent); 
 }

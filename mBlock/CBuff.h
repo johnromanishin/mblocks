@@ -1,6 +1,5 @@
 #ifndef CIRCULAR_BUFFER_H
 #define CIRCULAR_BUFFER_H
-#include "Defines.h"
 #include <Arduino.h>
 
 template<typename T, bool useTailParam = false>

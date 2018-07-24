@@ -1,17 +1,8 @@
 #include "Behavior.h"
-#include "Initialization.h"     // Includes .h files for each of the "tabs" in arduino
-#include "Cube.h"               // Includes .h files for each of the "tabs" in arduino
-#include "Face.h"               // Includes .h files for each of the "tabs" in arduino
-#include "CBuff.h"              // Includes .h files for each of the "tabs" in arduino
-#include "Communication.h"      // Includes wifi
-#include "Defines.h"
 
-
-//=============================================================================================
 //=============================================================================================
 //=============================================================================================
 //=============================BASIC STATE MACHINE UPKEEP======================================
-//=============================================================================================
 //=============================================================================================
 //=============================================================================================
 
@@ -47,11 +38,10 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
 
 //=============================================================================================
 //=============================================================================================
-//=============================================================================================
 //=============================WIFI Checking CHECKING==========================================
 //=============================================================================================
 //=============================================================================================
-//=============================================================================================
+
 Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
 {
   if (MAGIC_DEBUG) Serial.println("CheckingForWifi Commands...");
@@ -81,11 +71,72 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
         uint32_t mID = jsonMsg["mID"];
         c->superSpecialBlink(&red, 100);
       }
-      else if(receivedCMD == "r")
+      /*
+       * Motion Commands
+       * "f" - attempts to move "forward" - either ontop, or on the side/ground
+       * "r" - attempts to move "reverse" - either ontop, or on side/ground
+       * "c" - attempts to climb, if this is possible
+       */
+      else if(receivedCMD == "f" || receivedCMD == "r")
       {
-        c->lightCube(&red);
+        /* First we check to see if we have (1) neighbor
+         *  and that neighbor is on the bottom,
+         *  then we want to do a regular traverse
+         */
+        if(c->numberOfNeighbors(0, 0) == 1)
+        {
+          /*
+           * Ok so we know we only have one neighbor, now we check to see 
+           * if the neighbor is on the bottom, or on the side...
+           */
+          if(c->whichFaceHasNeighbor(0) == c->returnBottomFace())
+          {
+            /*
+             * Now we need to check to make sure that we have a forward face...
+             * Assuming this is true, we will finally actually move...
+             */
+            if(c->returnForwardFace() != -1)
+            {
+              if(receivedCMD == "f")
+              {
+                Serial.println("Preparring to move forward");
+                 c->moveOnLattice(&traverse_F);
+              }
+              else if(receivedCMD == "r")
+              {
+                Serial.println("Preparring to move IN REVERSE");
+                c->moveOnLattice(&traverse_R);
+              }
+            }
+          } 
+          /*
+           * Ok, now we know that we are only connected to one cube, but that 
+           * connection is on one of the four ring faces... we need to think about this
+           */
+           else if(c->whichFaceHasNeighbor(0) != c->returnBottomFace())
+           {
+            //WIP
+            c->superSpecialBlink(&yellow, 50);
+            c->superSpecialBlink(&yellow, 70);
+            c->superSpecialBlink(&yellow, 50);
+           }
+        }
+        
+        /* If we happen to be connected by more than one face... then we need to think this through
+         *  right now all we do is blink, WIP
+         */
+        else if(c->numberOfNeighbors() > 1)
+        {
+          c->superSpecialBlink(&red, 50);
+          c->superSpecialBlink(&red, 70);
+          c->superSpecialBlink(&red, 50);
+        }
         mesh.update();
       }
+
+      /*
+       * LED Related Commands
+       */
       else if(receivedCMD == "s")
       {
         c->shutDown();

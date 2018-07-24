@@ -1,12 +1,11 @@
-#include <Arduino.h>
+//#include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <painlessMesh.h> // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
-#include <ArduinoJson.h>
+//#include <ArduinoJson.h>
 
 #include <string.h>
 
 #include "Communication.h"
-#include "CBuff.h"
 
 #define   BLINK_PERIOD    3000000 // microseconds until cycle repeat
 #define   BLINK_DURATION  100000  // microseconds LED is on for
