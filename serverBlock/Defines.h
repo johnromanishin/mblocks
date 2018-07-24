@@ -3,6 +3,30 @@
 
 #include "Communication.h"
 
+#define NUM_CUBES   17
+#define tableWidth  11
+
+// Giant Data Table
+// Basic Data
+// [index] = ID number of the cube...
+extern int database[NUM_CUBES][tableWidth];  
+
+#define timeContacted       0
+#define topFace             1
+#define forwardFace         2
+// Neighbor Related
+#define numberOfNeighbors   3
+#define face_0              4
+#define face_1              5
+#define face_2              6
+#define face_3              7
+#define face_4              8
+#define face_5              9
+// Other Flags?
+#define inLine              10
+#define attribute           11
+
+
 #include <painlessMesh.h> // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
 
 #define ARRAY_SIZEOF(x) ((sizeof(x) / sizeof(x[0])))
@@ -10,8 +34,7 @@
 #define TESTCUBE_ID 0
 #define OUTBOX_SIZE 10
 #define INBOX_SIZE 20
-#define NUM_CUBES 17
-
+#define TEST_THIS 28
 
 #define wifiAddress_SERVER  885790061   //  Sparkfun THing SERVER
 #define wifiAddress_cube00  2133796284  //  Sparkfun Thing LArge Breadboard
@@ -38,4 +61,5 @@ bool areFacesOpposite(int face1, int face2);
 int oppositeFace(int face);
 void wifiDelay(int delayTime);
 uint32_t getAddressFromCubeID(int CubeID);
+
 #endif

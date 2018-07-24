@@ -8,14 +8,16 @@
 #include <painlessMesh.h>         // Wifi Mesh Library found on the internet  
 #include <ArduinoJson.h>
 #include <Arduino.h>              // library with basic arduino commands
+
 #include "Interaction.h"
 #include "Communication.h"
 #include "Defines.h"
+#include "Database.h"
 #include <VL6180X.h>
 
 // Header Files
-//extern inboxEntry inbox;
-//extern outboxEntry outbox[2];
+// extern inboxEntry inbox;
+// extern outboxEntry outbox[2];
 
 void testOutboxes()
 /*
@@ -23,9 +25,9 @@ void testOutboxes()
  * debugging purposes
  */
 {
-  pushBlinkMessage(TESTCUBE_ID);
-  pushBlinkMessage(15);
-  pushBlinkMessage(4);
+  //pushBlinkMessage(TESTCUBE_ID);
+  //pushBlinkMessage(15);
+  //pushBlinkMessage(4);
 }
 
 void interactWithRangeSensor()
@@ -35,11 +37,11 @@ void interactWithRangeSensor()
   {
     //sendBroadcastMessage(createJsonStringFlood(-1, "sleep"));
     //Serial.println("Putting the cubes to sleep...");
-    wifiDelay(500);
+    wifiDelay(300); // wait a bit to make sure it is a valid reading
     rangeValue = readRangeSensor();
     if(rangeValue < 20)
     {
-      Serial.println("Putting cubs to sleep");
+      Serial.println("Putting the cubes to sleep");
       pushSleepMessage(15);
       pushSleepMessage(4);
     }
@@ -57,8 +59,8 @@ void interactWithRangeSensor()
 
   else if (rangeValue > 100 && rangeValue < 200)
   {
-    pushBlinkMessage(15);
-    pushBlinkMessage(4);
+    //pushBlinkMessage(15);
+    //pushBlinkMessage(4);
     pushBlinkMessage(TESTCUBE_ID);
     wifiDelay(300);
   }
@@ -69,23 +71,29 @@ void setup()
   Serial.begin(115200);
   initializeWifiMesh();
   initializeRangeSensor();
-  wifiDelay(1000);
+  wifiDelay(500);
   Serial.print("\n WIFI ID: ");
   Serial.println(mesh.getNodeId());
   espconn_tcp_set_max_con(6); // this is supposed to increase the maximum number of WIFI connections to 6
   wifiDelay(1000);
-
+  
+  database[5][4] = 99;
+  
   testOutboxes();
 }
 
 bool lineOfThree = false;
 int foundFlag;
+int loopCounter = 0;
 
 void loop()
 {
   updateBoxes(); // checks messages from the WiFi Message queue
   interactWithRangeSensor(); // checks the range value to send messages based on user input
   wifiDelay(5);
+  if(loopCounter < 2)
+    testThingNow();
+  loopCounter++;
 }
 
 

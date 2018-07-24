@@ -1,7 +1,11 @@
 #include "Defines.h"
-#include "espconn.h"
-#include <Arduino.h>              // library with basic arduino commands
-#include <painlessMesh.h> // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
+//#include "espconn.h"
+//#include <Arduino.h>              // library with basic arduino commands
+//#include <painlessMesh.h> // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
+
+// Database
+int database[NUM_CUBES][tableWidth] = {};
+//
 
 uint32_t getAddressFromCubeID(int CubeID)
 {

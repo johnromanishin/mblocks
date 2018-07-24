@@ -74,6 +74,7 @@ void updateStateModel(int cubeID)
    If not, or if no message is in the inbox, it checks to see if the outbox message needs to be resent 
    (and does so if needed).
 */
+
 void updateBoxes()
 {
   // Clear out the inbox
@@ -85,12 +86,12 @@ void updateBoxes()
     int cubeThatSentMessage = inbox[inboxTail].senderID;
     if (outbox[cubeThatSentMessage][outboxTail[cubeThatSentMessage]].mID == inbox[inboxTail].mID) 
     /*
-     * This massive if statement checks to see if the message ID from the most recent message matched the outbox entry for that cube
-     * e.g. if cube 3 sent a message and it is in the inbox with messageID of 666, 
-     * then we look in outbox[Cube 3] and check to see if the message ID is 666.
+     * This massive if statement checks to see if the message ID from the most recent message matched the 
+     * outbox entry for that cube e.g. if cube_3 sent a message and it is in the inbox with messageID of 666, 
+     * then we look in outbox[Cube_3] and check to see if the message ID is 666.
      * 
-     * If so then we have received the ACK for messageID# 666, and we cross it off the list, update our state, and then move to the
-     * next item in the inbox
+     * If so then we have received the ACK for messageID# 666, and we cross it off the list, 
+     * update our state, and then move to the next item in the inbox
      */
     {
        // if inbox is ack for outbox
@@ -104,21 +105,53 @@ void updateBoxes()
     else 
     {       
       Serial.println("Spurious ACK");
+      /*
+       * If the message received does not match the item in the outbox...
+       * We are still going to process the message... 
+       *  1. Add the cubeID to the list of active cubes
+       *  2. 
+       */
     }
     inbox[inboxTail].mID = 0; // clear inbox
     advanceInboxTail();
   }
+  
   mesh.update();
-  for(int cubeID = 0; cubeID < NUM_CUBES; cubeID++) // loop over all cubes, send outbox messages if the time has come...
+
+  /*
+   * We have now processed all of the incomming messages by doing the following:
+   *  1. Crossed the message off of the outbox it matched a message we previously sent
+   *  2. Added the information to our database of cubes
+   *  
+   * Now we need to go through the entire outbox and send messages if their time limit as 
+   * been reached. 
+   * 
+   * We also need to check and see if a message has taken too many tries to send, if so
+   * we just delete the message from the que.
+   */
+  for(int cubeID = 0; cubeID < NUM_CUBES; cubeID++)
+    /* loop over all cubes, send outbox messages if the time for that specific message has 
+     *  expired
+     */
   {
-    if (outbox[cubeID][outboxTail[cubeID]].mID != 0) // for the outbox queues with messages in them...
+    if (outbox[cubeID][outboxTail[cubeID]].mID != 0) 
+    /*
+     * If the outboxTail for the current cube cubeID is not set to be zero, then we
+     * assume that there is a message in the outbox
+     */
     { 
-      if (millis() > outbox[cubeID][outboxTail[cubeID]].mDeadline) // if the time has come to resend the message...
+      if (millis() > outbox[cubeID][outboxTail[cubeID]].mDeadline)
+      /*
+       * Now we check to see if it is time to check the message by comparing
+       * the system time (Long) to the outbox.cube_ID.Tail.Deadline 
+       */
       {
         //generate message
         sendMessage(cubeID, generateMessageText(outbox[cubeID][outboxTail[cubeID]].cmd, outbox[cubeID][outboxTail[cubeID]].mID)); // send it...
-        outbox[cubeID][outboxTail[cubeID]].mDeadline = millis() + random((1UL << outbox[cubeID][outboxTail[cubeID]].backoff) * AVERAGE_FIRST_DELAY_MS * 2);
+        outbox[cubeID][outboxTail[cubeID]].mDeadline = 
+        millis() + random((1UL << outbox[cubeID][outboxTail[cubeID]].backoff) * AVERAGE_FIRST_DELAY_MS * 2);
         // set the next deadline using exponential backoff,
+        
         outbox[cubeID][outboxTail[cubeID]].backoff++;
         // and increment the counter to reflect the number of tries.
         Serial.print(" Just Processed outbox for Cube #:");
@@ -157,16 +190,29 @@ void receivedCallback(uint32_t from, String & stringMsg)
   {
     StaticJsonBuffer<256> jsonMsgBuffer; // allocate memory for json
     JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg); // parse message
-    inbox[inboxHead].bottomFace = jsonMsg["bFace"];
+    int senderCubeID = jsonMsg["sID"];
+    int tempBottomFace = jsonMsg["bFace"];
+    /*
+     * Update the parameters that go into the ibox entry
+     */
     inbox[inboxHead].mID = jsonMsg["mID"];
-    inbox[inboxHead].senderID = jsonMsg["sID"];
-    
-    inbox[inboxHead].faceStates[0] = jsonMsg["f0"];
-    inbox[inboxHead].faceStates[1] = jsonMsg["f1"];
-    inbox[inboxHead].faceStates[2] = jsonMsg["f2"];
-    inbox[inboxHead].faceStates[3] = jsonMsg["f3"];
-    inbox[inboxHead].faceStates[4] = jsonMsg["f4"];
-    inbox[inboxHead].faceStates[5] = jsonMsg["f5"];
+    inbox[inboxHead].bottomFace = tempBottomFace;
+    inbox[inboxHead].senderID = senderCubeID;
+
+    /*
+     * Update the parameters in the database
+     */
+    database[
+    database[senderCubeID][face_0] = jsonMsg["f0"];
+    database[senderCubeID][face_1] = jsonMsg["f1"];
+    database[senderCubeID][face_2] = jsonMsg["f2"];
+    database[senderCubeID][face_3] = jsonMsg["f3"];
+    database[senderCubeID][face_4] = jsonMsg["f4"];
+    database[senderCubeID][face_5] = jsonMsg["f5"];
+
+    /*
+     * We have now processed this message ... so message is 
+     */
     advanceInboxHead();
   }
 }
@@ -186,18 +232,28 @@ void nodeTimeAdjustedCallback(int32_t offset) {}
 void delayReceivedCallback(uint32_t from, int32_t delay) {}
 
 String generateMessageText(String cmd, uint32_t mID)
+/*
+ * This function takes a string "cmd" which is the message to be sent,
+ * and it takes the message ID.
+ * 
+ * It then formats them in the JSON format, and returns the string containing
+ * all of the formatted message, including the following components
+ * 
+ * message ID       | "mID"   |  
+ * message type     | "type"  |
+ * sender ID        | "sID"   |
+ * command to send  | "cmd"   |
+ */
 {
-  Serial.println("RESENDING MESSAGE");
   if (mID == 0) {
     mID = advanceLfsr();
   }
-  //====== Generate a blink message =========
-  StaticJsonBuffer<512> jsonBuffer; //Space Allocated to construct json instance
+  StaticJsonBuffer<512> jsonBuffer; // Space Allocated to construct json instance
   JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
   //jsonMsg is our output, but in JSON form
 
   jsonMsg["mID"] =  mID;
-  jsonMsg["type"] = "c";
+  jsonMsg["type"] = "c"; // "c" for command...
   jsonMsg["sID"] =  SERVER_ID;
   jsonMsg["cmd"] =  cmd;
   String strMsg; // generate empty string
