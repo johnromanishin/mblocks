@@ -97,8 +97,32 @@ void loop()
     pushBlinkMessage(TESTCUBE_ID);
     
     pushBlinkMessage(4);
+    pushBlinkMessage(5);
+    pushBlinkMessage(7);
     pushBlinkMessage(8);
-    Serial.println("Added message to que");
+    //Serial.println("Added message to que");
+  }
+  if((loopCounter % 333) == 0)
+  {    
+    pushBlinkMessage(10);
+    pushBlinkMessage(13);
+    
+    pushBlinkMessage(2);
+    pushBlinkMessage(1);
+    pushBlinkMessage(3);
+    pushBlinkMessage(9);
+    
+    //Serial.println("Added message to que");
+  }
+  if((loopCounter % 188) == 0)
+  {
+    pushBlinkMessage(TESTCUBE_ID);
+    
+    pushBlinkMessage(6);
+    pushBlinkMessage(12);
+    pushBlinkMessage(16);
+    pushBlinkMessage(11);
+    //Serial.println("Added message to que");
   }
   if((loopCounter % 50) == 0)
   {
