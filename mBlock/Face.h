@@ -192,3 +192,4 @@ int returnFaceNumber(int magDigit); // gives the value of the face given magneti
 //converts from 0-30 to 
 
 #endif
+

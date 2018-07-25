@@ -567,3 +567,4 @@ void resetI2cBus()
   }
   digitalWrite(Switch, HIGH);
 }
+

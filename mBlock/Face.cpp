@@ -743,3 +743,4 @@ int returnFaceNumber(int magDigit)
     else
             {return -1;}
 }     
+

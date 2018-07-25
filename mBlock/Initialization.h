@@ -20,3 +20,4 @@ void setMotionDataGlobalVariables();
 void resetI2cBus();         // Reets power to the I2C bus by cycling its power off and then back on
                                                                           // data for each cube based on the ID number
 #endif
+

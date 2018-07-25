@@ -167,3 +167,4 @@ static void apply_3x3_mult(const int32_t* R, const int32_t* V, int32_t* target);
 void wifiDelay(int delayTime);
 
 #endif
+

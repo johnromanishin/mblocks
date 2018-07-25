@@ -251,3 +251,4 @@ const int faceRotations[FACES][4] =
   {2, 3, 0, 1},  // FACE 4
   {1, 0, 3, 2}   // FACE 5
 };
+

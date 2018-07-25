@@ -151,12 +151,17 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
         c->lightCube(&blue);
         mesh.update();
       }
-      else if(receivedCMD == "f")
+      else if(receivedCMD == "RED")
+      {
+        c->lightCube(&red);
+        mesh.update();
+      }
+      
+      else if(receivedCMD == "off")
       {
         c->lightCube(&off);
         mesh.update();
       }
-
       else if (receivedCMD == "lightSeek")
       {
         Game = "lightSeek";
@@ -1264,3 +1269,4 @@ void wifiLightChange(Cube* c, int number, bool turnOff)
 //  Serial.print("Resultalt Behavior: "); Serial.println(behaviorsToCmd(behaviorToReturnFinal));
 //  Serial.println("--------------Ending BASIC UPKEEP---------------");
 //}
+

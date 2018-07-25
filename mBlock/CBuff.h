@@ -99,3 +99,4 @@ T CircularBuffer<T, useTailParam>::access(int index)
  * cb.access(0);  <--- returns 43
  * cb.access(1);  <--- returns 53
  */
+
