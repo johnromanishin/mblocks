@@ -39,7 +39,6 @@ extern int database[NUM_CUBES][tableWidth];
 #define TESTCUBE_ID 0
 #define OUTBOX_SIZE 10
 #define INBOX_SIZE 20
-#define TEST_THIS 28
 
 #define wifiAddress_SERVER  885790061   //  Sparkfun THing SERVER
 #define wifiAddress_cube00  2133796284  //  Sparkfun Thing LArge Breadboard

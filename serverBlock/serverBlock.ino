@@ -3,6 +3,7 @@
     Copyright John Romanishin, MIT CSAIL
     johnrom@mit.edu
 */
+
 // External Libraries
 #include <Wire.h>                 // Arduino's implementation of the i2c wireless protocal
 #include <painlessMesh.h>         // Wifi Mesh Library found on the internet  
@@ -15,58 +16,9 @@
 #include "Database.h"
 #include <VL6180X.h>
 
-// Header Files
-// extern inboxEntry inbox;
-// extern outboxEntry outbox[2];
-
-void testOutboxes()
-/*
- * This loads specific outboxes with specific message for testing and 
- * debugging purposes
- */
-{
-  //pushBlinkMessage(TESTCUBE_ID);
-  //pushBlinkMessage(15);
-  //pushBlinkMessage(4);
-}
-
-void interactWithRangeSensor()
-{
-  int rangeValue = readRangeSensor();
-  if (rangeValue < 20)
-  {
-    //sendBroadcastMessage(createJsonStringFlood(-1, "sleep"));
-    //Serial.println("Putting the cubes to sleep...");
-    wifiDelay(300); // wait a bit to make sure it is a valid reading
-    rangeValue = readRangeSensor();
-    if(rangeValue < 20)
-    {
-      //Serial.println("Putting the cubes to sleep");
-      //pushSleepMessage(15);
-      //pushSleepMessage(4);
-      testDatabase();
-      wifiDelay(1000);
-    }
-  }
-  
-  else if (rangeValue > 20 && rangeValue < 50)
-  {
-    //sendBroadcastMessage(createJsonStringFlood(-1, "lightSeek"));
-  }
-
-  else if (rangeValue > 50 && rangeValue < 100)
-  {
-    //sendBroadcastMessage(createJsonStringFlood(-1, "attractive"));
-  }
-
-  else if (rangeValue > 100 && rangeValue < 200)
-  {
-    pushBlinkMessage(15);
-    //pushBlinkMessage(4);
-    pushBlinkMessage(TESTCUBE_ID);
-    wifiDelay(300);
-  }
-}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////Setup////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void setup()
 {
@@ -79,14 +31,21 @@ void setup()
   Serial.println(mesh.getNodeId());
   espconn_tcp_set_max_con(6); // this is supposed to increase the maximum number of WIFI connections to 6
   wifiDelay(1000);  
-  testOutboxes();
   Serial.println("Exiting Setup");
 }
 
-bool lineOfThree = false;
-int foundFlag;
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////// Global Vriables ////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int loopCounter = 0;
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////// MAIN LOOP ////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
+ * The main loops goal is to:
+ * 1. 
+ */
 void loop()
 {
   updateBoxes(); // checks messages from the WiFi Message queue
@@ -134,19 +93,40 @@ void loop()
   loopCounter++;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////// OTHER ////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void interactWithRangeSensor()
+{
+  int rangeValue = readRangeSensor();
+  if (rangeValue < 20)
+  {
+    wifiDelay(300); // wait a bit to make sure it is a valid reading
+    rangeValue = readRangeSensor();
+    if(rangeValue < 20)
+    {
+      wifiDelay(100);
+    }
+  }
+  
+  else if (rangeValue > 20 && rangeValue < 50)
+  {
+    //sendBroadcastMessage(createJsonStringFlood(-1, "lightSeek"));
+  }
 
+  else if (rangeValue > 50 && rangeValue < 100)
+  {
+    //sendBroadcastMessage(createJsonStringFlood(-1, "attractive"));
+  }
 
-
-
-
-
-
-
-
-
-
-
+  else if (rangeValue > 100 && rangeValue < 200)
+  {
+    pushBlinkMessage(15);
+    pushBlinkMessage(TESTCUBE_ID);
+    wifiDelay(300);
+  }
+}
 
 /////////// NOTES////
 
