@@ -15,7 +15,7 @@
 #define   MESH_PASSWORD   "mblocks3d"
 #define   MESH_PORT       5555
 
-#define   MAXIMUM_MESSAGE_ATTEMPTS 7
+#define   MAXIMUM_MESSAGE_ATTEMPTS 6
 
 // Class instance for the WIFI mesh
 painlessMesh mesh;
@@ -38,22 +38,6 @@ int inboxTail = 0; // The oldest message in the buffer... first one to process
 outboxEntry outbox[NUM_CUBES][OUTBOX_SIZE] ; // 2D Array of OutboxEntry Instances
 int outboxHead[NUM_CUBES] = {};
 int outboxTail[NUM_CUBES] = {};
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////1. Info regarding the state model//////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void updateStateModel(int cubeID)
-{
-  for (int i=0; i<6; i++)
-  {
-    //cubesState[cubeID][i] = inbox[inboxTail].faceStates[i];
-  }
-}
-
-
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -88,7 +72,7 @@ void updateBoxes()
      */
     {
        // if inbox is ack for outbox
-       updateStateModel(inbox[inboxTail].senderID); // process ack for the cube 
+       // updateStateModel(inbox[inboxTail].senderID); // process ack for the cube 
 
        //
        outbox[inbox[inboxTail].senderID][outboxTail[inbox[inboxTail].senderID]].mID = 0; // clear outbox entry
@@ -184,10 +168,10 @@ void receivedCallback(uint32_t from, String & stringMsg)
  * list of messages to be processed by inboxbuffer
  */
 {
-  Serial.print("Received message from ");
-  Serial.println(from);
-  Serial.println("Message Contents:");
-  Serial.println(stringMsg);
+  // Serial.print("Received message from ");
+  // Serial.println(from);
+   Serial.print("Message Contents: ");
+   Serial.println(stringMsg);
   // if Inbox is full...
   // Use bool inboxIsFull()
 
@@ -197,8 +181,9 @@ void receivedCallback(uint32_t from, String & stringMsg)
     JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg); // parse message
     int senderCubeID = jsonMsg["sID"];
     int tempBottomFace = jsonMsg["bFace"];
+    
     /*
-     * Update the parameters that go into the ibox entry
+     * Update the parameters that go into the inbox entry
      */
     inbox[inboxHead].mID = jsonMsg["mID"];
     inbox[inboxHead].bottomFace = tempBottomFace;
@@ -208,32 +193,38 @@ void receivedCallback(uint32_t from, String & stringMsg)
      * Update the parameters in the database
      */
     database[senderCubeID][bottom_Face] = tempBottomFace;
+    
     if(jsonMsg.containsKey("f0"))
       database[senderCubeID][face_0] = jsonMsg["f0"];
+      
     else
       database[senderCubeID][face_0] = -1;
+      
     if(jsonMsg.containsKey("f1"))
       database[senderCubeID][face_1] = jsonMsg["f1"];
     else
       database[senderCubeID][face_1] = -1;
+      
     if(jsonMsg.containsKey("f2"))
       database[senderCubeID][face_2] = jsonMsg["f2"];
     else
       database[senderCubeID][face_2] = -1;
+      
     if(jsonMsg.containsKey("f3"))
       database[senderCubeID][face_3] = jsonMsg["f3"];
     else
       database[senderCubeID][face_3] = -1;
+      
     if(jsonMsg.containsKey("f4"))
       database[senderCubeID][face_4] = jsonMsg["f4"];
     else
       database[senderCubeID][face_4] = -1;
+      
     if(jsonMsg.containsKey("f5"))
       database[senderCubeID][face_5] = jsonMsg["f5"];
     else
       database[senderCubeID][face_5] = -1;
       
-    Serial.println("Just updated the database...");
     /*
      * We have now processed this message ... so message is 
      */
@@ -251,9 +242,15 @@ void changedConnectionCallback()
   Serial.printf("Connection Event\n");
 }
 
-void nodeTimeAdjustedCallback(int32_t offset) {}
+void nodeTimeAdjustedCallback(int32_t offset) 
+{
 
-void delayReceivedCallback(uint32_t from, int32_t delay) {}
+}
+
+void delayReceivedCallback(uint32_t from, int32_t delay) 
+{
+
+}
 
 String generateMessageText(String cmd, uint32_t mID)
 /*
@@ -269,15 +266,17 @@ String generateMessageText(String cmd, uint32_t mID)
  * command to send  | "cmd"   |
  */
 {
-  if (mID == 0) {
+  if (mID == 0)
+  {
     mID = advanceLfsr();
   }
+  
   StaticJsonBuffer<512> jsonBuffer; // Space Allocated to construct json instance
   JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
   //jsonMsg is our output, but in JSON form
 
   jsonMsg["mID"] =  mID;
-  jsonMsg["type"] = "c"; // "c" for command...
+  //jsonMsg["type"] = "c"; // "c" for command...
   jsonMsg["sID"] =  SERVER_ID;
   jsonMsg["cmd"] =  cmd;
   String strMsg; // generate empty string

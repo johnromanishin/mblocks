@@ -13,7 +13,6 @@
  * of the cubes which are currently attached to the wifi network.
  */
  
-
 void testDatabase();
 int determineAvailableCubes();
 int initializeDatabase();

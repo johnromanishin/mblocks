@@ -55,32 +55,32 @@ void loop()
   {
     pushBlinkMessage(TESTCUBE_ID);
     
-    pushBlinkMessage(4);
-    pushBlinkMessage(5);
-    pushBlinkMessage(7);
-    pushBlinkMessage(8);
+    //pushBlinkMessage(4);
+    //pushBlinkMessage(5);
+    //pushBlinkMessage(7);
+    //pushBlinkMessage(8);
     //Serial.println("Added message to que");
   }
   if((loopCounter % 333) == 0)
   {    
-    pushBlinkMessage(10);
-    pushBlinkMessage(13);
+    //pushBlinkMessage(10);
+    //pushBlinkMessage(13);
     
-    pushBlinkMessage(2);
-    pushBlinkMessage(1);
-    pushBlinkMessage(3);
-    pushBlinkMessage(9);
+    //pushBlinkMessage(2);
+    //pushBlinkMessage(1);
+    //pushBlinkMessage(3);
+   // pushBlinkMessage(9);
     
     //Serial.println("Added message to que");
   }
   if((loopCounter % 188) == 0)
   {
-    pushBlinkMessage(TESTCUBE_ID);
+    //pushBlinkMessage(TESTCUBE_ID);
     
-    pushBlinkMessage(6);
-    pushBlinkMessage(12);
-    pushBlinkMessage(16);
-    pushBlinkMessage(11);
+    //pushBlinkMessage(6);
+    //pushBlinkMessage(12);
+    //pushBlinkMessage(16);
+    //pushBlinkMessage(11);
     //Serial.println("Added message to que");
   }
   if((loopCounter % 50) == 0)
@@ -107,6 +107,7 @@ void interactWithRangeSensor()
     if(rangeValue < 20)
     {
       wifiDelay(100);
+      pushMessage(TESTCUBE_ID, "f");
     }
   }
   
@@ -128,36 +129,7 @@ void interactWithRangeSensor()
   }
 }
 
-/////////// NOTES////
 
-
-// Old version of finding if cubes are in a line...
-
-//  foundFlag = 0;
-//  for (int face = 1; face < 5; face <<= 1)
-//  {
-//    if ( (cubesState[TESTCUBE_ID][face] != 0) && (cubesState[TESTCUBE_ID][oppositeFace(face)] != 0) )
-//    {
-//      foundFlag = face;
-//    }
-//  }
-//
-//  if (foundFlag != 0)
-//  {
-//    if (lineOfThree == false)
-//    {
-//      lineOfThree = true;
-//      pushReverseMessage(TESTCUBE_ID);
-//
-//    }
-//  }
-//  else if (lineOfThree == true)
-//  {
-//    lineOfThree = false;
-//    pushForwardMessage(TESTCUBE_ID);
-//  }
-
-  
 //bool Cube::isPlaneInPlaneOfFaces(int face1, int face2)
 ///*
 // * 
@@ -217,6 +189,7 @@ void interactWithRangeSensor()
 //return(result);
 //}
 
+
 //int Cube::whichFaceHasNeighbor(int index)
 ///*
 // * This is designed to return the face number for each face connection...
@@ -251,6 +224,8 @@ void interactWithRangeSensor()
 //        facesNeighbors[facesCount-1] = face;
 //    }
 //  }
+
+
 //return(facesNeighbors[index]);
 //}
 //int Cube::numberOfNeighbors(int index, bool doIlightFace)
