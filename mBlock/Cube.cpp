@@ -284,49 +284,56 @@ bool Cube::moveOnLattice(Motion* motion)
  * returns true or false if it thinks that the move was successful
  */
 {
-  if(MAGIC_DEBUG){Serial.println("moveIASimple(Motion* motion)");}
-  
-  this->processState(); // update IMU's and "topFace" 
-  if(this->isValidPlane() == true) // checks to make sure we are in one of the 3 valid planes
+  if(motion->moveName == "h_traverse")
   {
-    // Figure out our current state...
-    int faceUpBeginning = this->returnTopFace(); // record what our initial top face is
-    bool succeed = false;
-  
-    // Actually send the action to Kyles Board...
-    String iaString = "ia " 
-    + String(motion->for_rev)+ " " 
-    + String(motion->rpm) + " " 
-    + String(motion->current) + " " 
-    + String(motion->brakeTime) + " e 15";
-    
-    this->printString(iaString); // print the command to kyles Board
-    wifiDelay(motion->timeout); // wait for the action to complete
-  
-    // we are now waiting, and collecting data
-    wifiDelayWithMotionDetection(3000);
-  
-    // Check to see our NEW state...
-    this->processState();
-    // If UP face is the same... we say we failed =(
-    if(this->returnTopFace() == faceUpBeginning)
-    {
-      this->superSpecialBlink(&red, 40);
-    }
-    
-    //if up face is different we say we succeeded!!!
-    else
-    {
-      this->superSpecialBlink(&green, 40);
-      succeed = true;
-    }
-    
-    this->moveSuccessBuffer.push(succeed);
-    return(succeed);
+    Serial.println("About to try HORIZONTAL moving, oh yeah!");
   }
   else
   {
-    return(false);
+    if(MAGIC_DEBUG){Serial.println("moveIASimple(Motion* motion)");}
+  
+    this->processState(); // update IMU's and "topFace" 
+    if(this->isValidPlane() == true) // checks to make sure we are in one of the 3 valid planes
+    {
+      // Figure out our current state...
+      int faceUpBeginning = this->returnTopFace(); // record what our initial top face is
+      bool succeed = false;
+  
+      // Actually send the action to Kyles Board...
+      String iaString = "ia " 
+      + String(motion->for_rev)+ " " 
+      + String(motion->rpm) + " " 
+      + String(motion->current) + " " 
+      + String(motion->brakeTime) + " e 15";
+    
+      this->printString(iaString); // print the command to kyles Board
+      wifiDelay(motion->timeout); // wait for the action to complete
+  
+      // we are now waiting, and collecting data
+      wifiDelayWithMotionDetection(3000);
+  
+      // Check to see our NEW state...
+      this->processState();
+      // If UP face is the same... we say we failed =(
+      if(this->returnTopFace() == faceUpBeginning)
+      {
+        this->superSpecialBlink(&red, 40);
+      }
+    
+      //if up face is different we say we succeeded!!!
+      else
+      {
+        this->superSpecialBlink(&green, 40);
+        succeed = true;
+      }
+    
+      this->moveSuccessBuffer.push(succeed);
+      return(succeed);
+    }
+    else
+    {
+      return(false);
+    }
   }
 }
 
@@ -503,6 +510,12 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
  * 
  */
 {   
+  Serial.println("ACTUALLY CHECKING PLANE!!! WOOOO!!!!!!");
+  Serial.println("ACTUALLY CHECKING PLANE!!! WOOOO!!!!!!");
+  Serial.println("ACTUALLY CHECKING PLANE!!! WOOOO!!!!!!");
+  Serial.println("ACTUALLY CHECKING PLANE!!! WOOOO!!!!!!");
+
+
   if((targetCorePlane == PLANENONE)  ||
      (targetCorePlane == PLANEERROR) || 
      (targetCorePlane == PLANEMOVING)) // this protects the inputs
@@ -609,8 +622,10 @@ PlaneEnum Cube::findPlaneStatus(bool reset)
  * 
  */
 {
-  if(this->cubeID > 50) // this means it is a benchtop example and it can't actually run this.
+  if(this->cubeID > 50 || this->cubeID == 0) 
+  // this means it is a benchtop example and it can't actually run this.
   {
+    Serial.println("WE TRIED TO FIND PLANE STATUS, CALLED HERE!");
     this->currentPlaneBuffer.push(PLANE0123);
     return(PLANE0123);
   }
@@ -1205,6 +1220,7 @@ bool Cube::determineForwardFace() // FUN3 // plane should be either int 1234, 15
         {
           return(false);
         }
+  fFace = this->forwardFace;
   return(true);
 }
 
@@ -1298,7 +1314,29 @@ bool Cube::lightCorner(int corner, Color* inputColor)
      }
   }      
 }
-
+void Cube::flashFaceLEDs(int delayTime)
+{
+  /*
+   * Turn on the LED's
+   */
+  for(int face = 0; face < FACES; face++)
+  {
+     this->faces[face].turnOnFaceLEDs(0, 1, 0, 1);
+  }
+  wifiDelay(delayTime);
+  for(int face = 0; face < FACES; face++)
+  {
+    this->faces[face].turnOnFaceLEDs(1, 0 , 1, 0);
+  }
+  wifiDelay(delayTime);
+  /*
+   * Turn them all off
+   */
+  for(int face = 0; face < FACES; face++)
+  {
+    this->faces[face].turnOffFaceLEDs();
+  }
+}
 bool Cube::lightFace(int face, Color* inputColor)
 {
     /*

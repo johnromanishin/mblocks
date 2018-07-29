@@ -8,31 +8,45 @@
 
 Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
 {
-  c->update(); // actually read all of the sensors
+  /*
+   * c->update(); reads all of the sensor values, includinglight sensors, the magnetic sensors
+   * and IMU's and adds the values to the circular buffers corresponding to each sensor
+   */
+  c->update();
+  wifiDelay(200);
+  /*
+   * checkForWifiCommands looks to see if it should take any actions based on received WIFI commands
+   * these fit into the following categories
+   * 1. Movements 
+   * 2. LED's
+   * 3. Status update
+   * 4. Change "game"
+   */
   Behavior newBehavior = checkForWifiCommands(c, inputBehavior);
+  
   if (MAGIC_DEBUG) {
     Serial.print("nextBehavior is... ");
     Serial.println(behaviorsToCmd(newBehavior));
   }
+  /*
+   * checkForMagneticTagsStandard - this function "processes" the magnetic tags
+   * some tags will prompt immediate actions, including making it go to sleep, 
+   * or changing to specific colors.
+   * 
+   */
   int numberOfNeighborz = checkForMagneticTagsStandard(c);
-  if (MAGIC_DEBUG) {
-    Serial.print("nextBehavior is... ");
-    Serial.println(behaviorsToCmd(newBehavior));
-  }
+
   if (Game == "lightSeek")
   {
     return(LightTrackingStateMachine(c, newBehavior));
   }
+  
   else if(Game == "Line")
   {
-    delay(100);
+    return(LineStateMachine(c, newBehavior));
     //return(true);
   }
   
-  else if (true)
-  {
-    wifiDelay(10);
-  }
   return (newBehavior);
 }
 
@@ -44,7 +58,9 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
 
 Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
 {
-  if (MAGIC_DEBUG) Serial.println("CheckingForWifi Commands...");
+  /*
+   * We 
+   */
   Behavior resultBehavior = currentBehavior;
   if (!jsonCircularBuffer.empty()) // while there are still messages
   {
@@ -58,10 +74,9 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
       /*  checks to see if the recieved message matches a behavior...
           If it doesn't we default to the currentBehavior
       */
-      //resultBehavior = cmdToBehaviors(receivedCMD, currentBehavior);
+      //  resultBehavior = cmdToBehaviors(receivedCMD, currentBehavior);
       //  If the command is an update request, nothing should happen, and an ack will be sent
       
-
       /*  If the command is "blink" then we will really quickly blink the face LED's
           This can be used to visually verify which cubes are actually connectd to the wifi mesh
           and are working properly
@@ -69,7 +84,8 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
       if (receivedCMD == "b")
       {
         uint32_t mID = jsonMsg["mID"];
-        c->superSpecialBlink(&red, 100);
+        //c->superSpecialBlink(&red, 100);
+        c->flashFaceLEDs();
       }
       /*
        * Motion Commands
@@ -79,10 +95,11 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
        */
       else if(receivedCMD == "f" || receivedCMD == "r")
       {
-        /* First we check to see if we have (1) neighbor
+        /*  First we check to see if we have (1) neighbor
          *  and that neighbor is on the bottom,
          *  then we want to do a regular traverse
          */
+        Serial.println("Checking on things...");
         if(c->numberOfNeighbors(0, 0) == 1)
         {
           /*
@@ -108,7 +125,28 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
                 c->moveOnLattice(&traverse_R);
               }
             }
-          } 
+          }
+          /*
+           * Horizontal moves, when the face with a neighbor is neither top nor bottom...
+           * and the plane is correct...
+           */
+          else if((c->whichFaceHasNeighbor(0) != c->returnBottomFace()) && 
+                  (c->whichFaceHasNeighbor(0) != c->returnTopFace()) &&
+                  c->returnForwardFace() == -1)
+          {
+            if(receivedCMD == "f")
+              {
+                Serial.println("Preparring to move forward");
+                 c->moveOnLattice(&horizontal_F);
+              }
+              
+              else if(receivedCMD == "r")
+              {
+                Serial.println("Preparring to move IN REVERSE");
+                c->moveOnLattice(&traverse_R);
+              }
+          }
+             
           /*
            * Ok, now we know that we are only connected to one cube, but that 
            * connection is on one of the four ring faces... we need to think about this
@@ -167,6 +205,11 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
         Game = "lightSeek";
       }
 
+      else if (receivedCMD == "line")
+      {
+        Game = "Line";
+      }
+
       else if (receivedCMD == "chill")
       {
         Game = "Nothing";
@@ -212,9 +255,9 @@ int checkForMagneticTagsStandard(Cube* c)
 */
 {
   int neighbors = 0; // running count of how many actual cube neighbors we have...
-  if (MAGIC_DEBUG) {
-    Serial.println("Checking for MAGNETIC TAGS...");
-  }
+//  if (MAGIC_DEBUG) {
+//    Serial.println("Checking for MAGNETIC TAGS...");
+//  }
   for (int face = 0; face < 6; face++)
   {
     /* This gets activated if we are attached to an actual cube or passive cube
@@ -279,13 +322,6 @@ int checkForMagneticTagsStandard(Cube* c)
   return (neighbors);
 }
 
-//=============================================================================================
-//=============================================================================================
-//=============================================================================================
-//=============================================================================================
-//=============================================================================================
-
-
 //================================================================
 //==========================DEMO==============================
 //================================================================
@@ -294,15 +330,15 @@ Behavior demo(Cube* c)
   if (MAGIC_DEBUG) Serial.println("Beginning DEMO Behaviour");
   Behavior nextBehavior = DEMO;
   int loopCounter = 0;
+  
   while (nextBehavior == DEMO) // loop until something changes the next behavior
   {
+    
     nextBehavior = basicUpkeep(c, nextBehavior);
+    
     mesh.update();
     //Serial.println(loopCounter++);
     wifiDelay(200);
-    //String Messagee = "WHAT IS GOING ON";
-    //sendMessage(-1, Messagee);
-    //mesh.sendBroadcast(Messagee);
   }
   return nextBehavior;
 }
@@ -402,9 +438,11 @@ Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior)
         Serial.println(" SO IT HAS COME TO THIS.... PEACE OUT BROTHERS...");
       }
       c->blockingBlink(&red, 70, 50);
+      c->blockingBlink(&red, 70, 50);
+      c->blockingBlink(&red, 70, 50);
       c->update();
-      checkForMagneticTagsStandard(c); // give me a change to turn it off before it explodes...
       delay(1000);
+      checkForMagneticTagsStandard(c); // give me a chance to turn it off before it explodes...
       c->moveOnLattice(&explode_F);
       newBehavior = SOLO_LIGHT_TRACK;
     }
@@ -448,7 +486,8 @@ Behavior followArrows(Cube* c) // purple
   Behavior nextBehavior = FOLLOW_ARROWS; // default is to keep doing what we are doing.
   int loopCounter = 0;
   nextBehavior = basicUpkeep(c, nextBehavior);  // check wifi and Magnetic Sensors
-  (*c).superSpecialBlink(&purple, 100);
+  //(*c).superSpecialBlink(&purple, 100);
+  c->superSpecialBlink(&purple, 100);
   c->superSpecialBlink(&white, 200);
   while ((nextBehavior == FOLLOW_ARROWS) && (millis() < c->shutDownTime))
   {
@@ -600,12 +639,13 @@ Behavior soloSeekLight(Cube* c) // green
           if (c->numberOfNeighborsCheckNow() == 0)
             c->moveOnLattice(&traverse_F);
 
-
           c->superSpecialBlink(&yellow, 50);
+          
           wifiDelay(1500);
 
           if (c->numberOfNeighborsCheckNow() == 0)
             c->moveOnLattice(&traverse_R);
+            
           wifiDelay(1500);
         }
       }

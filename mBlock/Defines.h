@@ -86,8 +86,9 @@ extern int CC_BRAKETIME_R;
  */
 typedef enum PlaneEnum 
 {
-  PLANE0123,  // Valid Plane, with face "5" On Top
   PLANE0425,  // Valid Plane, with face "1" On Top
+  PLANE0123,  // Valid Plane, with face "5" On Top
+  //PLANE0425,  // Valid Plane, with face "1" On Top
   PLANE1453,  // Valid Plane, with face "2" On Top
   PLANENONE,  // Means we are inbetween two valid planes
   PLANEMOVING,// gyro values show we are moving, measurements are therefor unreliable
@@ -163,6 +164,9 @@ extern Motion roll_F;
 extern Motion roll_R;
 extern Motion cornerClimb_F;
 extern Motion cornerClimb_R;
+
+extern Motion horizontal_F;
+extern Motion horizontal_R;
 
 extern Motion shake_F;
 extern Motion softShake_F;

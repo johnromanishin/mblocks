@@ -130,6 +130,7 @@ class Cube
     void setFaceLEDsAtEdge(int, int); // 
     void superSpecialBlink(Color* inputColor, int delayTime);
     void blinkRingAll(int delayLength = 50, int numberOfTimes = 1);
+    void flashFaceLEDs(int delayTime = 65);
     
     // Misc. Useful Functions
     void shutDown();                   // Turns off the entire cube

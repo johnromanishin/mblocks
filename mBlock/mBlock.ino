@@ -26,18 +26,18 @@ Behavior behavior = DEMO; // initial Behavior Cube implements
 
 void setup() // starts up the various electronic hardware...
 {
-  //int timerCounter = millis(); // records when everything started
   bool shutDown = false;
   initializeCube(); // Runs this code once to setup input/outputs, communication networks...
                     // (Wifi, i2c, serial) and instantiates classes and calibration values
   c.update(); // populates initial readings for variables such as which face is up, and # of neighbors
   c.updateCubeID(thisCubeID, mesh.getNodeId()); // updated variable c.cubeID from initialization loop up table...
-  c.superSpecialBlink(&purple, 100);
-  c.superSpecialBlink(&blue, 100);
+  c.findPlaneStatus(false); // Populate the initial reading for the current plane status
+
   c.superSpecialBlink(&white, 100);
-  c.blinkRingAll();
+  c.flashFaceLEDs();
   c.lightCube(&off);
-  Serial.println("WIFI ID: ");
+  
+  Serial.print("WIFI ID: ");
   Serial.println(mesh.getNodeId());
 }
 

@@ -60,7 +60,7 @@ uint32_t initializeWifiMesh()
   return(mesh.getNodeId());
 }
 
-#define messageDebug 1
+#define messageDebug 0
 void receivedCallback(uint32_t from, String & stringMsg)
 {
   if(messageDebug)
@@ -126,10 +126,11 @@ void sendAck(uint32_t messageID)
   StaticJsonBuffer<256> jsonBuffer; //memory allocated to store json instance
   JsonObject& msg = jsonBuffer.createObject(); // & is "c++ reference"
   msg["mID"] = messageID; // message ID
-  msg["type"] = "ack";
+  //msg["type"] = "ack";
   msg["sID"] = thisCubeID; // sender ID
   //msg["neighbors"] = "lots"; // c->numberOfNeighbors();
   msg["bFace"] = bFace; // c->returnTopFace(0);
+  msg["fFace"] = fFace;
   
   if(f0 > 0)
   {
