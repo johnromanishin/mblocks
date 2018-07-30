@@ -26,8 +26,8 @@
 Motion traverse_F     = {"traverse"   , true    , 6000    , 6000    , 3000    , 12        , 9           , "f"};
 Motion traverse_R     = {"traverse"   , true    , 6000    , 6000    , 3000    , 12        , 9           , "r"};
 
-Motion horizontal_F   = {"h_traverse" , true    , 5000    , 6000    , 3000    , 12        , 9           , "f"};
-Motion horizontal_R   = {"h_traverse" , true    , 5000    , 6000    , 3000    , 12        , 9           , "r"};
+Motion horizontal_F   = {"h_traverse" , true    , 5000    , 4000    , 3000    , 12        , 9           , "f"};
+Motion horizontal_R   = {"h_traverse" , true    , 5000    , 4000    , 3000    , 12        , 9           , "r"};
 
 Motion roll_F         = {"roll"       , false   , 6500    ,    0    ,    0    , 0         , 1           , "f"};
 Motion roll_R         = {"roll"       , false   , 6500    ,    0    ,    0    , 0         , 1           , "r"};

@@ -14,6 +14,7 @@
 #define   MESH_PORT       5555
 
 #define   SERVER_NUMBER   99
+#define   SPECIAL_MID     42
 
 painlessMesh  mesh; // instantiates the class "mesh" which handles the wireless messages
 
@@ -75,29 +76,28 @@ void receivedCallback(uint32_t from, String & stringMsg)
   // id field.
   
   //check to see if it's new, if so, do something with it
-  StaticJsonBuffer<256> jsonMsgBuffer;
-  JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg);
   
-  uint32_t mID = jsonMsg["mID"];
-  String command = jsonMsg["cmd"];
-  
-  if (command == "q")
+  if (stringMsg == "q")
   /*
    * If the commands is "q" then we quickly return an ack, and then go back to the 
    * regularly scheduled programming...
    */
   {
-    sendAck(mID);
+    sendAck(SPECIAL_MID); // if this is a "q" message, we know that the cube is trying to figure out who is there...
     return;
   }
-
+  
+  StaticJsonBuffer<256> jsonMsgBuffer;
+  JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg);
+  uint32_t mID = jsonMsg["mID"];
+  String command = jsonMsg["cmd"];
   /*
    * If the command is anything else, we check to make sure the mID is new
    * If it is new, we add it to our circular buffer of commands
    */
   if (mID != prevMID)
   {
-    Serial.println("Adding to Buffer...");
+    //Serial.println("Adding to Buffer...");
     jsonCircularBuffer.push(stringMsg);
     prevMID = mID;
   }
@@ -129,6 +129,7 @@ void sendAck(uint32_t messageID)
   //msg["type"] = "ack";
   msg["sID"] = thisCubeID; // sender ID
   //msg["neighbors"] = "lots"; // c->numberOfNeighbors();
+  if(messageID != SPECIAL_MID)
   msg["bFace"] = bFace; // c->returnTopFace(0);
   msg["fFace"] = fFace;
   

@@ -286,7 +286,65 @@ bool Cube::moveOnLattice(Motion* motion)
 {
   if(motion->moveName == "h_traverse")
   {
-    Serial.println("About to try HORIZONTAL moving, oh yeah!");
+    if(MAGIC_DEBUG){Serial.println("moveIASimple(Motion* motion)");}
+  
+    this->processState(); // update IMU's and "topFace" 
+    if(this->isValidPlane() == true) // checks to make sure we are in one of the 3 valid planes
+    {
+      // Figure out our current state...
+      if(this->numberOfNeighbors(0, 0) == 1)
+      {
+        wifiDelay(10);
+      }
+      int connectedFace = this->whichFaceHasNeighbor(0); // record what our initial top face is
+      
+      bool succeed = false;
+      String stringAtEnd = "a 10 r";
+      String secondString = "bldcspeed f 5000";
+      if(motion->for_rev == "r")
+      {
+        stringAtEnd = "a 10 f";
+        secondString = "bldcspeed r 5000";
+      }
+      // Actually send the action to Kyles Board...
+      String iaString = "ia " 
+      + String(motion->for_rev)+ " " 
+      + String(motion->rpm) + " " 
+      + String(motion->current) + " " 
+      + String(motion->brakeTime) + " "
+      + stringAtEnd;
+    
+      this->printString(iaString); // print the command to kyles Board
+      wifiDelay(motion->timeout); // wait for the action to complete
+  
+      // we are now waiting, and collecting data
+      wifiDelayWithMotionDetection(3000);
+
+      this->printString(secondString);
+      wifiDelay(2000);
+      this->printString("bldcstop b");
+      wifiDelay(1000);
+      // Check to see our NEW state...
+      this->processState();
+      // If UP face is the same... we say we failed =(
+      if(this->whichFaceHasNeighbor(0) == connectedFace)
+      {
+        this->superSpecialBlink(&red, 40);
+      }
+    
+      //if up face is different we say we succeeded!!!
+      else
+      {
+        this->superSpecialBlink(&green, 40);
+        succeed = true;
+      }
+      this->moveSuccessBuffer.push(succeed);
+      return(succeed);
+    }
+    else
+    {
+      return(false);
+    }
   }
   else
   {

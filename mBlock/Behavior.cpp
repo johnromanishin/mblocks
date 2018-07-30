@@ -38,13 +38,12 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
 
   if (Game == "lightSeek")
   {
-    return(LightTrackingStateMachine(c, newBehavior));
+    return(LightTrackingStateMachine(c, newBehavior, numberOfNeighborz));
   }
   
   else if(Game == "Line")
   {
-    return(LineStateMachine(c, newBehavior));
-    //return(true);
+    return(LineStateMachine(c, newBehavior, numberOfNeighborz));
   }
   
   return (newBehavior);
@@ -59,7 +58,8 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
 Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
 {
   /*
-   * We 
+   * This is part of Basic Upkeep - the goal of this function is to process queued
+   * wifi message, and then act on them. 
    */
   Behavior resultBehavior = currentBehavior;
   if (!jsonCircularBuffer.empty()) // while there are still messages
@@ -75,7 +75,6 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
           If it doesn't we default to the currentBehavior
       */
       //  resultBehavior = cmdToBehaviors(receivedCMD, currentBehavior);
-      //  If the command is an update request, nothing should happen, and an ack will be sent
       
       /*  If the command is "blink" then we will really quickly blink the face LED's
           This can be used to visually verify which cubes are actually connectd to the wifi mesh
@@ -84,7 +83,6 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
       if (receivedCMD == "b")
       {
         uint32_t mID = jsonMsg["mID"];
-        //c->superSpecialBlink(&red, 100);
         c->flashFaceLEDs();
       }
       /*
@@ -143,13 +141,14 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
               else if(receivedCMD == "r")
               {
                 Serial.println("Preparring to move IN REVERSE");
-                c->moveOnLattice(&traverse_R);
+                c->moveOnLattice(&horizontal_R);
               }
           }
              
           /*
            * Ok, now we know that we are only connected to one cube, but that 
-           * connection is on one of the four ring faces... we need to think about this
+           * connection is on one of the four ring faces... 
+           *  And the plane is not in the right orientation
            */
            else if(c->whichFaceHasNeighbor(0) != c->returnBottomFace())
            {
@@ -179,19 +178,43 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
       {
         c->shutDown();
       }
-      else if(receivedCMD == "y")
+      
+      else if(receivedCMD == "Y")
       {
         c->lightCube(&yellow);
         mesh.update();
       }
-      else if(receivedCMD == "p")
+      
+      else if(receivedCMD == "B")
       {
         c->lightCube(&blue);
         mesh.update();
       }
-      else if(receivedCMD == "RED")
+      
+      else if(receivedCMD == "R")
       {
         c->lightCube(&red);
+        mesh.update();
+      }
+      
+      else if(receivedCMD == "P")
+      {
+        c->lightCube(&purple);
+        mesh.update();
+      }
+      else if(receivedCMD == "G")
+      {
+        c->lightCube(&green);
+        mesh.update();
+      }
+      else if(receivedCMD == "W")
+      {
+        c->lightCube(&white);
+        mesh.update();
+      }
+      else if(receivedCMD == "O")
+      {
+        c->lightCube(&off);
         mesh.update();
       }
       
@@ -200,6 +223,7 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
         c->lightCube(&off);
         mesh.update();
       }
+      
       else if (receivedCMD == "lightSeek")
       {
         Game = "lightSeek";
@@ -347,9 +371,75 @@ Behavior demo(Cube* c)
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 
+Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int numberOfNeighborz)
 
+/*
+   
+*/
+{
+  if (MAGIC_DEBUG) Serial.println("LineStateMachine");
+  Behavior newBehavior = inputBehavior; 
 
-Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior)
+  //************************************
+  //NEIGHBORS == __ 0 __
+  //************************************
+  if (numberOfNeighborz == 0)
+  {
+    //newBehavior = SOLO_LIGHT_TRACK;
+  }
+  //************************************
+  //NEIGHBORS == __ 1 __
+  //************************************
+  else if (numberOfNeighborz == 1)
+  {
+    if (MAGIC_DEBUG) {
+      Serial.println("***NEIGHBORS == 1");
+    }
+    int neighborFace = c->whichFaceHasNeighbor();
+    if (c->faces[neighborFace].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE)
+    {
+      if (magicTheLight == true)
+        newBehavior = CLIMB;
+      else if (c->numberOfNeighbors(1, 0) == 1) // if the last one also shows that there is a neighbor...
+        newBehavior = DUO_LIGHT_TRACK;
+    }
+    else if (c->faces[neighborFace].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE)
+    {
+      magicTheLight = true;
+      if (neighborFace == c->returnBottomFace())
+      {
+        newBehavior = ATTRACTIVE;
+      }
+      else if ((c->returnForwardFace() == neighborFace) ||
+               (c->returnReverseFace() == neighborFace))
+        newBehavior = CLIMB;
+      else
+        newBehavior = ATTRACTIVE;
+    }
+  }
+  //************************************
+  //NEIGHBORS == __ 2 __
+  //************************************
+  else if (numberOfNeighborz == 2)
+  {
+    
+  }
+
+  //************************************
+  //NEIGHBORS == __ 2+ __
+  //************************************
+
+  else if (numberOfNeighborz > 2)
+  {
+    if (MAGIC_DEBUG) {
+      Serial.println("***NEIGHBORS == __ 2+ __");
+    }
+    newBehavior = ATTRACTIVE;
+  }
+  return (newBehavior);
+}
+
+Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior, int numberOfNeighborz)
 
 /*
    This function does basic state machine switching
@@ -364,7 +454,7 @@ Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior)
   Behavior newBehavior = inputBehavior; //basicUpkeep(Cube* c, Behavior inputBehavior)
 
   // update sensors, numberOfNeighbors, and check wifi commands...
-  int numberOfNeighborz = checkForMagneticTagsStandard(c);
+  //int numberOfNeighborz = checkForMagneticTagsStandard(c);
 
   // Check for Light Digits
   //int lightDigit = processLightDigits(c);
