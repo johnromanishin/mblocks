@@ -44,14 +44,14 @@ int outboxTail[NUM_CUBES] = {};
 ///////////////////////////////////1. Info regarding the state model//////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void updateStateModel(int cubeID)
-{
-  for (int i=0; i<6; i++)
-  {
-    //cubesState[cubeID][i] = inbox[inboxTail].faceStates[i];
-    wifiDelay(10);
-  }
-}
+//void updateStateModel(int cubeID)
+//{
+//  for (int i=0; i<6; i++)
+//  {
+//    //cubesState[cubeID][i] = inbox[inboxTail].faceStates[i];
+//    wifiDelay(10);
+//  }
+//}
 
 
 
@@ -76,9 +76,9 @@ void updateBoxes()
   {
     int cubeThatSentMessage = inbox[inboxTail].senderID;
     
-    Serial.println("Checking to see if message matches...");
-    Serial.print("senderID: ");
-    Serial.println(cubeThatSentMessage);
+    //Serial.println("Checking to see if message matches...");
+    //Serial.print("senderID: ");
+    //Serial.println(cubeThatSentMessage);
     
     if (outbox[cubeThatSentMessage][outboxTail[cubeThatSentMessage]].mID == inbox[inboxTail].mID) 
     /*
@@ -91,15 +91,15 @@ void updateBoxes()
      */
     {
        // if inbox is ack for outbox
-       updateStateModel(inbox[inboxTail].senderID); // process ack for the cube 
+       //updateStateModel(inbox[inboxTail].senderID); // process ack for the cube 
 
        //
        outbox[inbox[inboxTail].senderID][outboxTail[inbox[inboxTail].senderID]].mID = 0; // clear outbox entry
        advanceOutboxTail(inbox[inboxTail].senderID); // move on to next outbox slot...
        
-       Serial.print("senderID: ");
-       Serial.println(inbox[inboxTail].senderID);
-       Serial.println("Clearing out Message");
+       //Serial.print("senderID: ");
+       //Serial.println(inbox[inboxTail].senderID);
+       //Serial.println("Clearing out Message");
     }
     else 
     {       
@@ -157,10 +157,10 @@ void updateBoxes()
         
         outbox[cubeID][outboxTail[cubeID]].backoff++;
         // and increment the counter to reflect the number of tries.
-        Serial.print("Just Processed outbox for Cube #: "); Serial.println(cubeID);
-        Serial.println(String(outbox[cubeID][outboxTail[cubeID]].cmd));
-        Serial.print("backoff: ");
-        Serial.println(String(outbox[cubeID][outboxTail[cubeID]].backoff));
+        //Serial.print("Just Processed outbox for Cube #: "); Serial.println(cubeID);
+        // Serial.println(String(outbox[cubeID][outboxTail[cubeID]].cmd));
+        //Serial.print("backoff: ");
+        //Serial.println(String(outbox[cubeID][outboxTail[cubeID]].backoff));
         //Serial.print("mDeadline: ");
         //Serial.println(String(outbox[cubeID][outboxTail[cubeID]].mDeadline));
         /*
@@ -172,7 +172,18 @@ void updateBoxes()
           // This effectivly deletes the current message.
           outbox[cubeID][outboxTail[cubeID]].mID = 0; // clear outbox entry
           advanceOutboxTail(cubeID); // move on to next outbox slot...
+          database[cubeID][failedMessageCount]++;
+          
           Serial.println("MESSAGE REMOVED DUE TO FAILURE TO DELIVER REPEATIDLY");
+          
+          if(database[cubeID][failedMessageCount] > 2)
+          {
+            Serial.print("Cube: ");
+            Serial.print(cubeID);
+            Serial.print(" has failed to respond to several messages, so we are removing it from list of active cubes");
+            database[cubeID][ACTIVE] = 0;
+            database[cubeID][failedMessageCount] = 0;
+          }
         }
       }
     }
@@ -198,7 +209,7 @@ void receivedCallback(uint32_t from, String & stringMsg)
   
   if(recievedMID == 42)
   {
-    Serial.println("Recieved an special ACK from a cube...");
+    //Serial.println("Recieved an special ACK from a cube...");
     database[senderCubeID][ACTIVE] = 1;
   }
   
@@ -279,7 +290,6 @@ String generateMessageText(String cmd, uint32_t mID)
  * all of the formatted message, including the following components
  * 
  * message ID       | "mID"   |  
- * message type     | "type"  |
  * sender ID        | "sID"   |
  * command to send  | "cmd"   |
  */
@@ -292,7 +302,6 @@ String generateMessageText(String cmd, uint32_t mID)
   //jsonMsg is our output, but in JSON form
 
   jsonMsg["mID"] =  mID;
-  jsonMsg["type"] = "c"; // "c" for command...
   jsonMsg["sID"] =  SERVER_ID;
   jsonMsg["cmd"] =  cmd;
   String strMsg; // generate empty string
@@ -301,6 +310,9 @@ String generateMessageText(String cmd, uint32_t mID)
   return strMsg;
 }
 
+/*
+ *  Special list of messages
+ */
 void pushBlinkMessage(int cubeID)
 {
   pushMessage(cubeID, "b");

@@ -22,7 +22,7 @@ uint32_t previousTime = 0;
 
 void testDatabase()
 {
-  Serial.println("Running the database...");
+  //Serial.println("Running the database...");
   /*
    * This will iterate over all of the entries in the database
    * and do different things...
@@ -35,6 +35,7 @@ void testDatabase()
   {
     database[cubeEntry][numberOfNeighbors] = countNeighborsFromDatabase(cubeEntry);
   }
+  processConnections();
   /*
    * THen we do a second loop over the database to actually 
    * send commands and apply rules to the cubes.
@@ -78,19 +79,42 @@ void testDatabase()
     
       if(database[cubeEntry][numberOfNeighbors] > 1)
       {
-        pushMessage(cubeEntry, "RED");
+        pushMessage(cubeEntry, "R");
         addTimeToNoContactTimer(cubeEntry, 5000);
         wifiDelay(300);
       }
     }
     else // this means we should leave the cube alone, but decrement the timer
     {
-      Serial.print("Time remaining until we talk to again...: "); Serial.println(database[cubeEntry][leaveAloneFor]);
+      //Serial.print("Time remaining until we talk to again...: "); Serial.println(database[cubeEntry][leaveAloneFor]);
       database[cubeEntry][leaveAloneFor]-= (millis() - previousTime);
-      Serial.print("Adjusted time Remaining: "); Serial.println(database[cubeEntry][leaveAloneFor]);
+      //Serial.print("Adjusted time Remaining: "); Serial.println(database[cubeEntry][leaveAloneFor]);
     }
   }
   previousTime = millis();
+}
+
+void processConnections()
+{
+  /*
+   * Iterate over all cubes in the database
+   */
+  for(int cubeEntry = 0; cubeEntry < NUM_CUBES; cubeEntry++)
+  {
+    /*
+     * Iterate over all of the faces...
+     */
+    for(int face = face_0; face < (FACES+face_0); face++)
+    {
+      if(database[cubeEntry][face] > -1)
+      {
+        int numm = database[cubeEntry][face];
+        Serial.print("Cube: ");Serial.print(cubeEntry);Serial.print(" Face: ");Serial.print(face-face_0);
+        Serial.print(" -- ");
+        Serial.print("Cube: ");Serial.print(numm/100);Serial.print(" Face: ");Serial.print((numm%100)/10);
+      }
+    }
+  }
 }
 
 void addTimeToNoContactTimer(int cubeNumber, int timeToAdd)
@@ -100,7 +124,7 @@ void addTimeToNoContactTimer(int cubeNumber, int timeToAdd)
 
 bool checkIfBottomIsConnected(int cubeNumber)
 {
-  Serial.println("CHECKING BOTTOM");
+  //Serial.println("CHECKING BOTTOM");
   bool tempResult = false;
   if(database[cubeNumber][numberOfNeighbors] == 1)
   {
@@ -141,17 +165,6 @@ int countNeighborsFromDatabase(int cubeNumber)
     }
   return(runningNeighborCount);
 }
-
-//int determineAvailableCubes()
-//{
-//  Serial.println("beginning determineAvailableCubes())");
-//  
-//  // Clear out the current contents of the inboxes
-//  for(int i = 0; i < NUM_CUBES; i++)
-//  {
-//    pushBlinkMessage(i);
-//  }
-//}
 
 int initializeDatabase()
 {

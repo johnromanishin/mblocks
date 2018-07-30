@@ -15,6 +15,7 @@
  
 
 void testDatabase();
+void processConnections();
 //int determineAvailableCubes();
 int initializeDatabase();
 

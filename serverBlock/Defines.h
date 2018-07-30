@@ -29,8 +29,13 @@
 #define leaveAloneFor       13
 #define prevNeighbors       14
 #define ACTIVE              15
-#define tableWidth          16
+#define failedMessageCount  16
+#define tableWidth          17
 extern int database[NUM_CUBES][tableWidth];  
+
+#define Connections         10
+#define parameters          10
+extern int connectionDatabase[Connections][parameters];
 
 
 #include <painlessMesh.h> // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh

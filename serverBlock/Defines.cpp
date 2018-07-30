@@ -7,6 +7,8 @@
 int database[NUM_CUBES][tableWidth] = {};
 //
 
+int connectionDatabase[Connections][parameters] = {};
+
 uint32_t getAddressFromCubeID(int CubeID)
 {
   /*
