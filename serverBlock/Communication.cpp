@@ -15,7 +15,7 @@
 #define   MESH_PASSWORD   "mblocks3d"
 #define   MESH_PORT       5555
 
-#define   MAXIMUM_MESSAGE_ATTEMPTS 6
+#define   MAXIMUM_MESSAGE_ATTEMPTS 7
 
 // Class instance for the WIFI mesh
 painlessMesh mesh;
@@ -41,6 +41,23 @@ int outboxTail[NUM_CUBES] = {};
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////1. Info regarding the state model//////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void updateStateModel(int cubeID)
+{
+  for (int i=0; i<6; i++)
+  {
+    //cubesState[cubeID][i] = inbox[inboxTail].faceStates[i];
+    wifiDelay(10);
+  }
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////2. INBOX / OUTBOX///////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -57,10 +74,12 @@ void updateBoxes()
   // Clear out the inbox
   while (!inboxIsEmpty()) // This means there is something in the inbox
   {
+    int cubeThatSentMessage = inbox[inboxTail].senderID;
+    
     Serial.println("Checking to see if message matches...");
     Serial.print("senderID: ");
-    Serial.println(inbox[inboxTail].senderID);
-    int cubeThatSentMessage = inbox[inboxTail].senderID;
+    Serial.println(cubeThatSentMessage);
+    
     if (outbox[cubeThatSentMessage][outboxTail[cubeThatSentMessage]].mID == inbox[inboxTail].mID) 
     /*
      * This massive if statement checks to see if the message ID from the most recent message matched the 
@@ -72,7 +91,7 @@ void updateBoxes()
      */
     {
        // if inbox is ack for outbox
-       // updateStateModel(inbox[inboxTail].senderID); // process ack for the cube 
+       updateStateModel(inbox[inboxTail].senderID); // process ack for the cube 
 
        //
        outbox[inbox[inboxTail].senderID][outboxTail[inbox[inboxTail].senderID]].mID = 0; // clear outbox entry
@@ -92,7 +111,7 @@ void updateBoxes()
        *  2. 
        */
     }
-    inbox[inboxTail].mID = 0; // clear inbox
+    inbox[inboxTail].mID = 0; // clear inbox entry
     advanceInboxTail();
   }
   
@@ -168,35 +187,40 @@ void receivedCallback(uint32_t from, String & stringMsg)
  * list of messages to be processed by inboxbuffer
  */
 {
-  // Serial.print("Received message from ");
-  // Serial.println(from);
-   Serial.print("Message Contents: ");
-   Serial.println(stringMsg);
-  // if Inbox is full...
-  // Use bool inboxIsFull()
-
+  Serial.print("M From: ");
+  Serial.print(from);
+  Serial.println(stringMsg);
+  
+  StaticJsonBuffer<256> jsonMsgBuffer; // allocate memory for json
+  JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg); // parse message
+  int senderCubeID = jsonMsg["sID"];
+  uint32_t recievedMID = jsonMsg["mID"];
+  
+  if(recievedMID == 42)
+  {
+    Serial.println("Recieved an special ACK from a cube...");
+    database[senderCubeID][ACTIVE] = 1;
+  }
+  
   if (inbox[inboxHead].mID == 0) //if there is space in the inbox circular buffer
   {
-    StaticJsonBuffer<256> jsonMsgBuffer; // allocate memory for json
-    JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg); // parse message
-    int senderCubeID = jsonMsg["sID"];
     int tempBottomFace = jsonMsg["bFace"];
-    
     /*
-     * Update the parameters that go into the inbox entry
+     * Update the parameters that go into the ibox entry
      */
-    inbox[inboxHead].mID = jsonMsg["mID"];
-    inbox[inboxHead].bottomFace = tempBottomFace;
-    inbox[inboxHead].senderID = senderCubeID;
-
+    if(recievedMID != 42)
+    {
+      inbox[inboxHead].mID = recievedMID;
+      inbox[inboxHead].bottomFace = tempBottomFace;
+      inbox[inboxHead].senderID = senderCubeID;
+      advanceInboxHead();
+    }
     /*
      * Update the parameters in the database
      */
     database[senderCubeID][bottom_Face] = tempBottomFace;
-    
     if(jsonMsg.containsKey("f0"))
       database[senderCubeID][face_0] = jsonMsg["f0"];
-      
     else
       database[senderCubeID][face_0] = -1;
       
@@ -225,10 +249,10 @@ void receivedCallback(uint32_t from, String & stringMsg)
     else
       database[senderCubeID][face_5] = -1;
       
+    Serial.println("Just updated the database...");
     /*
      * We have now processed this message ... so message is 
      */
-    advanceInboxHead();
   }
 }
 
@@ -242,15 +266,9 @@ void changedConnectionCallback()
   Serial.printf("Connection Event\n");
 }
 
-void nodeTimeAdjustedCallback(int32_t offset) 
-{
+void nodeTimeAdjustedCallback(int32_t offset) {}
 
-}
-
-void delayReceivedCallback(uint32_t from, int32_t delay) 
-{
-
-}
+void delayReceivedCallback(uint32_t from, int32_t delay) {}
 
 String generateMessageText(String cmd, uint32_t mID)
 /*
@@ -266,17 +284,15 @@ String generateMessageText(String cmd, uint32_t mID)
  * command to send  | "cmd"   |
  */
 {
-  if (mID == 0)
-  {
+  if (mID == 0) {
     mID = advanceLfsr();
   }
-  
   StaticJsonBuffer<512> jsonBuffer; // Space Allocated to construct json instance
   JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
   //jsonMsg is our output, but in JSON form
 
   jsonMsg["mID"] =  mID;
-  //jsonMsg["type"] = "c"; // "c" for command...
+  jsonMsg["type"] = "c"; // "c" for command...
   jsonMsg["sID"] =  SERVER_ID;
   jsonMsg["cmd"] =  cmd;
   String strMsg; // generate empty string

@@ -70,7 +70,7 @@ void testDatabase()
       {
         if(checkIfBottomIsConnected(cubeEntry))
         {
-          //Serial.println("WOOO! Added time and told it to go forward");
+          Serial.println("WOOO! Added time and told it to go forward");
           pushMessage(cubeEntry, "f");
           addTimeToNoContactTimer(cubeEntry, 5000);
         }
@@ -85,9 +85,9 @@ void testDatabase()
     }
     else // this means we should leave the cube alone, but decrement the timer
     {
-      //Serial.print("Time remaining until we talk to again...: "); Serial.println(database[cubeEntry][leaveAloneFor]);
+      Serial.print("Time remaining until we talk to again...: "); Serial.println(database[cubeEntry][leaveAloneFor]);
       database[cubeEntry][leaveAloneFor]-= (millis() - previousTime);
-      //Serial.print("Adjusted time Remaining: "); Serial.println(database[cubeEntry][leaveAloneFor]);
+      Serial.print("Adjusted time Remaining: "); Serial.println(database[cubeEntry][leaveAloneFor]);
     }
   }
   previousTime = millis();
@@ -100,7 +100,7 @@ void addTimeToNoContactTimer(int cubeNumber, int timeToAdd)
 
 bool checkIfBottomIsConnected(int cubeNumber)
 {
-  //Serial.println("CHECKING BOTTOM");
+  Serial.println("CHECKING BOTTOM");
   bool tempResult = false;
   if(database[cubeNumber][numberOfNeighbors] == 1)
   {
@@ -110,10 +110,9 @@ bool checkIfBottomIsConnected(int cubeNumber)
       if(database[cubeNumber][face] > -1)
       {
         neighborFace = face-face_0;
-        // Serial.print("NEIGhBOR FACE is: ");
-        // Serial.println(neighborFace);
+        Serial.print("NEIGhBOR FACE is: ");
+        Serial.println(neighborFace);
       }
-      
       if((neighborFace == database[cubeNumber][bottom_Face]) && (database[cubeNumber][bottom_Face] > -1))
       {
         tempResult = true;
@@ -143,16 +142,16 @@ int countNeighborsFromDatabase(int cubeNumber)
   return(runningNeighborCount);
 }
 
-int determineAvailableCubes()
-{
-  Serial.println("beginning determineAvailableCubes())");
-  
-  // Clear out the current contents of the inboxes
-  for(int i = 0; i < NUM_CUBES; i++)
-  {
-    pushBlinkMessage(i);
-  }
-}
+//int determineAvailableCubes()
+//{
+//  Serial.println("beginning determineAvailableCubes())");
+//  
+//  // Clear out the current contents of the inboxes
+//  for(int i = 0; i < NUM_CUBES; i++)
+//  {
+//    pushBlinkMessage(i);
+//  }
+//}
 
 int initializeDatabase()
 {

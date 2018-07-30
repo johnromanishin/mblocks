@@ -10,6 +10,7 @@
 // Basic Data
 // [index] = ID number of the cube...
 
+
 #define timeContacted       0
 #define bottom_Face         1
 #define forwardFace         2
@@ -27,13 +28,11 @@
 #define justMoved           12
 #define leaveAloneFor       13
 #define prevNeighbors       14
-#define tableWidth          15
-
+#define ACTIVE              15
+#define tableWidth          16
 extern int database[NUM_CUBES][tableWidth];  
 
-/*
- *
- */
+
 #include <painlessMesh.h> // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
 
 #define ARRAY_SIZEOF(x) ((sizeof(x) / sizeof(x[0])))

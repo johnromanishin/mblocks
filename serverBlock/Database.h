@@ -13,8 +13,9 @@
  * of the cubes which are currently attached to the wifi network.
  */
  
+
 void testDatabase();
-int determineAvailableCubes();
+//int determineAvailableCubes();
 int initializeDatabase();
 
 int countNeighborsFromDatabase(int cubeNumber);

@@ -28,6 +28,8 @@ struct inboxEntry
   int faceStates[6];
 };
 
+//void updateStateModel(int cubeID);
+
 extern painlessMesh mesh;
 //extern int cubesState[NUM_CUBES][6];
 
@@ -54,6 +56,7 @@ void pushReverseMessage(int cubeID);
 void pushStatusMessage(int cubeID);
 void pushSleepMessage(int cubeID);
 void pushColorMessage(int cubeID, char Color);
+
 
 void advanceOutboxHead(int cubeID);
 void advanceOutboxTail(int cubeID);
