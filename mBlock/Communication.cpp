@@ -23,7 +23,13 @@ String jsonBufferSpace[40];
 
 CircularBuffer<String, true> jsonCircularBuffer(ARRAY_SIZEOF(jsonBufferSpace), jsonBufferSpace);
 
-uint32_t prevMID = 0;
+/*
+ * These variables are used in keeping track of which message ID's we have already seen
+ */
+int      seenMsgCount = 10;
+int      prevMIDindex = 0;
+uint32_t prevMID[seenMsgCount] = 0;
+
 
 bool calc_delay = false;
 SimpleList<uint32_t> nodes;
@@ -69,39 +75,68 @@ void receivedCallback(uint32_t from, String & stringMsg)
   {
     Serial.print("Message Received from: ");
     Serial.println(from);
-    Serial.print("Message Contents: ");
+    Serial.print(" Message Contents: ");
     Serial.println(stringMsg);
   }
-
-  // Check and see if this message is a dupe by "manually" extracting the message
-  // id field.
   
-  //check to see if it's new, if so, do something with it
-  
-  if (stringMsg == "q")
   /*
    * If the commands is "q" then we quickly return an ack, and then go back to the 
    * regularly scheduled programming...
    */
+  if(stringMsg == "q")
   {
+    Serial.println("Responded to simple ACK");
     sendAck(SPECIAL_MID); // if this is a "q" message, we know that the cube is trying to figure out who is there...
     return;
   }
-  
+  /*
+   * Now we extract the Command "cmd"
+   * and the message ID         "mID"
+   * from the message and store them in local variables
+   */
   StaticJsonBuffer<256> jsonMsgBuffer;
   JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg);
   uint32_t mID = jsonMsg["mID"];
   String command = jsonMsg["cmd"];
   /*
-   * If the command is anything else, we check to make sure the mID is new
-   * If it is new, we add it to our circular buffer of commands
+   * Now we are trying to see if we have seen this specific mID before...
+   * We do this with the seenMessage flag... Everytime we see a new message,
+   * we add it to an array of the latest 10 mID's we have seen | prevMID[index]
    */
-  if (mID != prevMID)
+  bool newMessage = true;
+
+  /*
+   * Cycle through the 10 most recent mID's
+   * and see if the current mID matches to any of them...
+   */
+  for(int i = 0; i < seenMsgCount; i++)
   {
-    jsonCircularBuffer.push(stringMsg);
-    prevMID = mID;
+    if(mID == prevMID[i])
+    {
+      newMessage = false;
+    }
   }
-  
+  /*
+   * If the index gets above seenMsgCount, we roll it back over to 0...
+   */
+  if(prevMIDindex >= seenMsgCount)
+  {
+    prevMIDindex = 0;
+  }
+
+  /*
+   * At this point we bool newMessage is true if we haven't seen the messageID recently
+   * So if this is true, we add the command to be processed... If it is a repeat, we return
+   */
+  /*
+   * push the new mID
+   */
+  if(newMessage == true)
+  {
+    prevMID[prevMIDindex] = mID;
+    prevMIDindex++;
+    jsonCircularBuffer.push(stringMsg);
+  }
   // Send an ack message.
   // The ack consists of
   //     type:      "ack"

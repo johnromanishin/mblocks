@@ -82,7 +82,7 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
       */
       if (receivedCMD == "b")
       {
-        uint32_t mID = jsonMsg["mID"];
+        //uint32_t mID = jsonMsg["mID"];
         c->flashFaceLEDs();
       }
       /*
@@ -97,6 +97,7 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
          *  and that neighbor is on the bottom,
          *  then we want to do a regular traverse
          */
+        //uint32_t mID = jsonMsg["mID"];
         int tempNeighbors = c->numberOfNeighbors(0,0);
         Serial.print("Checking on things...: Neighbor # = ");
         Serial.println(tempNeighbors);
