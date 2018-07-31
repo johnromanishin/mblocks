@@ -97,9 +97,10 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
          *  and that neighbor is on the bottom,
          *  then we want to do a regular traverse
          */
+        int tempNeighbors = c->numberOfNeighbors(0,0);
         Serial.print("Checking on things...: Neighbor # = ");
-        Serial.println(c->numberOfNeighbors(0,0));
-        if(c->numberOfNeighbors(0, 0) < 3)
+        Serial.println(tempNeighbors);
+        if(tempNeighbors < 3)
         {
           /*
            * Ok so we know we only have one neighbor, now we check to see 
@@ -115,13 +116,17 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
             {
               if(receivedCMD == "f")
               {
-                Serial.println("Preparring to move forward");
-                 c->moveOnLattice(&traverse_F);
+                c->moveOnLattice(&traverse_F);
+                if(MAGIC_DEBUG) {
+                  Serial.println("Preparring to move forward");
+                }
               }
               else if(receivedCMD == "r")
               {
-                Serial.println("Preparring to move IN REVERSE");
                 c->moveOnLattice(&traverse_R);
+                if(MAGIC_DEBUG) {
+                Serial.println("Preparring to move IN REVERSE");
+                }
               }
             }
           }
@@ -136,13 +141,27 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
             if(receivedCMD == "f")
               {
                 Serial.println("Preparring to move forward");
-                 c->moveOnLattice(&horizontal_F);
+                if(tempNeighbors == 1)
+                {
+                  c->moveOnLattice(&horizontal_F);
+                }
+                else if(tempNeighbors == 2)
+                {
+                  c->moveOnLattice(&horizontal_Stair_F);
+                }
               }
               
               else if(receivedCMD == "r")
               {
                 Serial.println("Preparring to move IN REVERSE");
-                c->moveOnLattice(&horizontal_R);
+                if(tempNeighbors == 1)
+                {
+                  c->moveOnLattice(&horizontal_R);
+                }
+                else if(tempNeighbors == 2)
+                {
+                  c->moveOnLattice(&horizontal_Stair_R);
+                }
               }
           }
              
@@ -213,9 +232,22 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
         c->lightCube(&white);
         mesh.update();
       }
+      
       else if(receivedCMD == "O")
       {
         c->lightCube(&off);
+        mesh.update();
+      }
+
+      else if(receivedCMD == "P")
+      {
+        c->lightCube(&off);
+        mesh.update();
+      }
+
+      else if(receivedCMD == "CPPG")
+      {
+        c->goToPlaneParallel(c->returnTopFace());
         mesh.update();
       }
       

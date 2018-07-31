@@ -20,16 +20,11 @@ void receivedCallback(uint32_t from, String & msg);
 bool sendMessage(int cubeID, String msg);
 void sendAck(uint32_t messageID);
 
-// Commonly Used
-bool sendStatusMessage(Cube* c, int serverNumber);
-
 ///// 
 void newConnectionCallback(uint32_t nodeId);
 void changedConnectionCallback();
 void nodeTimeAdjustedCallback(int32_t offset);
 void delayReceivedCallback(uint32_t from, int32_t delay);
-
-//void checkForMessage(Cube* c, String message);
 
 #endif
 

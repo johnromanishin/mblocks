@@ -62,6 +62,7 @@ uint32_t initializeWifiMesh()
 }
 
 #define messageDebug 0
+
 void receivedCallback(uint32_t from, String & stringMsg)
 {
   if(messageDebug)
@@ -97,7 +98,6 @@ void receivedCallback(uint32_t from, String & stringMsg)
    */
   if (mID != prevMID)
   {
-    //Serial.println("Adding to Buffer...");
     jsonCircularBuffer.push(stringMsg);
     prevMID = mID;
   }
@@ -126,10 +126,10 @@ void sendAck(uint32_t messageID)
   StaticJsonBuffer<256> jsonBuffer; //memory allocated to store json instance
   JsonObject& msg = jsonBuffer.createObject(); // & is "c++ reference"
   msg["mID"] = messageID; // message ID
-  //msg["type"] = "ack";
   msg["sID"] = thisCubeID; // sender ID
-  //msg["neighbors"] = "lots"; // c->numberOfNeighbors();
-  if(messageID != SPECIAL_MID)
+  
+  //if(messageID != SPECIAL_MID)
+  
   msg["bFace"] = bFace; // c->returnTopFace(0);
   msg["fFace"] = fFace;
   
@@ -201,43 +201,3 @@ void sendAck(uint32_t messageID)
 //{
 //  //Serial.printf("Delay to node %u is %d us\n", from, delay);
 //}
-
-
-
-//
-//Behavior relayBehavior(Cube* c, Behavior behaviorToRelay, int cubeToRelayTo, int timesToRelay)
-//{
-//  //======Temporarily Generated a Broadcast message =========
-//  StaticJsonBuffer<264> jsonBuffer; //Space Allocated to store json instance
-//  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
-//  //^class type||^ Root         ^class method
-//  root["type"] = "cmd";
-//  root["cubeID"] = cubeToRelayTo;
-//  root["cmd"] = behaviorsToCmd(behaviorToRelay);
-//  //^ "key"   |  ^ "Value"
-//  String str; // generate empty string
-//  root.printTo(str); // print to JSON readable string...
-//  //======== End Generating of Broadcast message ==========
-//
-//  for(int i = 0; i < timesToRelay; i++);
-//  {
-//    mesh.sendBroadcast(str);
-//    wifiDelay(400);
-//  }
-//  return(behaviorToRelay);
-//}
-
-//String generateUpdateMessage(Cube* c)
-//{
-//  StaticJsonBuffer<264> jsonBuffer; //Space Allocated to store json instance
-//  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
-//  //^class type||^ Root         ^class method
-//  root["type"] = "update";
-//  root["cubeID"] = c->cubeID;
-//  root["topFace"] = c->returnTopFace(0);
-//  //root["plane"]
-//  //^ "key"   |  ^ "Value"
-//  String str; // generate empty string
-//  return(root.printTo(str)) // print to JSON readable string...
-//}
-

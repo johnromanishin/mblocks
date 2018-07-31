@@ -34,6 +34,7 @@
 void initializeCube()
 {
   initializeHardware();
+  delay(400);
   lookUpCalibrationValues(initializeWifiMesh());
   setMotionDataGlobalVariables();
   wifiDelay(200);
@@ -251,25 +252,241 @@ void lookUpCalibrationValues(long wifiID)
       CC_BRAKETIME_F = 999;
       CC_BRAKETIME_R = 999;
       break;
+      
     //********************************
     //*********Real Cubes*************
     //********************************
 
-    case wifiAddress_cube16:   //959839 PEI BLACK DB:9D:99:1A:BA:23
-      thisCubeID = 16;
+    //********************************
+    case wifiAddress_cube01: //960662 PEI BROWN  - F1:E8:71:B2:99:B5
+      thisCubeID = 1;
 
-      TRAVERSE_RPM_F = 6000;
-      TRAVERSE_RPM_R = 6000;
+      TRAVERSE_RPM_F = 6500;
+      TRAVERSE_RPM_R = 7000;
       TRAVERSE_CURRENT_F = 2500;
-      TRAVERSE_CURRENT_R = 2500;
+      TRAVERSE_CURRENT_R = 4500;
       GlobalMaxAccel = 5000;    // ** FIX BAT
 
-      CC_RPM_F = 16000;
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 3100;
+      CC_CURRENT_R = 5400;
+      CC_BRAKETIME_F = 10;
+      CC_BRAKETIME_R = 13;
+      break;
+
+    //********************************
+    case wifiAddress_cube02: //10229112 PC PURPLE  - DF:DF:3C:A0:F1:77
+      thisCubeID = 2;
+      GlobalPlaneAccel = 3000;
+
+      TRAVERSE_RPM_F = 7000;
+      TRAVERSE_RPM_R = 7000;
+      TRAVERSE_CURRENT_F = 3600;
+      TRAVERSE_CURRENT_R = 4000;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 3600;
+      CC_CURRENT_R = 3900;
+      CC_BRAKETIME_F = 10;
+      CC_BRAKETIME_R = 10;
+      break;
+
+    //********************************
+    case wifiAddress_cube03: //15044359 ORANGE PC RED  CD:2B:5E:AB:3E:F3
+      thisCubeID = 3;
+
+      TRAVERSE_RPM_F = 6500;
+      TRAVERSE_RPM_R = 6500;
+      TRAVERSE_CURRENT_F = 2800;
+      TRAVERSE_CURRENT_R = 3000;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 2900;
+      CC_CURRENT_R = 3800;
+      CC_BRAKETIME_F = 10;
+      CC_BRAKETIME_R = 7;
+      break;
+      
+    //********************************
+    case wifiAddress_cube04: //8575308 PC Green : ED:A6:6A:8E:1B:58
+      thisCubeID = 4;
+      GlobalPlaneAccel = 2500;
+
+      TRAVERSE_RPM_F = 6500;
+      TRAVERSE_RPM_R = 6500;
+      TRAVERSE_CURRENT_F = 3000;
+      TRAVERSE_CURRENT_R = 3000;
+
+      CC_RPM_F = 15500;
       CC_RPM_R = 15500;
       CC_CURRENT_F = 3100;
       CC_CURRENT_R = 3100;
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
+      break;
+
+     //********************************
+     case wifiAddress_cube05: //960427 PEI RED  D0:D5:6F:CB:32:4C
+      thisCubeID = 5;
+
+      TRAVERSE_RPM_F = 6500;
+      TRAVERSE_RPM_R = 6500;
+      TRAVERSE_CURRENT_F = 2500;
+      TRAVERSE_CURRENT_R = 2500;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 3000;
+      CC_CURRENT_R = 2900;
+      CC_BRAKETIME_F = 8;
+      CC_BRAKETIME_R = 5;
+      break;
+      
+  //********************************
+  case wifiAddress_cube06: //8577715 PC Brown  C5:FF:AB:04:3B:9D
+      thisCubeID = 6;
+
+      TRAVERSE_RPM_F = 6500;
+      TRAVERSE_RPM_R = 6500;
+      TRAVERSE_CURRENT_F = 2800;
+      TRAVERSE_CURRENT_R = 3100;
+
+      horizontal_Stair_RPM_F = 12000;
+      horizontal_Stair_RPM_R = 12000;
+
+      horizontal_Stair_CURRENT_F = 2500;
+      horizontal_Stair_CURRENT_R = 3000;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 2800;
+      CC_CURRENT_R = 3100;
+      CC_BRAKETIME_F = 6;
+      CC_BRAKETIME_R = 10;
+      break;
+      
+    //********************************
+    case wifiAddress_cube07: //960242 PEI ORANGE E6:F6:05:69:08:F2
+      thisCubeID = 7;
+
+      TRAVERSE_RPM_F = 7000;
+      TRAVERSE_RPM_R = 7000;
+      TRAVERSE_CURRENT_F = 3000;
+      TRAVERSE_CURRENT_R = 2500;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 3400;
+      CC_CURRENT_R = 3400;
+      CC_BRAKETIME_F = 10;
+      CC_BRAKETIME_R = 10;
+      break;
+
+
+    //********************************
+    case wifiAddress_cube08: //959709 PC YELLOW  - FB:0D:8F:2C:3B:B4
+      thisCubeID = 8;
+
+      TRAVERSE_RPM_F = 6500;
+      TRAVERSE_RPM_R = 7000;
+      TRAVERSE_CURRENT_F = 3000;
+      TRAVERSE_CURRENT_R = 3300;
+      GlobalPlaneAccel = 3000;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 3100;
+      CC_CURRENT_R = 3100;
+      CC_BRAKETIME_F = 10;
+      CC_BRAKETIME_R = 10;
+      break;
+
+    //********************************
+    case wifiAddress_cube09: //8576514 PC BLACK  E3:6B:C6:CE:DA:31
+      thisCubeID = 9;
+
+      TRAVERSE_RPM_F = 6500;
+      TRAVERSE_RPM_R = 6500;
+      TRAVERSE_CURRENT_F = 2800;
+      TRAVERSE_CURRENT_R = 3300;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 3100;
+      CC_CURRENT_R = 3100;
+      CC_BRAKETIME_F = 10;
+      CC_BRAKETIME_R = 10;
+      break;
+
+    //********************************
+    case wifiAddress_cube10: //960558 PEI BLUE  f7:AE:59:2B:D9:4D
+      thisCubeID = 10;
+
+      TRAVERSE_RPM_F = 7000;
+      TRAVERSE_RPM_R = 7000;
+      TRAVERSE_CURRENT_F = 3000;
+      TRAVERSE_CURRENT_R = 3500;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 2900;
+      CC_CURRENT_R = 3900;
+      CC_BRAKETIME_F = 10;
+      CC_BRAKETIME_R = 11;
+      break;
+      
+     //********************************
+     case wifiAddress_cube11: //8577103 PC ORANGE  - E6:E5:82:26:C7:8B
+      thisCubeID = 11;
+      GlobalPlaneAccel = 3000;
+
+      TRAVERSE_RPM_F = 6500;
+      TRAVERSE_RPM_R = 7000;
+      TRAVERSE_CURRENT_F = 3000;
+      TRAVERSE_CURRENT_R = 3300;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 2700;
+      CC_CURRENT_R = 2800;
+      CC_BRAKETIME_F = 5;
+      CC_BRAKETIME_R = 10;
+      break;
+    
+    //********************************
+    case wifiAddress_cube12: //960043 PEI YELLOW  CC:F1:4F:AF:64:A8
+      thisCubeID = 12;
+
+      TRAVERSE_RPM_F = 7500;
+      TRAVERSE_RPM_R = 7500;
+      TRAVERSE_CURRENT_F = 6000;
+      TRAVERSE_CURRENT_R = 6000;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 4600;
+      CC_CURRENT_R = 5900;
+      CC_BRAKETIME_F = 15;
+      CC_BRAKETIME_R = 20;
+      break;
+
+    case wifiAddress_cube13: //15044426 PC Blue  D8:9C:4D:EA:27:65
+      thisCubeID = 13;
+
+      TRAVERSE_RPM_F = 6500;
+      TRAVERSE_RPM_R = 6500;
+      TRAVERSE_CURRENT_F = 2500;
+      TRAVERSE_CURRENT_R = 2500;
+
+      CC_RPM_F = 15500;
+      CC_RPM_R = 15500;
+      CC_CURRENT_F = 3100;
+      CC_CURRENT_R = 2900;
+      CC_BRAKETIME_F = 9;
+      CC_BRAKETIME_R = 5;
       break;
 
     //********************************
@@ -289,6 +506,7 @@ void lookUpCalibrationValues(long wifiID)
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
       break;
+      
     //********************************
     case wifiAddress_cube15: //960348 PEI GREEN | EC:47:A9:35:1F:02
       thisCubeID = 15;
@@ -305,213 +523,18 @@ void lookUpCalibrationValues(long wifiID)
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
       break;
+      
+      //********************************
+      case wifiAddress_cube16:   //959839 PEI BLACK DB:9D:99:1A:BA:23
+      thisCubeID = 16;
 
-    case wifiAddress_cube07: //960242 PEI ORANGE E6:F6:05:69:08:F2
-      thisCubeID = 7;
-
-      TRAVERSE_RPM_F = 7000;
-      TRAVERSE_RPM_R = 7000;
-      TRAVERSE_CURRENT_F = 3000;
-      TRAVERSE_CURRENT_R = 2500;
-
-      CC_RPM_F = 15500;
-      CC_RPM_R = 15500;
-      CC_CURRENT_F = 3400;
-      CC_CURRENT_R = 3400;
-      CC_BRAKETIME_F = 10;
-      CC_BRAKETIME_R = 10;
-      break;
-
-    case wifiAddress_cube09: //8576514 PC BLACK  E3:6B:C6:CE:DA:31
-      thisCubeID = 9;
-
-      TRAVERSE_RPM_F = 6500;
-      TRAVERSE_RPM_R = 6500;
-      TRAVERSE_CURRENT_F = 2800;
-      TRAVERSE_CURRENT_R = 3300;
-
-      CC_RPM_F = 15500;
-      CC_RPM_R = 15500;
-      CC_CURRENT_F = 3100;
-      CC_CURRENT_R = 3100;
-      CC_BRAKETIME_F = 10;
-      CC_BRAKETIME_R = 10;
-      break;
-
-    case wifiAddress_cube08: //959709 PC YELLOW  - FB:0D:8F:2C:3B:B4
-      thisCubeID = 8;
-
-      TRAVERSE_RPM_F = 6500;
-      TRAVERSE_RPM_R = 7000;
-      TRAVERSE_CURRENT_F = 3000;
-      TRAVERSE_CURRENT_R = 3300;
-      GlobalPlaneAccel = 3000;
-
-      CC_RPM_F = 15500;
-      CC_RPM_R = 15500;
-      CC_CURRENT_F = 3100;
-      CC_CURRENT_R = 3100;
-      CC_BRAKETIME_F = 10;
-      CC_BRAKETIME_R = 10;
-      break;
-
-     case wifiAddress_cube11: //8577103 PC ORANGE  - E6:E5:82:26:C7:8B
-      thisCubeID = 11;
-      GlobalPlaneAccel = 3000;
-
-      TRAVERSE_RPM_F = 6500;
-      TRAVERSE_RPM_R = 7000;
-      TRAVERSE_CURRENT_F = 3000;
-      TRAVERSE_CURRENT_R = 3300;
-
-      CC_RPM_F = 15500;
-      CC_RPM_R = 15500;
-      CC_CURRENT_F = 2700;
-      CC_CURRENT_R = 2800;
-      CC_BRAKETIME_F = 5;
-      CC_BRAKETIME_R = 10;
-      break;
-
-     case wifiAddress_cube02: //10229112 PC PURPLE  - DF:DF:3C:A0:F1:77
-      thisCubeID = 2;
-      GlobalPlaneAccel = 3000;
-
-      TRAVERSE_RPM_F = 7000;
-      TRAVERSE_RPM_R = 7000;
-      TRAVERSE_CURRENT_F = 3600;
-      TRAVERSE_CURRENT_R = 4000;
-
-      CC_RPM_F = 15500;
-      CC_RPM_R = 15500;
-      CC_CURRENT_F = 3600;
-      CC_CURRENT_R = 3900;
-      CC_BRAKETIME_F = 10;
-      CC_BRAKETIME_R = 10;
-      break;
-
-    case wifiAddress_cube01: //960662 PEI BROWN  - F1:E8:71:B2:99:B5
-      thisCubeID = 1;
-
-      TRAVERSE_RPM_F = 6500;
-      TRAVERSE_RPM_R = 7000;
+      TRAVERSE_RPM_F = 6000;
+      TRAVERSE_RPM_R = 6000;
       TRAVERSE_CURRENT_F = 2500;
-      TRAVERSE_CURRENT_R = 4500;
+      TRAVERSE_CURRENT_R = 2500;
       GlobalMaxAccel = 5000;    // ** FIX BAT
 
-      CC_RPM_F = 15500;
-      CC_RPM_R = 15500;
-      CC_CURRENT_F = 3100;
-      CC_CURRENT_R = 5400;
-      CC_BRAKETIME_F = 10;
-      CC_BRAKETIME_R = 13;
-      break;
-
-    case wifiAddress_cube10: //960558 PEI BLUE  f7:AE:59:2B:D9:4D
-      thisCubeID = 10;
-
-      TRAVERSE_RPM_F = 7000;
-      TRAVERSE_RPM_R = 7000;
-      TRAVERSE_CURRENT_F = 3000;
-      TRAVERSE_CURRENT_R = 3500;
-
-      CC_RPM_F = 15500;
-      CC_RPM_R = 15500;
-      CC_CURRENT_F = 2900;
-      CC_CURRENT_R = 3900;
-      CC_BRAKETIME_F = 10;
-      CC_BRAKETIME_R = 11;
-      break;
-
-    case wifiAddress_cube12: //960043 PEI YELLOW  CC:F1:4F:AF:64:A8
-      thisCubeID = 12;
-
-      TRAVERSE_RPM_F = 7500;
-      TRAVERSE_RPM_R = 7500;
-      TRAVERSE_CURRENT_F = 6000;
-      TRAVERSE_CURRENT_R = 6000;
-
-      CC_RPM_F = 15500;
-      CC_RPM_R = 15500;
-      CC_CURRENT_F = 4600;
-      CC_CURRENT_R = 5900;
-      CC_BRAKETIME_F = 15;
-      CC_BRAKETIME_R = 20;
-      break;
-
-     case wifiAddress_cube05: //960427 PEI RED  D0:D5:6F:CB:32:4C
-      thisCubeID = 5;
-
-      TRAVERSE_RPM_F = 6500;
-      TRAVERSE_RPM_R = 6500;
-      TRAVERSE_CURRENT_F = 2500;
-      TRAVERSE_CURRENT_R = 2500;
-
-      CC_RPM_F = 15500;
-      CC_RPM_R = 15500;
-      CC_CURRENT_F = 3000;
-      CC_CURRENT_R = 2900;
-      CC_BRAKETIME_F = 8;
-      CC_BRAKETIME_R = 5;
-      break;
-
-    case wifiAddress_cube03: //15044359 ORANGE PC RED  CD:2B:5E:AB:3E:F3
-      thisCubeID = 3;
-
-      TRAVERSE_RPM_F = 6500;
-      TRAVERSE_RPM_R = 6500;
-      TRAVERSE_CURRENT_F = 2800;
-      TRAVERSE_CURRENT_R = 3000;
-
-      CC_RPM_F = 15500;
-      CC_RPM_R = 15500;
-      CC_CURRENT_F = 2900;
-      CC_CURRENT_R = 3800;
-      CC_BRAKETIME_F = 10;
-      CC_BRAKETIME_R = 7;
-      break;
-
-  case wifiAddress_cube06: //8577715 PC Brown  C5:FF:AB:04:3B:9D
-      thisCubeID = 6;
-
-      TRAVERSE_RPM_F = 6500;
-      TRAVERSE_RPM_R = 6500;
-      TRAVERSE_CURRENT_F = 2800;
-      TRAVERSE_CURRENT_R = 3100;
-
-      CC_RPM_F = 15500;
-      CC_RPM_R = 15500;
-      CC_CURRENT_F = 2800;
-      CC_CURRENT_R = 3100;
-      CC_BRAKETIME_F = 6;
-      CC_BRAKETIME_R = 10;
-      break;
-
-    case wifiAddress_cube13: //15044426 PC Blue  D8:9C:4D:EA:27:65
-      thisCubeID = 13;
-
-      TRAVERSE_RPM_F = 6500;
-      TRAVERSE_RPM_R = 6500;
-      TRAVERSE_CURRENT_F = 2500;
-      TRAVERSE_CURRENT_R = 2500;
-
-      CC_RPM_F = 15500;
-      CC_RPM_R = 15500;
-      CC_CURRENT_F = 3100;
-      CC_CURRENT_R = 2900;
-      CC_BRAKETIME_F = 9;
-      CC_BRAKETIME_R = 5;
-      break;
-
-    case wifiAddress_cube04: //8575308 PC Green : ED:A6:6A:8E:1B:58
-      thisCubeID = 4;
-      GlobalPlaneAccel = 2500;
-
-      TRAVERSE_RPM_F = 6500;
-      TRAVERSE_RPM_R = 6500;
-      TRAVERSE_CURRENT_F = 3000;
-      TRAVERSE_CURRENT_R = 3000;
-
-      CC_RPM_F = 15500;
+      CC_RPM_F = 16000;
       CC_RPM_R = 15500;
       CC_CURRENT_F = 3100;
       CC_CURRENT_R = 3100;
@@ -545,12 +568,18 @@ void setMotionDataGlobalVariables()
 {
   loadMotionData(&traverse_F, TRAVERSE_RPM_F, TRAVERSE_CURRENT_F, 10);
   loadMotionData(&traverse_R, TRAVERSE_RPM_R, TRAVERSE_CURRENT_R, 10);
+  
   loadMotionData(&cornerClimb_F, CC_RPM_F, CC_CURRENT_F, CC_BRAKETIME_F);
   loadMotionData(&cornerClimb_R, CC_RPM_R, CC_CURRENT_R, CC_BRAKETIME_R);
+  
   loadMotionData(&roll_F, 7, 7, 7);
   loadMotionData(&roll_R, 7, 7, 7);
+  
   loadMotionData(&rollDouble_F, (CC_RPM_F-1000), (CC_CURRENT_F-300), ((CC_BRAKETIME_F/2)+2));
   loadMotionData(&rollDouble_R, (CC_RPM_R-1000), (CC_CURRENT_R-300), ((CC_BRAKETIME_R/2)+2));
+  
+  loadMotionData(&horizontal_Stair_F, horizontal_Stair_RPM_F, horizontal_Stair_CURRENT_F, 20);
+  loadMotionData(&horizontal_Stair_R, horizontal_Stair_RPM_R, horizontal_Stair_CURRENT_R, 20);
 }
 
 

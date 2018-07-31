@@ -22,27 +22,30 @@
 //  String for_rev;
 //} Motion;
 
-//                      moveName      , brake   , rpm     , timout  , current , brakeTime , difficult   , for_rev
-Motion traverse_F     = {"traverse"   , true    , 6000    , 6000    , 3000    , 12        , 9           , "f"};
-Motion traverse_R     = {"traverse"   , true    , 6000    , 6000    , 3000    , 12        , 9           , "r"};
+//                          moveName      , brake   , rpm     , timout  , current , brakeTime , difficult   , for_rev
+Motion traverse_F         = {"traverse"   , true    , 6000    , 6000    , 3000    , 12        , 9           , "f"};
+Motion traverse_R         = {"traverse"   , true    , 6000    , 6000    , 3000    , 12        , 9           , "r"};
 
-Motion horizontal_F   = {"h_traverse" , true    , 5000    , 4000    , 3000    , 12        , 9           , "f"};
-Motion horizontal_R   = {"h_traverse" , true    , 5000    , 4000    , 3000    , 12        , 9           , "r"};
+Motion horizontal_F       = {"h_traverse" , true    , 5000    , 4000    , 3000    , 20        , 9           , "f"};
+Motion horizontal_R       = {"h_traverse" , true    , 5000    , 4000    , 3000    , 20        , 9           , "r"};
 
-Motion roll_F         = {"roll"       , false   , 6500    ,    0    ,    0    , 0         , 1           , "f"};
-Motion roll_R         = {"roll"       , false   , 6500    ,    0    ,    0    , 0         , 1           , "r"};
+Motion horizontal_Stair_F = {"h_traverse" , true    , 12000   , 6000    , 3000    , 20        , 9           , "f"};
+Motion horizontal_Stair_R = {"h_traverse" , true    , 12000   , 6000    , 3000    , 20        , 9           , "r"};
 
-Motion cornerClimb_F  = {"cornerClimb", true    , 15500   , 7000    , 3300    , 12        , 250         , "f"};
-Motion cornerClimb_R  = {"cornerClimb", true    , 15500   , 7000    , 3300    , 12        , 250         , "r"};
+Motion roll_F             = {"roll"       , false   , 6500    ,    0    ,    0    , 0         , 1           , "f"};
+Motion roll_R             = {"roll"       , false   , 6500    ,    0    ,    0    , 0         , 1           , "r"};
 
-Motion shake_F        = {"shake"      , false   , 4500    , 4000    , 3500    , 20        , 250         , "f"};
-Motion softShake_F    = {"softShake"  , false   , 3500    , 3000    , 3000    , 20        , 250         , "f"};
+Motion cornerClimb_F      = {"cornerClimb", true    , 15500   , 7000    , 3300    , 12        , 250         , "f"};
+Motion cornerClimb_R      = {"cornerClimb", true    , 15500   , 7000    , 3300    , 12        , 250         , "r"};
 
-Motion explode_F      = {"explode"    , false   , 15500   , 6000    , 5000    , 30        , 250         , "f"};
-Motion explode_R      = {"explode"    , false   , 15500   , 6000    , 5000    , 30        , 250         , "r"};
+Motion shake_F            = {"shake"      , false   , 4500    , 4000    , 3500    , 20        , 250         , "f"};
+Motion softShake_F        = {"softShake"  , false   , 3500    , 3000    , 3000    , 20        , 250         , "f"};
+
+Motion explode_F          = {"explode"    , false   , 15500   , 6000    , 5000    , 30        , 250         , "f"};
+Motion explode_R          = {"explode"    , false   , 15500   , 6000    , 5000    , 30        , 250         , "r"};
 //
-Motion rollDouble_F   = {"double"     , false   , 15500   , 3000    , 3000    , 5         , 250         , "f"};
-Motion rollDouble_R   = {"double"     , false   , 15500   , 3000    , 3000    , 5         , 250         , "r"};
+Motion rollDouble_F       = {"double"     , false   , 15500   , 3000    , 3000    , 5         , 250         , "f"};
+Motion rollDouble_R       = {"double"     , false   , 15500   , 3000    , 3000    , 5         , 250         , "r"};
 
 //  List of possible colors;
 Color red =     {1, 0, 0};
@@ -88,6 +91,12 @@ extern int CC_CURRENT_F = 3000;
 extern int CC_CURRENT_R = 3000;
 extern int CC_BRAKETIME_F = 12;
 extern int CC_BRAKETIME_R = 12;
+
+extern int horizontal_Stair_RPM_F = 15000;
+extern int horizontal_Stair_RPM_R = 15000;
+
+extern int horizontal_Stair_CURRENT_F = 4500;
+extern int horizontal_Stair_CURRENT_R = 4500;
 
 uint32_t getAddressFromCubeID(int CubeID)
 {

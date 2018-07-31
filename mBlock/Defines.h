@@ -85,6 +85,13 @@ extern int CC_CURRENT_R;
 extern int CC_BRAKETIME_F;
 extern int CC_BRAKETIME_R;
 
+extern int horizontal_Stair_RPM_F;
+extern int horizontal_Stair_RPM_R; 
+
+extern int horizontal_Stair_CURRENT_F;
+extern int horizontal_Stair_CURRENT_R;
+      
+
 /*
  * Plane Enums are the possible states that the internal robot can be in
  * in regards to the frame. Functions involving PlaneEnums involve 
@@ -179,6 +186,9 @@ extern Motion cornerClimb_R;
 
 extern Motion horizontal_F;
 extern Motion horizontal_R;
+
+extern Motion horizontal_Stair_F;
+extern Motion horizontal_Stair_R;
 
 extern Motion shake_F;
 extern Motion softShake_F;

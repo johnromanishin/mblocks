@@ -27,6 +27,7 @@ Behavior behavior = DEMO; // initial Behavior Cube implements
 void setup() // starts up the various electronic hardware...
 {
   bool shutDown = false;
+  delay(500);
   initializeCube(); // Runs this code once to setup input/outputs, communication networks...
                     // (Wifi, i2c, serial) and instantiates classes and calibration values
   c.update(); // populates initial readings for variables such as which face is up, and # of neighbors
@@ -37,12 +38,14 @@ void setup() // starts up the various electronic hardware...
   c.flashFaceLEDs();
   c.lightCube(&off);
   wifiDelay(500);
-  
   Serial.print("WIFI ID: ");
   Serial.println(mesh.getNodeId());
-  sendAck(SPECIAL_MID);
-  wifiDelay(400);
-  sendAck(SPECIAL_MID);
+  wifiDelay(2000);
+  for(int i = 0; i < 5; i++);
+  {
+    sendAck(SPECIAL_MID);
+    wifiDelay(1000);
+  }
 }
 
 void loop() // Main Loop... Just continually loops, most of the action happens in checkForBehaviors...
