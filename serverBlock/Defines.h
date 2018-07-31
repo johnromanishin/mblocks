@@ -33,9 +33,15 @@
 #define tableWidth          17
 extern int database[NUM_CUBES][tableWidth];  
 
-#define Connections         10
-#define parameters          10
-extern int connectionDatabase[Connections][parameters];
+#define Connections       40  // Maximum number of connections
+
+#define ConnectionCube_A  1
+#define ConnectionFace_A  2
+#define ConnectionCube_B  3
+#define ConnectionFace_B  4
+#define Connection_Parameters 5
+
+extern int connectionDatabase[Connections][Connection_Parameters]; 
 
 
 #include <painlessMesh.h> // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh

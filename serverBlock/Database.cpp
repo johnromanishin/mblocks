@@ -99,6 +99,7 @@ void processConnections()
   /*
    * Iterate over all cubes in the database
    */
+  Serial.println("-------------------------------------------------");
   for(int cubeEntry = 0; cubeEntry < NUM_CUBES; cubeEntry++)
   {
     /*
@@ -111,10 +112,11 @@ void processConnections()
         int numm = database[cubeEntry][face];
         Serial.print("Cube: ");Serial.print(cubeEntry);Serial.print(" Face: ");Serial.print(face-face_0);
         Serial.print(" -- ");
-        Serial.print("Cube: ");Serial.print(numm/100);Serial.print(" Face: ");Serial.print((numm%100)/10);
+        Serial.print("Cube: ");Serial.print(numm/100);Serial.print(" Face: ");Serial.println((numm%100)/10);
       }
     }
   }
+  Serial.println("-------------------------------------------------");
 }
 
 void addTimeToNoContactTimer(int cubeNumber, int timeToAdd)
@@ -134,13 +136,10 @@ bool checkIfBottomIsConnected(int cubeNumber)
       if(database[cubeNumber][face] > -1)
       {
         neighborFace = face-face_0;
-        Serial.print("NEIGhBOR FACE is: ");
-        Serial.println(neighborFace);
       }
       if((neighborFace == database[cubeNumber][bottom_Face]) && (database[cubeNumber][bottom_Face] > -1))
       {
         tempResult = true;
-        Serial.println("WOOO FOUND ONE THAT SHOULD MOVE...");
       }
     }
   }

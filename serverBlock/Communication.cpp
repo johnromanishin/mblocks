@@ -163,10 +163,12 @@ void updateBoxes()
         //Serial.println(String(outbox[cubeID][outboxTail[cubeID]].backoff));
         //Serial.print("mDeadline: ");
         //Serial.println(String(outbox[cubeID][outboxTail[cubeID]].mDeadline));
+        
         /*
          * This means that we have tried to send the message a lot of times... remove from que
          * now
          */
+         
         if(outbox[cubeID][outboxTail[cubeID]].backoff > MAXIMUM_MESSAGE_ATTEMPTS)
         {
           // This effectivly deletes the current message.
@@ -174,13 +176,13 @@ void updateBoxes()
           advanceOutboxTail(cubeID); // move on to next outbox slot...
           database[cubeID][failedMessageCount]++;
           
-          Serial.println("MESSAGE REMOVED DUE TO FAILURE TO DELIVER REPEATIDLY");
+          Serial.println("MESSAGE REMOVED DUE TO FAILURE TO DELIVER");
           
           if(database[cubeID][failedMessageCount] > 2)
           {
             Serial.print("Cube: ");
             Serial.print(cubeID);
-            Serial.print(" has failed to respond to several messages, so we are removing it from list of active cubes");
+            Serial.print(" has failed to respond to several messages...");
             database[cubeID][ACTIVE] = 0;
             database[cubeID][failedMessageCount] = 0;
           }
@@ -200,6 +202,7 @@ void receivedCallback(uint32_t from, String & stringMsg)
 {
   Serial.print("M From: ");
   Serial.print(from);
+  Serial.print(" | ");
   Serial.println(stringMsg);
   
   StaticJsonBuffer<256> jsonMsgBuffer; // allocate memory for json
@@ -269,7 +272,8 @@ void receivedCallback(uint32_t from, String & stringMsg)
 
 void newConnectionCallback(uint32_t nodeId)
 {
-  Serial.printf("New Connection, nodeId = %u\n", nodeId);
+  Serial.print("New Connection, nodeId: ");
+  Serial.println(nodeId);
 }
 
 void changedConnectionCallback()
@@ -277,9 +281,15 @@ void changedConnectionCallback()
   Serial.printf("Connection Event\n");
 }
 
-void nodeTimeAdjustedCallback(int32_t offset) {}
+void nodeTimeAdjustedCallback(int32_t offset) 
+{
 
-void delayReceivedCallback(uint32_t from, int32_t delay) {}
+}
+
+void delayReceivedCallback(uint32_t from, int32_t delay) 
+{
+
+}
 
 String generateMessageText(String cmd, uint32_t mID)
 /*
@@ -316,42 +326,42 @@ String generateMessageText(String cmd, uint32_t mID)
 void pushBlinkMessage(int cubeID)
 {
   pushMessage(cubeID, "b");
-  Serial.println("Pushing Blink Message to: ");
+  Serial.print("Pushing Blink Message to: ");
   Serial.println(cubeID);
 }
 
 void pushForwardMessage(int cubeID)
 {
   pushMessage(cubeID, "f");
-  Serial.println("Pushing Forward Message to: ");
+  Serial.print("Pushing Forward Message to: ");
   Serial.println(cubeID);
 }
 
 void pushReverseMessage(int cubeID)
 {
   pushMessage(cubeID, "r");
-  Serial.println("Pushing Reverse Message to: ");
+  Serial.print("Pushing Reverse Message to: ");
   Serial.println(cubeID);
 }
 
 void pushSleepMessage(int cubeID)
 {
   pushMessage(cubeID, "s");
-  Serial.println("Pushing Sleep Message to: ");
+  Serial.print("Pushing Sleep Message to: ");
   Serial.println(cubeID);
 }
 
 void pushStatusMessage(int cubeID)
 {
   pushMessage(cubeID, "q");
-  Serial.println("Pushing Status Message to: ");
+  Serial.print("Pushing Status Message to: ");
   Serial.println(cubeID);
 }
 
 void pushColorMessage(int cubeID, char Color)
 {
   //pushMessage(cubeID, char(Color));
-  Serial.println("Pushing Color Message to: ");
+  Serial.print("Pushing Color Message to: ");
   Serial.println(cubeID);
 }
 
@@ -445,7 +455,9 @@ void initializeWifiMesh()
 
 bool sendMessage(int recipientID, String msg)
 {
-  Serial.println("sending: ");
+  Serial.print("sending to:  ");
+  Serial.print(recipientID);
+  Serial.print(" | ");
   Serial.println(msg);
   if (recipientID == -1)
   {
