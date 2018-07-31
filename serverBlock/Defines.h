@@ -33,7 +33,7 @@
 #define tableWidth          17
 extern int database[NUM_CUBES][tableWidth];  
 
-#define Connections       40  // Maximum number of connections
+#define Connections       40  // Maximum number of connections in database
 
 #define ConnectionCube_A  1
 #define ConnectionFace_A  2

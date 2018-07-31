@@ -7,7 +7,6 @@
 #include "espconn.h"
 #include "Defines.h"
 
-
 #define WINDOW_SIZE 1
 #define AVERAGE_FIRST_DELAY_MS 100
 
