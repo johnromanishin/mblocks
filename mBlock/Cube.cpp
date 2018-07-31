@@ -55,7 +55,13 @@ bool Cube::update()
    * It also refreshes variables like this->topFace/ forwardFace/ ...
    */
   this->processState();// this deals with anything involving IMUs 
+  this->updateFaces();
   
+  return(true);
+}
+
+bool Cube::updateFaces()
+{
   for(int i = 0; i< FACES; i++)
     {
       delay(3); // we wait a bit to allow the i2c switches to switch, so that we don't get collisions on the I2C bus
@@ -64,7 +70,6 @@ bool Cube::update()
     }
   return(true);
 }
-
 bool Cube::processState()
 /* This Function updates the cube's Information about its physical state
  *  that can be determined by its accelerometers.
@@ -288,11 +293,11 @@ bool Cube::moveOnLattice(Motion* motion)
   {
     if(MAGIC_DEBUG){Serial.println("moveIASimple(Motion* motion)");}
   
-    this->processState(); // update IMU's and "topFace" 
+    this->update(); // update IMU's and "topFace" 
     if(this->isValidPlane() == true) // checks to make sure we are in one of the 3 valid planes
     {
       // Figure out our current state...
-      if(this->numberOfNeighbors(0, 0) == 1)
+      if(this->numberOfNeighbors(0, 0) == 2)
       {
         wifiDelay(10);
       }
@@ -300,7 +305,7 @@ bool Cube::moveOnLattice(Motion* motion)
       
       bool succeed = false;
       String stringAtEnd = "a 10 r";
-      String secondString = "bldcspeed f 5000";
+      String secondString = "bldcspeed f 8000";
       if(motion->for_rev == "r")
       {
         stringAtEnd = "a 10 f";
@@ -313,39 +318,82 @@ bool Cube::moveOnLattice(Motion* motion)
       + String(motion->current) + " " 
       + String(motion->brakeTime) + " "
       + stringAtEnd;
-    
+
+      /*
+       * If we have two neighbors, we are going to boost the RPM and Current
+       */
+      if(this->numberOfNeighbors(0, 0) == 2)
+      {
+          String iaString = "ia " 
+        + String(motion->for_rev)+ " " 
+        + String(motion->rpm + 5000) + " " 
+        + String(motion->current+500) + " " 
+        + String(motion->brakeTime) + " "
+        + stringAtEnd;
+      }
+      
       this->printString(iaString); // print the command to kyles Board
       wifiDelay(motion->timeout); // wait for the action to complete
-  
-      // we are now waiting, and collecting data
-      wifiDelayWithMotionDetection(3000);
 
-      this->printString(secondString);
-      wifiDelay(2000);
-      this->printString("bldcstop b");
-      wifiDelay(1000);
-      // Check to see our NEW state...
-      this->processState();
-      // If UP face is the same... we say we failed =(
+      /*
+       * we are now waiting, and collecting data
+       */
+      wifiDelayWithMotionDetection(1500);
+
+      /*
+       * We now check again to see who our neighbors are...
+       * If the neighbor is the SAME, we figure we failed...
+       * If we have a new DIFFERENT neighbor, we say success!!!
+       * if we have no neighbors... we need to spin up the flywheel and brake
+       */
+      this->updateFaces();
+
+      /*
+       * If we are still connected on the same face, we failed... Maybe try again later?
+       */
       if(this->whichFaceHasNeighbor(0) == connectedFace)
       {
         this->superSpecialBlink(&red, 40);
       }
-    
-      //if up face is different we say we succeeded!!!
-      else
+      /*
+       * If we have no neighbors, NOW we try to move
+       */
+      else if(this->numberOfNeighbors(0, 0) == 0)
+      {
+        this->printString(secondString);
+        wifiDelay(2500);
+        this->printString("bldcstop b");
+        wifiDelay(1000);
+        this->printString("bldcstop b");
+      }
+
+      /*
+       * If there is something else, we say we succeeded!
+       */
+      else if(this->whichFaceHasNeighbor(0) != connectedFace)
       {
         this->superSpecialBlink(&green, 40);
         succeed = true;
       }
+
       this->moveSuccessBuffer.push(succeed);
       return(succeed);
     }
+    
+    /*
+     * This else is if we aren't in the proper plane...
+     * We don't want to move becuase it could damage the flywheel
+     */
     else
     {
       return(false);
     }
   }
+  /*
+   * This else covers all other moves which aren't horizontal moves
+   * Very similar structure to the horizontal moves, but looks at
+   * whichFaceIsUp instead of the neighbor face...
+   */
   else
   {
     if(MAGIC_DEBUG){Serial.println("moveIASimple(Motion* motion)");}

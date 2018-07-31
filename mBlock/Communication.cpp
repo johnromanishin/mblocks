@@ -14,7 +14,7 @@
 #define   MESH_PORT       5555
 
 #define   SERVER_NUMBER   99
-#define   SPECIAL_MID     42
+//#define   SPECIAL_MID     42
 
 painlessMesh  mesh; // instantiates the class "mesh" which handles the wireless messages
 

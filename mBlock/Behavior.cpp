@@ -97,8 +97,9 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
          *  and that neighbor is on the bottom,
          *  then we want to do a regular traverse
          */
-        Serial.println("Checking on things...");
-        if(c->numberOfNeighbors(0, 0) == 1)
+        Serial.print("Checking on things...: Neighbor # = ");
+        Serial.println(c->numberOfNeighbors(0,0));
+        if(c->numberOfNeighbors(0, 0) < 3)
         {
           /*
            * Ok so we know we only have one neighbor, now we check to see 

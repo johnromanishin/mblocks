@@ -31,14 +31,18 @@ void setup() // starts up the various electronic hardware...
                     // (Wifi, i2c, serial) and instantiates classes and calibration values
   c.update(); // populates initial readings for variables such as which face is up, and # of neighbors
   c.updateCubeID(thisCubeID, mesh.getNodeId()); // updated variable c.cubeID from initialization loop up table...
-  c.findPlaneStatus(false); // Populate the initial reading for the current plane status
+  c.findPlaneStatus(true); // Populate the initial reading for the current plane status
 
   c.superSpecialBlink(&white, 100);
   c.flashFaceLEDs();
   c.lightCube(&off);
+  wifiDelay(500);
   
   Serial.print("WIFI ID: ");
   Serial.println(mesh.getNodeId());
+  sendAck(SPECIAL_MID);
+  wifiDelay(400);
+  sendAck(SPECIAL_MID);
 }
 
 void loop() // Main Loop... Just continually loops, most of the action happens in checkForBehaviors...

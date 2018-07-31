@@ -74,6 +74,7 @@ class Cube
       // Update Functions involving SENSORS
 //************* MOST IMPORTANT FUNCTION ****************************
     bool update(); // Updates almost everything on the cube...
+    bool updateFaces();
 //*******************************************************************
     int numberOfNeighbors(int index = 0, bool lightFace = false);
     
