@@ -291,28 +291,27 @@ bool Cube::moveOnLattice(Motion* motion)
 {
   if(motion->moveName == "h_traverse")
   {
-    if(MAGIC_DEBUG){Serial.println("moveIASimple(Motion* motion)");}
+    if(MAGIC_DEBUG){Serial.println("Moving Horizontally");}
   
     this->update(); // update IMU's and "topFace" 
     if(this->isValidPlane() == true) // checks to make sure we are in one of the 3 valid planes
     {
       // Figure out our current state...
-      if(this->numberOfNeighbors(0, 0) == 2)
-      {
-        wifiDelay(10);
-      }
+      int timeToWaitBeforeBreak = motion->timeout;
+      String iaString;
       int connectedFace = this->whichFaceHasNeighbor(0); // record what our initial top face is
       
       bool succeed = false;
       String stringAtEnd = "a 10 r";
-      String secondString = "bldcspeed f 8000";
+      String secondString = "bldcspeed f 10000";
+      
       if(motion->for_rev == "r")
       {
         stringAtEnd = "a 10 f";
-        secondString = "bldcspeed r 5000";
+        secondString = "bldcspeed r 10000";
       }
       // Actually send the action to Kyles Board...
-      String iaString = "ia " 
+      iaString = "ia " 
       + String(motion->for_rev)+ " " 
       + String(motion->rpm) + " " 
       + String(motion->current) + " " 
@@ -322,15 +321,16 @@ bool Cube::moveOnLattice(Motion* motion)
       /*
        * If we have two neighbors, we are going to boost the RPM and Current
        */
-      if(this->numberOfNeighbors(0, 0) == 2)
-      {
-          String iaString = "ia " 
-        + String(motion->for_rev)+ " " 
-        + String(motion->rpm + 5000) + " " 
-        + String(motion->current+500) + " " 
-        + String(motion->brakeTime) + " "
-        + stringAtEnd;
-      }
+//      if(this->numberOfNeighbors(0, 0) == 2)
+//      {
+//        iaString = "ia " 
+//        + String(motion->for_rev)+ " " 
+//        + String(15000) + " " 
+//        + String(5000) + " " 
+//        + String(motion->brakeTime) + " "
+//        + stringAtEnd;
+//        timeToWaitBeforeBreak += 3000;
+//      }
       
       this->printString(iaString); // print the command to kyles Board
       wifiDelay(motion->timeout); // wait for the action to complete
@@ -338,7 +338,7 @@ bool Cube::moveOnLattice(Motion* motion)
       /*
        * we are now waiting, and collecting data
        */
-      wifiDelayWithMotionDetection(1500);
+      wifiDelayWithMotionDetection(2000);
 
       /*
        * We now check again to see who our neighbors are...
@@ -361,7 +361,7 @@ bool Cube::moveOnLattice(Motion* motion)
       else if(this->numberOfNeighbors(0, 0) == 0)
       {
         this->printString(secondString);
-        wifiDelay(2500);
+        wifiDelay(3500);
         this->printString("bldcstop b");
         wifiDelay(1000);
         this->printString("bldcstop b");
