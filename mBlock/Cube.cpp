@@ -6,15 +6,8 @@
 #include <Wire.h> 
 #include <stdint.h>
 
-// *INDEX - crt + find - to go to...
-// *PLAN-E | plane related
-// *UPDAT-E | - related to updating things...
-// *MOTIO-N | related to motion]
-// *NEIGHBO-R  -related to figuring out neighbors
-// *SENSOR-S - IMU's and light sensors
-// *MIS-C - random things
-// *LIGHT-S
-// *STAT-E - related to IMUs...
+// *Index
+// *UPDATE
 
 Cube::Cube()
   :    
@@ -109,12 +102,19 @@ bool Cube::processState()
        }
     }
   }    
+  /*
+   * This checks the gravity vector of the frame, to determine which face (IF ANY) is 
+   * pointed vertically updwards.
+   * It doesn't do anything but access IMU Buffer, so this must be run right after we updated IMU's
+   */
   this->determineTopFace();     
-  // This checks the gravity vector of the frame, to determine which face (IF ANY) is
-  //  pointed vertically updwards
+
+  /*
+   * this combines the internal state of the core (Which plane it is in) with the TOP FACE to
+   * figure out which face it will move towards
+   */
   this->determineForwardFace(); 
-  // this combines the internal state of the core (Which plane it is in) with the TOP FACE to 
-  //figure out which face it will move towards
+
   return(succeed);
 }
 
@@ -135,6 +135,7 @@ bool Cube::roll(bool forwardReverse, int rpm)
   int timeToDelayBeforeBrake = (1700 + (rpm-6000)); // wait long eneough for flywheel to get to speed
   int faceUpBeginning = this->returnTopFace(); // record which face is pointing upwards when we start...
   bool succeed = false; // start out with the assumption that we haven't moved
+  
   int shakingThreshold = 10000; 
   // this variable repeatedly checks the GYRO readings while it should be moving to 
                                 // see if we moved, but ended up in the same face anyway
@@ -146,6 +147,7 @@ bool Cube::roll(bool forwardReverse, int rpm)
     this->superSpecialBlink(&yellow, 50); // blink just for fun!
     CW_CCW = " r "; // set the direction to "reverse" if forwardReverse is negatuve
   }
+  
   else // alternativly if forwardReverse is true... we move forward...
   {
     this->superSpecialBlink(&teal, 50); // blinks just for funzies!
@@ -172,6 +174,7 @@ bool Cube::roll(bool forwardReverse, int rpm)
   
   this->processState(); // process state again, now we would know if the "TOPFACE" has changed...
   wifiDelay(100);
+  
   if((this->returnTopFace() == faceUpBeginning) || (this->returnTopFace() == -1)) 
   // If the same face is pointing up... or it failed
   {
@@ -182,7 +185,6 @@ bool Cube::roll(bool forwardReverse, int rpm)
     else
     {
       this->superSpecialBlink(&red, 40); // blink red so the human knows that something went wrong...
-      this->superSpecialBlink(&red, 40);
     }
     /*
      * this means the move failed...
@@ -213,9 +215,11 @@ bool Cube::moveBLDCACCEL(bool forwardReverse, int current, int lengthOfTime)
   int faceUpBeginning = this->returnTopFace();
   bool succeed = false;
   int shakingThreshold = 10000;
+  
   String CW_CCW;
   String stringToPrint = "ver";
   String singleSpace = " ";
+  
   if(forwardReverse == false)
   {
     this->blockingBlink(&yellow);
@@ -226,17 +230,31 @@ bool Cube::moveBLDCACCEL(bool forwardReverse, int current, int lengthOfTime)
     this->blockingBlink(&teal);
     CW_CCW = " f ";
   }
+  
   wifiDelay(20);
-  stringToPrint = "bldcaccel" + CW_CCW + String(current) + singleSpace + String(lengthOfTime); 
+  stringToPrint = "bldcaccel"
+                + CW_CCW 
+                + String(current) 
+                + singleSpace 
+                + String(lengthOfTime); 
   // generate String for motor
-  Serial.println(stringToPrint); // this actually tells the thing to move.
+  
+  this->printString(stringToPrint);
+  
   wifiDelay(200+lengthOfTime);
-  Serial.println("bldcstop b"); // this actually tells the Cube to start rolling
+  
+  this->printString("bldcstop b"); // this actually tells the Cube to start rolling
+  
   int shakingAmmount = wifiDelayWithMotionDetection(3000);
-  Serial.println("bldcstop");
+  this->printString("bldcstop");
+  
+  
   if(MAGIC_DEBUG) {Serial.print("We detected this ammount of Shaking: ");Serial.println(shakingAmmount);}
+  
   this->processState();
+  
   wifiDelay(100);
+  
   if((this->returnTopFace() == faceUpBeginning) || (this->returnTopFace() == -1)) 
   // If the same face is pointing up... or it failed
   {
@@ -297,12 +315,18 @@ bool Cube::moveOnLattice(Motion* motion)
     if(this->isValidPlane() == true) // checks to make sure we are in one of the 3 valid planes
     {
       // Figure out our current state...
-      int timeToWaitBeforeBreak = motion->timeout;
+      int timeToWaitBeforeBrake = motion->timeout;
       String iaString;
-      int connectedFace = this->whichFaceHasNeighbor(0); // record what our initial top face is
+      int connectedFace = this->whichFaceHasNeighbor(0);
       
       bool succeed = false;
+      
       String stringAtEnd = "a 10 r";
+
+      /*
+       * This second string is applied if we are stuck and need a boost
+       * to get to the next position
+       */
       String secondString = "bldcspeed f 10000";
       
       if(motion->for_rev == "r")
@@ -318,20 +342,6 @@ bool Cube::moveOnLattice(Motion* motion)
       + String(motion->brakeTime) + " "
       + stringAtEnd;
 
-      /*
-       * If we have two neighbors, we are going to boost the RPM and Current
-       */
-//      if(this->numberOfNeighbors(0, 0) == 2)
-//      {
-//        iaString = "ia " 
-//        + String(motion->for_rev)+ " " 
-//        + String(15000) + " " 
-//        + String(5000) + " " 
-//        + String(motion->brakeTime) + " "
-//        + stringAtEnd;
-//        timeToWaitBeforeBreak += 3000;
-//      }
-      
       this->printString(iaString); // print the command to kyles Board
       wifiDelay(motion->timeout); // wait for the action to complete
 
@@ -458,7 +468,7 @@ int Cube::numberOfNeighbors(int index, bool doIlightFace)
  */
 {
   int neighbors = 0; // initialize a empty integer
-  for(int face = 0; face < 6; face++)
+  for(int face = 0; face < FACES; face++)
     {
     if((this->faces[face].returnNeighborType(index) == TAGTYPE_REGULAR_CUBE) ||
        (this->faces[face].returnNeighborType(index) == TAGTYPE_PASSIVE_CUBE))
@@ -511,7 +521,6 @@ int Cube::whichFaceHasNeighbor(int index)
 return(facesNeighbors[index]);
 }
 
-////////
 int Cube::numberOfNeighborsCheckNow()
 {
   int neighbors = 0;
@@ -616,12 +625,6 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
  * 
  */
 {   
-  Serial.println("ACTUALLY CHECKING PLANE!!! WOOOO!!!!!!");
-  Serial.println("ACTUALLY CHECKING PLANE!!! WOOOO!!!!!!");
-  Serial.println("ACTUALLY CHECKING PLANE!!! WOOOO!!!!!!");
-  Serial.println("ACTUALLY CHECKING PLANE!!! WOOOO!!!!!!");
-
-
   if((targetCorePlane == PLANENONE)  ||
      (targetCorePlane == PLANEERROR) || 
      (targetCorePlane == PLANEMOVING)) // this protects the inputs
@@ -633,7 +636,7 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
     return(true);
   }
   this->lightPlaneRing(targetCorePlane); // blink the desired plane to go into...
-  Serial.println("sma retractcurrent 1050");
+  this->printString("sma retractcurrent 1050");
   wifiDelay(800);
   bool succeed = false;
   this->printString("sma retract 7500");
@@ -648,19 +651,21 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
     String bldcaccelString = "bldcaccel f " + String(GlobalPlaneAccel) + " 800";
     
     if(likelyStatus == PLANENONE)
+    {
        bldcaccelString = "bldcaccel f " + String(GlobalPlaneAccel) + " 500";
-       
-    Serial.println(bldcaccelString);
+    }
+    
+    this->printString(bldcaccelString);
     wifiDelay(1000);
     
     if(this->findPlaneStatus(false) == targetCorePlane)
     {
-      Serial.println("bldcstop");
+      this->printString("bldcstop");
       wifiDelay(1000);
     }
     else
     {
-      Serial.println("bldcstop b");
+      this->printString("bldcstop b");
     }
     wifiDelay(1800);
   }
@@ -758,7 +763,7 @@ PlaneEnum Cube::findPlaneStatus(bool reset)
       return(likelyStatus);   // if it fails on second try... exit which will be PLANEERROR
     }
   }
-    const int validPlaneThreshold = 220; // This number is what determines if it is actually in a proper plane
+    const int validPlaneThreshold = 240; // This number is what determines if it is actually in a proper plane
     const int gyroMovingThreshold  = 1700; // This represents what "moving" is in terms GYRO values
     
     int32_t coreAccel[3] =   {this->axCoreBuffer.access(0),     
@@ -977,10 +982,6 @@ int Cube::wifiDelayWithMotionDetection(int delayTime) //**WIP
   return(motionSum /(updateCount));
 }
 
-
-
-
-
 bool Cube::isFaceNeitherTopNorBottom(int face)
 /*
  * Returns "true" if face arguement "face"
@@ -1019,7 +1020,7 @@ bool Cube::printString(String stringToPrint, int waitTime)
   if(this->anythingOnSerial(waitTime) == false) 
   // if we see characters comming back withing waittime, we assume success...
   {
-    this->blinkRingAll(20, 2); // just for fun blink a ring...
+    //this->blinkRingAll(20, 2); // just for fun blink a ring...
     Serial.println(stringToPrint);
     if(this->anythingOnSerial(waitTime) == false) 
     {
@@ -1048,7 +1049,7 @@ bool Cube::anythingOnSerial(int waitTime)
   // if there is still time left, we count the incomming bytes...
   while((millis() - beginTime) < waitTime)
   {
-    delay(1);
+    wifiDelay(1);
     if(Serial.available() > 0)
     {
       int newByte = Serial.read();
@@ -1282,21 +1283,24 @@ bool Cube::determineForwardFace() // FUN3 // plane should be either int 1234, 15
    * plane PLANE_0425 /1
    * plane PLANE_1534 /4
    */
-  int topFace = this->returnTopFace(); // 
+  int topFace = this->returnTopFace(); 
   PlaneEnum plane = this->currentPlaneBuffer.access(0);
   
        if( (topFace == 1 && plane == PLANE0123)  ||  (topFace == 5 && plane == PLANE0425) )   
         {
           this->forwardFace = 0;
         }
+        
   else if( (topFace == 2 && plane == PLANE0123)  ||  (topFace == 4 && plane == PLANE1453) )    
         {
           this->forwardFace = 1;
         }
+        
   else if( (topFace == 3 && plane == PLANE0123)  ||  (topFace == 4 && plane == PLANE0425) )
         {
           this->forwardFace = 2;
         }
+        
   else if( (topFace == 0 && plane == PLANE0123)  ||  (topFace == 5 && plane == PLANE1453) )    
         {
           this->forwardFace = 3;
@@ -1305,6 +1309,7 @@ bool Cube::determineForwardFace() // FUN3 // plane should be either int 1234, 15
         {
           this->forwardFace = 4;
         }
+        
   else if( (topFace == 1 && plane == PLANE1453)  ||  (topFace == 2 && plane == PLANE0425) )    
         {
           this->forwardFace = 5;
@@ -1379,7 +1384,6 @@ void Cube::blinkParasiteLED(int blinkTime)
 
 bool Cube::blockingBlink(Color* inputColor, int howManyTimes, int waitTime)
 {
-
   for(int times = 0; times < howManyTimes; times++)
   {
     this->lightCube(inputColor);
@@ -1420,6 +1424,7 @@ bool Cube::lightCorner(int corner, Color* inputColor)
      }
   }      
 }
+
 void Cube::flashFaceLEDs(int delayTime)
 {
   /*
@@ -1435,6 +1440,7 @@ void Cube::flashFaceLEDs(int delayTime)
     this->faces[face].turnOnFaceLEDs(1, 0 , 1, 0);
   }
   wifiDelay(delayTime);
+  
   /*
    * Turn them all off
    */
@@ -1443,14 +1449,16 @@ void Cube::flashFaceLEDs(int delayTime)
     this->faces[face].turnOffFaceLEDs();
   }
 }
+
 bool Cube::lightFace(int face, Color* inputColor)
-{
-    /*
+/*
    * Lights up a particular face with the color r | g | b
    */
-   bool r = inputColor->r;
-   bool g = inputColor->g;
-   bool b = inputColor->b;
+{
+  bool r = inputColor->r;
+  bool g = inputColor->g;
+  bool b = inputColor->b;
+   
   if((face > -1) && (face < 6)) // valid face arguement...
   {
    delay(1);
@@ -1542,7 +1550,6 @@ bool Cube::lightFace(int face, Color* inputColor)
 bool Cube::clearRGB()
 /*
  * Switches all of the bits to HIGH (or off) for all 8 corner RGBLED's
- * 
  */
 {
 for(int i = 0; i< 4; i++)
@@ -1564,43 +1571,43 @@ bool Cube::lightCube(Color* inputColor)
    bool r = inputColor->r;
    bool g = inputColor->g;
    bool b = inputColor->b;
-this->clearRGB(); // Sets all RGB bits to HIGH / aka off
-for(int i = 0; i < 4; i++)
-{
-  if(r)
+  this->clearRGB(); // Sets all RGB bits to HIGH / aka off
+  for(int i = 0; i < 4; i++)
+  {
+    if(r)
     {
       this->faces[i].setPinLow(this->faces[0].r_0);
       this->faces[i].setPinLow(this->faces[0].r_1);
     }
-  else
+    else
     {
       this->faces[i].setPinHigh(this->faces[0].r_0);
       this->faces[i].setPinHigh(this->faces[0].r_1);
     }
     
-  if(g)
+    if(g)
     {
       this->faces[i].setPinLow(this->faces[0].g_0);
       this->faces[i].setPinLow(this->faces[0].g_1);
     }
-  else
+    else
     {
       this->faces[i].setPinHigh(this->faces[0].g_0);
       this->faces[i].setPinHigh(this->faces[0].g_1);
     }
     
-  if(b)
+    if(b)
     {
       this->faces[i].setPinLow(this->faces[0].b_0);
       this->faces[i].setPinLow(this->faces[0].b_1);
     }
-  else
+    else
     {
       this->faces[i].setPinHigh(this->faces[0].b_0);
       this->faces[i].setPinHigh(this->faces[0].b_1);
     }
-  this->faces[i].updateIOExpander();
-}
+    this->faces[i].updateIOExpander();
+  }
 return(true);
 }
 

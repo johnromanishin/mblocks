@@ -267,6 +267,15 @@ void lookUpCalibrationValues(long wifiID)
       TRAVERSE_CURRENT_R = 4500;
       GlobalMaxAccel = 5000;    // ** FIX BAT
 
+      horizontal_Stair_RPM_F = 14000;
+      horizontal_Stair_RPM_R = 14000;
+
+      horizontal_Stair_CURRENT_F = 4000;
+      horizontal_Stair_CURRENT_R = 4000;
+
+      horizontal_CURRENT_F = 3000;
+      horizontal_CURRENT_R = 3000;
+      
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
       CC_CURRENT_F = 3100;
@@ -285,6 +294,15 @@ void lookUpCalibrationValues(long wifiID)
       TRAVERSE_CURRENT_F = 3600;
       TRAVERSE_CURRENT_R = 4000;
 
+      horizontal_Stair_RPM_F = 14000;
+      horizontal_Stair_RPM_R = 14000;
+
+      horizontal_Stair_CURRENT_F = 4000;
+      horizontal_Stair_CURRENT_R = 4000;
+
+      horizontal_CURRENT_F = 3000;
+      horizontal_CURRENT_R = 3000;
+      
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
       CC_CURRENT_F = 3600;
@@ -302,6 +320,15 @@ void lookUpCalibrationValues(long wifiID)
       TRAVERSE_CURRENT_F = 2800;
       TRAVERSE_CURRENT_R = 3000;
 
+      horizontal_Stair_RPM_F = 14000;
+      horizontal_Stair_RPM_R = 14000;
+
+      horizontal_Stair_CURRENT_F = 4000;
+      horizontal_Stair_CURRENT_R = 4000;
+
+      horizontal_CURRENT_F = 3000;
+      horizontal_CURRENT_R = 3000;
+      
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
       CC_CURRENT_F = 2900;
@@ -320,6 +347,15 @@ void lookUpCalibrationValues(long wifiID)
       TRAVERSE_CURRENT_F = 3000;
       TRAVERSE_CURRENT_R = 3000;
 
+      horizontal_Stair_RPM_F = 14000;
+      horizontal_Stair_RPM_R = 14000;
+
+      horizontal_Stair_CURRENT_F = 4000;
+      horizontal_Stair_CURRENT_R = 4000;
+
+      horizontal_CURRENT_F = 3000;
+      horizontal_CURRENT_R = 3000;
+      
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
       CC_CURRENT_F = 3100;
@@ -336,6 +372,15 @@ void lookUpCalibrationValues(long wifiID)
       TRAVERSE_RPM_R = 6500;
       TRAVERSE_CURRENT_F = 2500;
       TRAVERSE_CURRENT_R = 2500;
+
+      horizontal_Stair_RPM_F = 14000;
+      horizontal_Stair_RPM_R = 14000;
+
+      horizontal_Stair_CURRENT_F = 4000;
+      horizontal_Stair_CURRENT_R = 4000;
+
+      horizontal_CURRENT_F = 3000;
+      horizontal_CURRENT_R = 3000;
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
@@ -360,6 +405,9 @@ void lookUpCalibrationValues(long wifiID)
       horizontal_Stair_CURRENT_F = 2500;
       horizontal_Stair_CURRENT_R = 3000;
 
+      horizontal_CURRENT_F = 3000;
+      horizontal_CURRENT_R = 3000;
+
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
       CC_CURRENT_F = 2800;
@@ -376,7 +424,16 @@ void lookUpCalibrationValues(long wifiID)
       TRAVERSE_RPM_R = 7000;
       TRAVERSE_CURRENT_F = 3000;
       TRAVERSE_CURRENT_R = 2500;
+      
+      horizontal_Stair_RPM_F = 14000;
+      horizontal_Stair_RPM_R = 14000;
 
+      horizontal_Stair_CURRENT_F = 4000;
+      horizontal_Stair_CURRENT_R = 4000;
+
+      horizontal_CURRENT_F = 3000;
+      horizontal_CURRENT_R = 3000;
+      
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
       CC_CURRENT_F = 3400;
@@ -395,11 +452,22 @@ void lookUpCalibrationValues(long wifiID)
       TRAVERSE_CURRENT_F = 3000;
       TRAVERSE_CURRENT_R = 3300;
       GlobalPlaneAccel = 3000;
+      
+      horizontal_Stair_RPM_F = 14000;
+      horizontal_Stair_RPM_R = 14000;
 
+      horizontal_Stair_CURRENT_F = 5000;
+      horizontal_Stair_CURRENT_R = 4000;
+
+      horizontal_CURRENT_F = 3000;
+      horizontal_CURRENT_R = 4000;
+      
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
+      
       CC_CURRENT_F = 3100;
       CC_CURRENT_R = 3100;
+      
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
       break;
@@ -412,7 +480,16 @@ void lookUpCalibrationValues(long wifiID)
       TRAVERSE_RPM_R = 6500;
       TRAVERSE_CURRENT_F = 2800;
       TRAVERSE_CURRENT_R = 3300;
+      
+      horizontal_Stair_RPM_F = 14000;
+      horizontal_Stair_RPM_R = 14000;
 
+      horizontal_Stair_CURRENT_F = 4000;
+      horizontal_Stair_CURRENT_R = 4000;
+
+      horizontal_CURRENT_F = 3000;
+      horizontal_CURRENT_R = 3000;
+      
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
       CC_CURRENT_F = 3100;
@@ -430,6 +507,15 @@ void lookUpCalibrationValues(long wifiID)
       TRAVERSE_CURRENT_F = 3000;
       TRAVERSE_CURRENT_R = 3500;
 
+      horizontal_Stair_RPM_F = 14000;
+      horizontal_Stair_RPM_R = 14000;
+
+      horizontal_Stair_CURRENT_F = 4000;
+      horizontal_Stair_CURRENT_R = 4000;
+
+      horizontal_CURRENT_F = 3000;
+      horizontal_CURRENT_R = 3000;
+      
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
       CC_CURRENT_F = 2900;
@@ -448,6 +534,15 @@ void lookUpCalibrationValues(long wifiID)
       TRAVERSE_CURRENT_F = 3000;
       TRAVERSE_CURRENT_R = 3300;
 
+      horizontal_Stair_RPM_F = 14000;
+      horizontal_Stair_RPM_R = 14000;
+
+      horizontal_Stair_CURRENT_F = 4000;
+      horizontal_Stair_CURRENT_R = 4000;
+
+      horizontal_CURRENT_F = 3000;
+      horizontal_CURRENT_R = 3000;
+      
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
       CC_CURRENT_F = 2700;
@@ -465,6 +560,15 @@ void lookUpCalibrationValues(long wifiID)
       TRAVERSE_CURRENT_F = 6000;
       TRAVERSE_CURRENT_R = 6000;
 
+      horizontal_Stair_RPM_F = 14000;
+      horizontal_Stair_RPM_R = 14000;
+
+      horizontal_Stair_CURRENT_F = 4000;
+      horizontal_Stair_CURRENT_R = 4000;
+
+      horizontal_CURRENT_F = 3000;
+      horizontal_CURRENT_R = 3000;
+      
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
       CC_CURRENT_F = 4600;
@@ -481,6 +585,15 @@ void lookUpCalibrationValues(long wifiID)
       TRAVERSE_CURRENT_F = 2500;
       TRAVERSE_CURRENT_R = 2500;
 
+      horizontal_Stair_RPM_F = 14000;
+      horizontal_Stair_RPM_R = 14000;
+
+      horizontal_Stair_CURRENT_F = 4000;
+      horizontal_Stair_CURRENT_R = 4000;
+
+      horizontal_CURRENT_F = 3000;
+      horizontal_CURRENT_R = 3000;
+      
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
       CC_CURRENT_F = 3100;
@@ -499,6 +612,15 @@ void lookUpCalibrationValues(long wifiID)
       TRAVERSE_CURRENT_F = 3000;
       TRAVERSE_CURRENT_R = 3000;
 
+      horizontal_Stair_RPM_F = 14000;
+      horizontal_Stair_RPM_R = 14000;
+
+      horizontal_Stair_CURRENT_F = 4000;
+      horizontal_Stair_CURRENT_R = 4000;
+
+      horizontal_CURRENT_F = 3000;
+      horizontal_CURRENT_R = 3000;
+      
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
       CC_CURRENT_F = 3400;
@@ -516,6 +638,17 @@ void lookUpCalibrationValues(long wifiID)
       TRAVERSE_CURRENT_F = 2700;
       TRAVERSE_CURRENT_R = 2800;
 
+      horizontal_Stair_RPM_F = 12000;
+      
+      horizontal_Stair_RPM_R = 12000;
+      
+
+      horizontal_Stair_CURRENT_F = 2500;
+      horizontal_Stair_CURRENT_R = 3000;
+
+      horizontal_CURRENT_F = 2200;
+      horizontal_CURRENT_R = 2300;
+      
       CC_RPM_F = 15500;
       CC_RPM_R = 15000;
       CC_CURRENT_F = 3500;
@@ -534,6 +667,15 @@ void lookUpCalibrationValues(long wifiID)
       TRAVERSE_CURRENT_R = 2500;
       GlobalMaxAccel = 5000;    // ** FIX BAT
 
+      horizontal_Stair_RPM_F = 14000;
+      horizontal_Stair_RPM_R = 14000;
+
+      horizontal_Stair_CURRENT_F = 4000;
+      horizontal_Stair_CURRENT_R = 4000;
+
+      horizontal_CURRENT_F = 3000;
+      horizontal_CURRENT_R = 3000;
+      
       CC_RPM_F = 16000;
       CC_RPM_R = 15500;
       CC_CURRENT_F = 3100;
@@ -577,6 +719,9 @@ void setMotionDataGlobalVariables()
   
   loadMotionData(&rollDouble_F, (CC_RPM_F-1000), (CC_CURRENT_F-300), ((CC_BRAKETIME_F/2)+2));
   loadMotionData(&rollDouble_R, (CC_RPM_R-1000), (CC_CURRENT_R-300), ((CC_BRAKETIME_R/2)+2));
+
+  loadMotionData(&horizontal_F, 5000 , horizontal_CURRENT_F, 20);
+  loadMotionData(&horizontal_R, 5000 , horizontal_CURRENT_R, 20);
   
   loadMotionData(&horizontal_Stair_F, horizontal_Stair_RPM_F, horizontal_Stair_CURRENT_F, 20);
   loadMotionData(&horizontal_Stair_R, horizontal_Stair_RPM_R, horizontal_Stair_CURRENT_R, 20);

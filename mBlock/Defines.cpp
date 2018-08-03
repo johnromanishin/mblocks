@@ -10,15 +10,37 @@
 #include "Defines.h"
 #include "Communication.h"
 
+extern int bFace = -1;
+extern int fFace = -1;
+extern int f0 = -1;
+extern int f1 = -1;
+extern int f2 = -1;
+extern int f3 = -1;
+extern int f4 = -1;
+extern int f5 = -1;
+
+int thisCubeID = 0;
+String Game = "nothing";
+
+/*
+ * GLobal Variables that are Flags...
+ */
+bool PART_OF_LINE = false;
+bool magicTheLight = false;
+extern bool THE_CHOSEN_ONE = false;
+
+
+extern int FACES_LIGHTS[FACES] = {0,0,0,0,0,0};
+
 //typedef struct Motion
 //{
 //  String moveName;      // name of move, used when we instantiate the type of movement
-//  bool brake; // true = use mechanical brake  || false = use the electronic brake only
+//  bool brake;           // true = use mechanical brake  || false = use the electronic brake only
 //  int rpm;              // RPM that we
-//  int timeout;       // time that we will wait untill for confirmation of the speed
-//  int current;     // Current we apply to the brake in mA ... Maximum is 6000 ma
+//  int timeout;          // time that we will wait untill for confirmation of the speed
+//  int current;          // Current we apply to the brake in mA ... Maximum is 6000 ma
 //  int brakeTime;        // Time (milli Seconds) we apply the brake for Maximum time*current < some value
-//  int difficulty;     // Estimated difficulty of the move on a scale 1-255; with 1 == easy, 255 == very hard;
+//  int difficulty;       // Estimated difficulty of the move on a scale 1-255; with 1 == easy, 255 == very hard;
 //  String for_rev;
 //} Motion;
 
@@ -57,27 +79,15 @@ Color teal  =   {0, 1, 1};
 Color white =   {1, 1, 1};
 Color off   =   {0, 0, 0};
 
-int thisCubeID = 0;
-String Game = "nothing";
 int GlobalplaneChangeTime;
 int GlobalplaneChangeRPM;
 int GlobalPlaneAccel = 2100;
-bool magicTheLight = false;
-extern int magicVariable = 0;
+
+extern int magicVariable = 0; // please don't ask what this is or what it does... its bad. =(
 extern int MAGIC_DEBUG = 0;
 extern int magicFace = 0;
-extern int magicVariable_0 = 0;
-extern int magicVariable_1 = 0;
-extern int GlobalMaxAccel = 6000;
 
-extern int bFace = -1;
-extern int fFace = -1;
-extern int f0 = -1;
-extern int f1 = -1;
-extern int f2 = -1;
-extern int f3 = -1;
-extern int f4 = -1;
-extern int f5 = -1;
+extern int GlobalMaxAccel = 6000;
 
 // Defaults for motion values
 extern int TRAVERSE_RPM_F = 6500;
@@ -91,6 +101,9 @@ extern int CC_CURRENT_F = 3000;
 extern int CC_CURRENT_R = 3000;
 extern int CC_BRAKETIME_F = 12;
 extern int CC_BRAKETIME_R = 12;
+
+extern int horizontal_CURRENT_F = 3000;
+extern int horizontal_CURRENT_R = 3000;
 
 extern int horizontal_Stair_RPM_F = 15000;
 extern int horizontal_Stair_RPM_R = 15000;
@@ -149,7 +162,6 @@ switch (CubeID) { // used to be ESP.getChipID
 
    For cubes
 */
-
 PlaneEnum returnPlane(int face1, int face2)
 {
   return (facePlanes[face1][face2]);
@@ -192,6 +204,7 @@ int faceClockiness(int faceTowards, int faceReference)
   }
   return (result);
 }
+
 // PLANE0123, PLANE0425, PLANE1453, PLANENONE
 // PLANE0123, PLANE0425, PLANE1453, PLANENONE
 // 0--------,1---------,2---------,3---------,4---------,5---------

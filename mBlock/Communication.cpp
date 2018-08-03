@@ -26,9 +26,9 @@ CircularBuffer<String, true> jsonCircularBuffer(ARRAY_SIZEOF(jsonBufferSpace), j
 /*
  * These variables are used in keeping track of which message ID's we have already seen
  */
-int      seenMsgCount = 10;
+#define   seenMsgCount 10
 int      prevMIDindex = 0;
-uint32_t prevMID[seenMsgCount] = 0;
+uint32_t prevMID[seenMsgCount] = {};
 
 
 bool calc_delay = false;

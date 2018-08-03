@@ -23,6 +23,24 @@
 #define FB_R2 1
 #define FB_G2 0
 
+/*
+ * The IO expanders are the main "processor" on each face board,
+ * they are basically remote controlled switches, turning on/off LED's
+ * and other sensors.
+ * 
+ * Each Face knows its own number, which range from 32 to 37
+ * Can be referenced like this...
+ * switch(this->IOExpanderAddress)
+  {
+    case 32: //Face 0
+      break;
+    case 33: // Face 1
+      break;
+      So ...
+      __ IOExpanderAddress - IO_Address_offset = face number from 0 to 5
+ */
+#define IO_Address_offset 32
+
 //typedef enum TagCommand
 //{
 //  TAGCOMMAND_NONE,
@@ -80,14 +98,14 @@ class Face
     }
     
       // Data storage spaces
-    int ambientData[64];
+    int ambientData[32];
     CircularBuffer<int> ambientBuffer;
 
       // Magnetic data Buffers
-    int magnetAngleData_A[10];
-    int magnetStrengthData_A[10];
-    int magnetAngleData_B[10];
-    int magnetStrengthData_B[10];
+    int magnetAngleData_A[5];
+    int magnetStrengthData_A[5];
+    int magnetAngleData_B[5];
+    int magnetStrengthData_B[5];
     
     CircularBuffer<int> magnetAngleBuffer_B;
     CircularBuffer<int> magnetStrengthBuffer_B;
@@ -102,6 +120,7 @@ class Face
     int neighborFaceData[5];
     int neighborAngleData[5];
     bool neighborPresenceData[5];
+    
     int neighborLightDigitData[10];
     
       // Circular Buffers for Magnetic Tag Variables

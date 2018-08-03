@@ -1,8 +1,45 @@
 #ifndef DEFINES
 #define DEFINES
-
 #include <Arduino.h>
-  
+/*
+ * Number of faces on a cube - often used in for loops to iterate over all 6 faces..
+ */
+#define FACES 6 
+
+/*
+ * This number is the cube's unique ID number, Populated from a look up dable in initialization.cpp
+ * This is used for WIFI messages, and for updating calibration data
+ */
+extern int thisCubeID;
+
+/*
+ * Top Level State machine, 
+ * The most common values are:
+ *    Line - try to assemble into a line
+ *    Tower - try to climb into a giant tower
+ *    ??
+ */
+extern String Game;
+extern bool PART_OF_LINE;
+extern bool THE_CHOSEN_ONE;
+
+extern bool magicTheLight;
+extern int FACES_LIGHTS[FACES];
+
+/*
+ * These Global variables are involved with sending an acknowledgement message
+ * back to the server...
+ */
+extern int bFace;
+extern int fFace;
+extern int f0;
+extern int f1;
+extern int f2;
+extern int f3;
+extern int f4;
+extern int f5;
+
+//   
 #define wifiAddress_SERVER  885790061   //  Sparkfun THing SERVER
 #define wifiAddress_cube00  2133796284  //  Sparkfun Thing LArge Breadboard
 //  16 Actual Cubes...
@@ -22,8 +59,6 @@
 #define wifiAddress_cube14  2131666126  //  {959694, 14},   // PEI PURPLE | FA:AA:25:19:C7:DF
 #define wifiAddress_cube15  2131666780  //  {960348, 15},   // PEI GREEN
 #define wifiAddress_cube16  2131666271  //  {959839, 16},   // PEI BLACK DB:9D:99:1A:BA:23
-
-#define FACES 6  // Number of faces on a cube...
 // Hardware Pin Definitions
 
 /*  Digital Output | Switch which controlls power to the face boards,
@@ -35,31 +70,9 @@
  * Digital Output | Directly Controlls a small white LED on the "Master" circuit board
  */
 #define LED             13    
-
 #define SDA             2     //  Managed by the wire.begin in initializeCube()
-
 #define SCL             14    //  Managed by the wire.begin in initializeCube() 
-
 #define SPECIAL_MID     42
-
-
-// Global Variables
-extern String Game;
-extern int thisCubeID;
-extern bool magicTheLight;
-
-/*
- * These Global variables are involved with sending an acknowledgement message
- * back to the server...
- */
-extern int bFace;
-extern int fFace;
-extern int f0;
-extern int f1;
-extern int f2;
-extern int f3;
-extern int f4;
-extern int f5;
 
 extern int GlobalPlaneAccel;
 extern int GlobalMaxAccel;
@@ -67,8 +80,6 @@ extern int GlobalMaxAccel;
 extern int GlobalplaneChangeTime;
 extern int GlobalplaneChangeRPM;
 extern int magicVariable;
-extern int magicVariable_0;
-extern int magicVariable_1;
 
 extern int MAGIC_DEBUG;
 extern int magicFace;
@@ -90,6 +101,10 @@ extern int horizontal_Stair_RPM_R;
 
 extern int horizontal_Stair_CURRENT_F;
 extern int horizontal_Stair_CURRENT_R;
+
+extern int horizontal_CURRENT_F;
+extern int horizontal_CURRENT_R;
+
       
 
 /*
@@ -107,7 +122,6 @@ typedef enum PlaneEnum
 {
   PLANE0425,  // Valid Plane, with face "1" On Top
   PLANE0123,  // Valid Plane, with face "5" On Top
-  //PLANE0425,  // Valid Plane, with face "1" On Top
   PLANE1453,  // Valid Plane, with face "2" On Top
   PLANENONE,  // Means we are inbetween two valid planes
   PLANEMOVING,// gyro values show we are moving, measurements are therefor unreliable
@@ -123,18 +137,16 @@ PlaneEnum stringToPlaneEnum(String inputString);
  * the special magnetic tags. Commands are designated by having the two magnetic Values
  * to be about the same value, i.e. Both digits are 27, or one is 26 and the other is 27
  */
+
  
 typedef enum TagCommand
 {
   TAGCOMMAND_NONE,
-  TAGCOMMAND_SLEEP,
-  TAGCOMMAND_PURPLE,
-  TAGCOMMAND_27,
-  TAGCOMMAND_25,
-  TAGCOMMAND_23,
-  TAGCOMMAND_21,
-  TAGCOMMAND_19,
-  TAGCOMMAND_13_ESPOFF,
+  TAGCOMMAND_09_ORANGE,
+  TAGCOMMAND_13_RED,
+  TAGCOMMAND_23_BLUE,
+  TAGCOMMAND_27_GREEN,
+  TAGCOMMAND_05_PURPLE
 } TagCommand;
 
 typedef enum TagType
@@ -179,8 +191,10 @@ typedef struct Motion
 // List of Possible Motions, defined in Defines.cpp
 extern Motion traverse_F;
 extern Motion traverse_R;
+
 extern Motion roll_F;
 extern Motion roll_R;
+
 extern Motion cornerClimb_F;
 extern Motion cornerClimb_R;
 
@@ -192,8 +206,10 @@ extern Motion horizontal_Stair_R;
 
 extern Motion shake_F;
 extern Motion softShake_F;
+
 extern Motion explode_F;
 extern Motion explode_R;
+
 extern Motion rollDouble_F;
 extern Motion rollDouble_R;
 

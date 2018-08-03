@@ -1,10 +1,24 @@
 #include "Behavior.h"
 
+/*
+ * Index
+ * *BASIC - Basic Upkeep Function
+ * *WIFI  - Wifi Management function
+ * *TAGS  - Code Dealing with magnetic tags...
+ * 
+ * *LINE  - LINE FORMING State Machine switching
+ * *LIGHT - Light Tracking State Machine switching
+ * 
+ * *DEMO  - "Demo" behavior
+ */
 //=============================================================================================
 //=============================================================================================
-//=============================BASIC STATE MACHINE UPKEEP======================================
+//=============================================================================================
+//============================= *BASIC STATE MACHINE UPKEEP====================================
 //=============================================================================================
 //=============================================================================================
+//=============================================================================================
+
 
 Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
 {
@@ -51,7 +65,9 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
 
 //=============================================================================================
 //=============================================================================================
-//=============================WIFI Checking CHECKING==========================================
+//=============================================================================================
+//============================= *WIFI Checking CHECKING========================================
+//=============================================================================================
 //=============================================================================================
 //=============================================================================================
 
@@ -291,7 +307,7 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
 //=============================================================================================
 //=============================================================================================
 //=============================================================================================
-//=============================MAGNETIC TAGS CHECKING==========================================
+//=============================*TAGS MAGNETIC TAGS CHECKING====================================
 //=============================================================================================
 //=============================================================================================
 //=============================================================================================
@@ -338,7 +354,7 @@ int checkForMagneticTagsStandard(Cube* c)
      * done any other way. I have no
      * idea why this is the behavior
      */
-    if ((c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_PURPLE) ||
+    if ((c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_05_PURPLE) ||
         (magicVariable == 1))
     {
       int z = face;
@@ -357,32 +373,40 @@ int checkForMagneticTagsStandard(Cube* c)
     /*
      * This section checks for specific commaands, and does an action if that is appropriate
      */
-    if (c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_SLEEP)
+    if (c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_09_ORANGE)
+    {
       wifiDelay(100);
+      PART_OF_LINE = true;
+      THE_CHOSEN_ONE = true;
+    }
+    else if (c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_27_GREEN)
+    {
+      c->lightCube(&green);
       
-    else if (c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_27)
       wifiDelay(100); // Do Something?
-
-    else if (c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_19)
-      wifiDelay(100); // Do Something?
-
-    else if (c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_23)
+    }
+    
+    else if (c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_23_BLUE)
     {
       c->shutDown();
     }
 
-    else if (c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_13_ESPOFF)
+    else if (c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_13_RED)
+    {
       c->shutDownESP();
+    }
     /*
      *  End Else/if tree for specific commands
      */
   }
   return (neighbors);
 }
+//=============================================================================================
+//================================================================
+//========================== *DEMO ================================
+//================================================================
+//=============================================================================================
 
-//================================================================
-//==========================DEMO==============================
-//================================================================
 Behavior demo(Cube* c)
 {
   if (MAGIC_DEBUG) Serial.println("Beginning DEMO Behaviour");
@@ -395,83 +419,209 @@ Behavior demo(Cube* c)
     nextBehavior = basicUpkeep(c, nextBehavior);
     
     mesh.update();
-    //Serial.println(loopCounter++);
     wifiDelay(200);
   }
   return nextBehavior;
 }
 
-//////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////
+//=============================================================================================
+//======================== *LINE ==============================================================
+//=============================================================================================
 
-Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int numberOfNeighborz)
-
+Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
 /*
-   
+ * This code determines what to do if the goal is to get into a line...
+ * Issues...
+ * 
+ * Variables...
+ * bool PART_OF_LINE
+ * int FACES_LIGHTS[FACES];
+ * State Discussion...
+ * First... if we think we are part of a line | SEEN THE LIGHT! | then we have two special faces...
+ * 
 */
 {
-  if (MAGIC_DEBUG) Serial.println("LineStateMachine");
   Behavior newBehavior = inputBehavior; 
-
-  //************************************
-  //NEIGHBORS == __ 0 __
-  //************************************
-  if (numberOfNeighborz == 0)
+  wifiDelay(400);
+  int numberOfNeighborz = c->numberOfNeighbors(0);
+  int first_neighborFace = c->whichFaceHasNeighbor(0);
+  int second_neighborFace = c->whichFaceHasNeighbor(1);
+  
+  if (MAGIC_DEBUG) 
   {
-    //newBehavior = SOLO_LIGHT_TRACK;
+    Serial.println("Running LineStateMachine...");
+    Serial.print("magicTheLight: ");Serial.println(magicTheLight);
+    Serial.print("PART_OF_LINE: ");Serial.println(PART_OF_LINE);
+    Serial.print("FIRST_NEIGHBOR FACE: ");Serial.println(first_neighborFace);
+    Serial.print("FACES_LIGHTS: ");
+    for(int face = 0; face < FACES; face++)
+    {
+      Serial.print(" | Face: ");
+      Serial.print(face);
+      Serial.print(" = ");
+      Serial.print(FACES_LIGHTS[face]);
+    }
+    Serial.println(" ");
   }
-  //************************************
-  //NEIGHBORS == __ 1 __
-  //************************************
-  else if (numberOfNeighborz == 1)
+  /*
+   * First we check to see if we are part of a line or not...
+   * bool PART_OF_LINE is a global variable keeping track of this...
+   * First we check to see if any of the faces has seen part of a line...
+   */
+  if(PART_OF_LINE == false)
   {
-    if (MAGIC_DEBUG) {
-      Serial.println("***NEIGHBORS == 1");
-    }
-    int neighborFace = c->whichFaceHasNeighbor();
-    if (c->faces[neighborFace].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE)
+    for(int face = 0; face < FACES; face++)
     {
-      if (magicTheLight == true)
-        newBehavior = CLIMB;
-      else if (c->numberOfNeighbors(1, 0) == 1) // if the last one also shows that there is a neighbor...
-        newBehavior = DUO_LIGHT_TRACK;
-    }
-    else if (c->faces[neighborFace].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE)
-    {
-      magicTheLight = true;
-      if (neighborFace == c->returnBottomFace())
+      if(FACES_LIGHTS[FACES] > 0)
       {
-        newBehavior = ATTRACTIVE;
+        PART_OF_LINE = true;
+        magicTheLight = true;
       }
-      else if ((c->returnForwardFace() == neighborFace) ||
-               (c->returnReverseFace() == neighborFace))
-        newBehavior = CLIMB;
+    }
+  }
+
+  /*
+   * If we lose all of our neighbors... reset the light things...
+   */
+  if((c->numberOfNeighbors(0) == 0) && (c->numberOfNeighbors(2) == 0))
+  {
+    if(MAGIC_DEBUG){
+       Serial.println("Erassing magic the light and all faces...");
+    }
+    magicTheLight = false;
+    PART_OF_LINE = false;
+    for(int face = 0; face < FACES; face++)
+    {
+      FACES_LIGHTS[face] = 0;
+    }
+  }
+  
+  /*
+   * If something else told us we are part of a line (e.g. WIFI, or special tag)
+   * Then we need to check our neighbors, etc...
+   * We just arbitrarily pick the first face with a neighbor, and make that face, and its opposite
+   * to be active faces...
+   */
+  if((PART_OF_LINE == true) && (magicTheLight == false))
+  {
+    if((first_neighborFace > -1) && (first_neighborFace < 6))
+    {
+       FACES_LIGHTS[first_neighborFace] = 1;
+       FACES_LIGHTS[oppositeFace(first_neighborFace)] = 1;
+       magicTheLight = true;
+    }
+  }
+
+  /*
+   * Now we need to figure out what to do based on:
+   * 1. If we are part of a line...
+   * 2. How Many Neighbors we have...
+   */
+  if(PART_OF_LINE == true)
+  {
+    c->lightCube(&green);
+  }
+  /*
+   * We are NOT part of a line... Now we base our behavior based on the
+   * number of neighbors and orientation of our flywheel...
+   * Steps... Based on Neighbors...
+   * 0. Neighbors...
+   *    a. If flywheel is parallel to ground...
+   *    b. If not       | Light Tracking...
+   *      
+   * 1. Neighbors...
+   *    a. Neighbor is on bottom
+   *      -> Make plane to NOT be parrallel...
+   *      -> Move
+   *    b. Neighbor is on side
+   *      -> Make sure the flywheel is parallel to the ground...
+   *      -> Move clockwise...
+   *    
+   * 2. Neighbors...
+   *    a. One of the neighbors is on the bottom
+   *      -> Move Flywheel to be in plane of two cubes
+   *      -> Try to move away from the non-bottom face
+   *    b. Both Neighbors are in ring around center
+   *      -> 
+   */
+  else
+  {
+    newBehavior = DEMO;
+    /*
+   * IF WE HAVE 0 NEIGHBOR...
+   */
+    if ((numberOfNeighborz == 0) && (c->numberOfNeighbors(2) == 0))
+    {
+      //newBehavior = SOLO_LIGHT_TRACK;
+      c->blockingBlink(&yellow);
+    }
+    /*
+    * IF WE HAVE 1 NEIGHBOR...
+    */
+    else if ((numberOfNeighborz == 1) && (c->numberOfNeighbors(2) == 1))
+    {
+      if (first_neighborFace == c->returnBottomFace())
+      {
+        if(c->returnForwardFace() != -1)
+        {
+          c->moveOnLattice(&traverse_F);
+        }
+        else
+        {
+          goToPlane(faceArrowPointsTo(first_neighborFace, c->faces[first_neighborFace].returnNeighborAngle(0)));
+        }
+      }
+      /*
+       * This means that we are ready to move... Since the face is neither top/botom
+       * and our plane is paralla to the ground
+       */
+      else if((first_neighborFace != c->returnBottomFace()) && 
+              (first_neighborFace != c->returnTopFace()) &&
+               c->returnForwardFace() == -1)
+      {
+        c->moveOnLattice(&horizontal_F);
+      }        
+      
       else
-        newBehavior = ATTRACTIVE;
+      {
+        goToPlane(c->returnTopFace());
+      }
     }
-  }
-  //************************************
-  //NEIGHBORS == __ 2 __
-  //************************************
-  else if (numberOfNeighborz == 2)
-  {
-    
-  }
-
-  //************************************
-  //NEIGHBORS == __ 2+ __
-  //************************************
-
-  else if (numberOfNeighborz > 2)
-  {
-    if (MAGIC_DEBUG) {
-      Serial.println("***NEIGHBORS == __ 2+ __");
+  
+   /*
+    * IF WE HAVE 2 NEIGHBOR...
+    */
+    else if ((numberOfNeighborz == 2) && (c->numberOfNeighbors(2) == 0))
+    {
+      if(c->returnForwardFace() == -1);
+      {
+        c->moveOnLattice(&horizontal_Stair_F);
+      }
     }
-    newBehavior = ATTRACTIVE;
+
+    /*
+    * IF WE HAVE 2+ NEIGHBOR...
+    */
+
+    else if (numberOfNeighborz > 2)
+    {
+      if (MAGIC_DEBUG) 
+      {
+        Serial.println("***NEIGHBORS == __ 2+ __");
+      }
+    }
   }
   return (newBehavior);
 }
+
+
+//=============================================================================================
+//=============================================================================================
+//=============================================================================================
+//=============================*LIGHT MAGNETIC TAGS CHECKING====================================
+//=============================================================================================
+//=============================================================================================
+//=============================================================================================
 
 Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior, int numberOfNeighborz)
 
@@ -498,7 +648,7 @@ Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior, int numberOf
   //************************************
   if (numberOfNeighborz == 0)
   {
-    newBehavior = SOLO_LIGHT_TRACK;
+    //newBehavior = SOLO_LIGHT_TRACK;
   }
   //************************************
   //NEIGHBORS == __ 1 __
@@ -511,14 +661,14 @@ Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior, int numberOf
     int neighborFace = c->whichFaceHasNeighbor();
     if (c->faces[neighborFace].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE)
     {
-      if (magicTheLight == true)
+      if (true) // magicTheLight
         newBehavior = CLIMB;
       else if (c->numberOfNeighbors(1, 0) == 1) // if the last one also shows that there is a neighbor...
         newBehavior = DUO_LIGHT_TRACK;
     }
     else if (c->faces[neighborFace].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE)
     {
-      magicTheLight = true;
+      //magicTheLight = true;
       if (neighborFace == c->returnBottomFace())
       {
         newBehavior = ATTRACTIVE;
@@ -541,7 +691,7 @@ Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior, int numberOf
       Serial.println("***NEIGHBORS == 2");
     }
 
-    if (magicTheLight == true)
+    if (true) 
     {
       if (MAGIC_DEBUG) {
         Serial.println(" I SEE THE LIGHT - Don't do the next part...");
@@ -731,8 +881,7 @@ Behavior soloSeekLight(Cube* c) // green
     if (c->currentPlaneBuffer.access(0) == PLANENONE)
     {
       c->superSpecialBlink(&red, 160);
-      magicFace = c->returnTopFace();
-      magicVariable = 1;
+      goToPlane(c->returnTopFace());
     }
     else if (iAmStuck)
     {
@@ -750,8 +899,7 @@ Behavior soloSeekLight(Cube* c) // green
         if ((topFace > -1) && (topFace < FACES)) // if this is true we are on the ground... so we should try to 
         //change planes
         {
-          magicFace = topFace;
-          magicVariable = 1; // this triggers a plane change later in the program...
+          goToPlane(topFace);
         }
         else // we are not on the ground... So we jump a little bit...
         {
@@ -989,8 +1137,7 @@ Behavior duoSeekLight(Cube* c)
       }
       else
       {
-        magicVariable = 1;
-        magicFace = connectedFace;
+        goToPlane(connectedFace);
       }
     }
     // Regular Light Tracking...
@@ -1024,8 +1171,7 @@ Behavior duoSeekLight(Cube* c)
         if ((c->returnTopFace(0) > -1) && (c->returnTopFace(0) < FACES) && (c->returnForwardFace() != -1))
         // if this is true we are on the ground... so we should try to change planes
         {
-          magicFace = c->returnTopFace();
-          magicVariable = 1; // this triggers a plane change later in the program...
+          goToPlane(c->returnTopFace());
         }
         else // we are not on the ground... So we jump a little bit...
         {
@@ -1103,8 +1249,7 @@ Behavior multiSeekLight(Cube* c)
       }
       else
       {
-        magicVariable = 1;
-        magicFace = connectedFace1;
+        goToPlane(connectedFace1);
       }
     }
     // Regular Light Tracking...
@@ -1138,8 +1283,7 @@ Behavior multiSeekLight(Cube* c)
         if ((c->returnTopFace(0) > -1) && (c->returnTopFace(0) < FACES) && (c->returnForwardFace() != -1)) // if 
         //this is true we are on the ground... so we should try to change planes
         {
-          magicFace = c->returnTopFace();
-          magicVariable = 1; // this triggers a plane change later in the program...
+          goToPlane(c->returnTopFace());
         }
         else // we are not on the ground... So we jump a little bit...
         {
@@ -1345,26 +1489,32 @@ void wifiLightChange(Cube* c, int number, bool turnOff)
       c->lightCube(&white);
       wifiDelay(waitTime);
       break;
+      
     case 1:
       c->lightCube(&yellow);
       wifiDelay(waitTime);
       break;
+      
     case 2:
       c->lightCube(&red);
       wifiDelay(waitTime);
       break;
+      
     case 3:
       c->lightCube(&purple);
       wifiDelay(waitTime);
       break;
+      
     case 4:
       c->lightCube(&blue);
       wifiDelay(waitTime);
       break;
+      
     case 5:
       c->lightCube(&green);
       wifiDelay(waitTime);
       break;
+      
     case 6:
       c->lightCube(&teal);
       wifiDelay(waitTime);
@@ -1377,7 +1527,11 @@ void wifiLightChange(Cube* c, int number, bool turnOff)
 }
 
 
-
+void goToPlane(int FaceToGoTo)
+{
+  magicFace = FaceToGoTo;
+  magicVariable = 1;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////

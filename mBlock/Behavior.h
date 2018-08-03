@@ -26,7 +26,7 @@ String generateUpdateMessage(Cube* c);
 //////////////////////////// State Machine Switching Controllers ///////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior, int numberOfNeighborz);
-Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int numberOfNeighborz);
+Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros);
 
 ////////////////////////////////////////////////////////////////////////////////////
 // I. Behaviors involving non lattice connected Cubes or small mobile assemblies////
@@ -119,6 +119,9 @@ void wifiLightChange(Cube*c, int number, bool turnOff = true);
 String behaviorsToCmd(Behavior inputBehavior);
 Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior);
 void wifiTargetFace(Cube* c, int faceToSend, int recipientCube = -1);
+
+void goToPlane(int FaceToGoTo);
+
 
 #endif
 

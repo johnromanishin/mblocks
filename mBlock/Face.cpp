@@ -27,39 +27,83 @@ Face::Face()
 bool Face::updateFace()
 {
   bool updateSuccess = false;
+  /* 
+   * If the lights were originally on,
+   * We turn off the lights temporarily in order to check the light sensor
+   * without being blinded by the light right next to
+   */
+  if(FACES_LIGHTS[IOExpanderAddress - IO_Address_offset] > 0)
+  {
+    this->turnOffFaceLEDs();
+    wifiDelay(10);
+  }
+  
   updateSuccess = (this->enableSensors() &&
                    this->updateAmbient(true) &&
                    this->turnOnFaceLEDs(0,1,1,0) &&
                    this->updateMagneticBarcode() && // actually reads magnetic valuess
                    this->turnOffFaceLEDs());
- 
-  this->neighborPresenceBuffer.push(this->processTag()); // actually processes Tag...
-  //adds whether there is anything to a buffer...
-  
-//  if(this->returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE)
-//  {
-//    this->blinkRingDigit(2, 3); // blink out a quick little light show... 
-//  }
-  
-  // if we are connected... and we are supposed to check for light, wait 0.5 seconds to try to find a message
 
-  //LIGHT TRACKING RELATED CODE
-//  if(this->returnNeighborType(0) == TAGTYPE_REGULAR_CUBE) // checks for lightdigits...
-//  {
-//    int numberOfSamplesToTake = 20;
-//    for(int i = 0; i < numberOfSamplesToTake; i++) // take 30 light samples
-//      this->updateAmbient(false);
-//    this->neighborLightDigitBuffer.push(this->processLightData(numberOfSamplesToTake)); 
-// add the lightDigit to the buffer
-//    
-//    if(magicTheLight == true) // This is supposed to light the faces up when we are in a specific mode, 
-//we might move this to // a different part of the code...
-//      this->turnOnFaceLEDs(1,1,1,1);
-//  }
-//  else
-//  {
-//    this->neighborLightDigitBuffer.push(-2);
-//  }
+  /*
+   * This section processes the magnetic tags, it updates several buffers
+   */
+ 
+  this->neighborPresenceBuffer.push(this->processTag());
+
+  /*
+   * If we are supposed to turn on our lights on a particular face, we likely don't
+   * care what is connected to it, so we basically keep this turned on, and don't need to check
+   * for more light digits...
+   */
+   
+  if(FACES_LIGHTS[IOExpanderAddress - IO_Address_offset] > 0)
+  {
+    this->turnOnFaceLEDs(1,1,1,1);
+  }
+
+  /*
+   * If we are not supposed to turn on the LED's on this face, then we check for a light digit...
+   * This also prevents us from both checking for light digits, but then both faces being off
+   * and not detecting it afterall
+   */
+  else if(this->returnNeighborType(0) == TAGTYPE_REGULAR_CUBE)
+  /*
+   * Now we are going to check our light sensor 16 times, to try to determine if we are connected to
+   * a cube which has its LIGHTS on - we do this 16 times to make sure we don't accidently get a false
+   * positive from a quick blink
+   * We only do this if we are connected to an actual cube...
+   */
+  {
+    if(MAGIC_DEBUG)
+    {
+      Serial.println("Investigating a regular cube...");
+    }
+    
+    int numberOfSamplesToTake = 16;
+    for(int i = 0; i < numberOfSamplesToTake; i++)
+      {
+        this->updateAmbient(false);
+      }
+    /*
+     * Now our the last 16 items in our buffer have ambient light values taken 20ms apart
+     */
+    this->neighborLightDigitBuffer.push(this->processLightData(numberOfSamplesToTake)); 
+
+    /*
+     * If the "Game" is "Line" and we just saw a light on this face, then we are going to set a flag
+     * to permenantly turn on the light on the OPPOSITE face from our face...
+     */
+    if((Game == "Line") && (this->returnNeighborLightDigit(0) > 0))
+    {
+      int oppositeFaceFromUs = oppositeFace(IOExpanderAddress - IO_Address_offset);
+      FACES_LIGHTS[oppositeFaceFromUs] = 1;
+      //Serial.println("WHAT THE FUCK");
+      //Serial.print("REturn neighbor light digit(0): ");
+      //Serial.println(this->returnNeighborLightDigit(0));
+      magicTheLight = true;
+    }
+  }
+
   this->disableSensors(); // turn off sensors...
   return(updateSuccess);
 }
@@ -170,16 +214,20 @@ bool Face::processTag()
        (magDigit1 != 17 && magDigit2 != 17) && (magDigit1 != 30 && magDigit2 != 30))
     {
       tagType = TAGTYPE_COMMAND;
-      if(magDigit1 == 25) // Sleep Command
-        tagCommand = TAGCOMMAND_SLEEP;
-      if(magDigit1 == 27) // 
-        tagCommand = TAGCOMMAND_27;
+      if(magDigit1 == 27) 
+        tagCommand = TAGCOMMAND_27_GREEN;
+
       if(magDigit1 == 23 || magDigit1 == 24) 
-        tagCommand = TAGCOMMAND_23;
+        tagCommand = TAGCOMMAND_23_BLUE;
+        
+      if(magDigit1 == 9 || magDigit1 == 10) // change plane
+        tagCommand = TAGCOMMAND_09_ORANGE;
+        
       if(magDigit1 == 5 || magDigit1 == 4) // change plane
-        tagCommand = TAGCOMMAND_PURPLE;
+        tagCommand = TAGCOMMAND_05_PURPLE;
+        
       if((magDigit1 == 13) || (magDigit1 == 12))
-        tagCommand = TAGCOMMAND_13_ESPOFF;
+        tagCommand = TAGCOMMAND_13_RED;
     }
   }
    /*
@@ -217,7 +265,7 @@ bool Face::processTag()
   if(tagPresent && tagID > -1)
   {
     /* First we check to see if we didn't detect a face (Likely a passive cube)
-     *  Then we only return the tag ID...
+     * Then we only return the tag ID...
      */
     if(tagFace == -1)
     {
@@ -279,6 +327,7 @@ bool Face::updateIOExpander()
   Wire.beginTransmission(this->IOExpanderAddress);
   Wire.write(this->IOExpanderState[0]);
   Wire.write(this->IOExpanderState[1]);
+  
   if(Wire.endTransmission() == 0){return(true);}
   else                           {return(false);}
 }
@@ -340,7 +389,7 @@ int Face::processLightData(int samplesTaken)
 {
   int endResult = 0;
   int tempResult = 0;
-  int thresholdValue = 3700;
+  int thresholdValue = 3400;
   for(int indexx = 0; indexx < samplesTaken; indexx++)
   {
     if(this->returnAmbientValue(indexx) > thresholdValue)
@@ -348,8 +397,15 @@ int Face::processLightData(int samplesTaken)
   }
   if(tempResult > samplesTaken/2)
     endResult = 2;
+    
   else if(tempResult > samplesTaken/4)
     endResult = 1;
+    
+  if(MAGIC_DEBUG)
+  {
+    Serial.print("PROCESS LIGHT DATA RESULT is: ");
+    Serial.println(endResult);
+  }
   return(endResult);
 }
 
@@ -377,78 +433,6 @@ void Face::blinkOutMessage(int digit)
   return;
 }
 
-void Face::blinkRingDigit(int digit, int numberOfTimes)
-{
-  int delayTime = 50;
-  if(digit == 1) // 1/5
-  {
-    for(int i = 0; i < numberOfTimes; i++)
-    {
-      this->turnOnFaceLEDs(1, 0, 0, 0);
-      wifiDelay(delayTime);
-      this->turnOnFaceLEDs(0, 1, 0, 0);
-      wifiDelay(delayTime);
-      this->turnOnFaceLEDs(0, 0, 1, 0);
-      wifiDelay(delayTime);
-      this->turnOnFaceLEDs(0, 0, 0, 1);
-      wifiDelay(delayTime);
-      this->turnOffFaceLEDs();
-      wifiDelay(delayTime);
-    }
-  }
-  else if(digit == 2) //2/5
-  {
-    for(int i = 0; i < numberOfTimes; i++)
-      {
-        this->turnOnFaceLEDs(1, 1, 0, 0);
-        wifiDelay(delayTime);
-        this->turnOnFaceLEDs(0, 1, 1, 0);
-        wifiDelay(delayTime);
-        this->turnOnFaceLEDs(0, 0, 1, 1);
-        wifiDelay(delayTime);
-        this->turnOnFaceLEDs(1, 0, 0, 1);
-        wifiDelay(delayTime);
-        this->turnOffFaceLEDs();
-        wifiDelay(delayTime);
-      }
-  }
-  else if(digit == 3) //2/5
-  {
-    for(int i = 0; i < numberOfTimes; i++)
-      {
-        this->turnOnFaceLEDs(1, 1, 1, 0);
-        wifiDelay(delayTime);
-        this->turnOnFaceLEDs(0, 1, 1, 1);
-        wifiDelay(delayTime);
-        this->turnOnFaceLEDs(1, 0, 1, 1);
-        wifiDelay(delayTime);
-        this->turnOnFaceLEDs(1, 1, 0, 1);
-        wifiDelay(delayTime);
-        this->turnOffFaceLEDs();
-        wifiDelay(delayTime);
-      }
-  }
-  else if(digit == 4) //2/5
-  {
-    for(int i = 0; i < numberOfTimes; i++)
-      {
-        this->turnOnFaceLEDs(1, 1, 1, 1);
-        wifiDelay(delayTime*4);
-        this->turnOffFaceLEDs();
-        wifiDelay(delayTime);
-      }
-  }
-  else if(digit == 5) //5/5
-  {
-    for(int i = 0; i < numberOfTimes; i++)
-      {
-        this->turnOnFaceLEDs(1, 1, 1, 1);
-        wifiDelay(delayTime*5);
-      }
-  }
-this->turnOffFaceLEDs();
-}
-
 void Face::blinkRing(int delayLength, int numberOfTimes)
 {
   for(int i = 0; i < numberOfTimes; i++)
@@ -469,11 +453,6 @@ int Face::returnAmbientValue(int index)
 {
   return(this->ambientBuffer.access(index));
 }
-
-//int Face::returnReflectivityValue(int index)
-//{
-//  return(this->reflectivityBuffer.access(index));
-//}
 
 int Face::returnMagnetStrength_A(int index)
 {
@@ -618,9 +597,6 @@ bool Face::updateMagneticBarcode()
 
 
 bool Face::enableSensors()
-/*
-* 
-*/
 {
   this->IOExpanderState[0] &= ~(1 << FB_EN1);
   delay(10);
@@ -692,8 +668,6 @@ void activateLightSensor(int i2caddress)
   Wire.endTransmission();
   // 0x00 = 15ms
   // 0x10 = 100 ms
-  // 
-  //Wire.endTransmission();
 }
 
 int readMagnetSensorAngle(int i2cAddress) {
@@ -743,4 +717,5 @@ int returnFaceNumber(int magDigit)
     else
             {return -1;}
 }     
+
 
