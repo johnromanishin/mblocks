@@ -22,9 +22,11 @@ extern int thisCubeID;
 extern String Game;
 extern bool PART_OF_LINE;
 extern bool THE_CHOSEN_ONE;
+extern bool HALF_LIGHT;
 
 extern bool magicTheLight;
 extern int FACES_LIGHTS[FACES];
+extern bool doubleCheck;
 
 /*
  * These Global variables are involved with sending an acknowledgement message
@@ -88,6 +90,9 @@ extern int TRAVERSE_RPM_F;
 extern int TRAVERSE_RPM_R;
 extern int TRAVERSE_CURRENT_F;
 extern int TRAVERSE_CURRENT_R;
+
+extern int STEP_DOWN_STAIR_CURRENT_F;
+extern int STEP_DOWN_STAIR_CURRENT_R;
 
 extern int CC_RPM_F;
 extern int CC_RPM_R;
@@ -200,6 +205,9 @@ extern Motion cornerClimb_R;
 
 extern Motion horizontal_F;
 extern Motion horizontal_R;
+
+extern Motion stepDownStair_R;
+extern Motion stepDownStair_F;
 
 extern Motion horizontal_Stair_F;
 extern Motion horizontal_Stair_R;

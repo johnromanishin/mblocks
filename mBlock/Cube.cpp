@@ -636,7 +636,7 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
     return(true);
   }
   this->lightPlaneRing(targetCorePlane); // blink the desired plane to go into...
-  this->printString("sma retractcurrent 1050");
+  this->printString("sma retractcurrent 1000");
   wifiDelay(800);
   bool succeed = false;
   this->printString("sma retract 7500");
@@ -740,7 +740,10 @@ PlaneEnum Cube::findPlaneStatus(bool reset)
     this->currentPlaneBuffer.push(PLANE0123);
     return(PLANE0123);
   }
-  
+  if(MAGIC_DEBUG)
+  {
+    Serial.println("WE TRIED TO FIND PLANE STATUS, CALLED HERE!");
+  }
   PlaneEnum likelyStatus = PLANEERROR; 
   if(this->updateBothIMUs()) // try to update IMU...
   {
@@ -835,6 +838,11 @@ PlaneEnum Cube::findPlaneStatus(bool reset)
     }
   // Add the result of this else if tree to the currentPlaneBuffer
   this->currentPlaneBuffer.push(likelyStatus);
+  if(MAGIC_DEBUG)
+  {
+    Serial.print("PLANE RESULT IS: ");
+    Serial.println(this->returnCurrentPlane_STRING());
+  }
   return(likelyStatus);
 }
 
@@ -1430,17 +1438,26 @@ void Cube::flashFaceLEDs(int delayTime)
   /*
    * Turn on the LED's
    */
+  this->clearRGB();
   for(int face = 0; face < FACES; face++)
   {
-     this->faces[face].turnOnFaceLEDs(0, 1, 0, 1);
+     this->faces[face].turnOnFaceLEDs(0, 0, 0, 1);
   }
   wifiDelay(delayTime);
   for(int face = 0; face < FACES; face++)
   {
-    this->faces[face].turnOnFaceLEDs(1, 0 , 1, 0);
+    this->faces[face].turnOnFaceLEDs(0, 0 , 1, 0);
   }
   wifiDelay(delayTime);
-  
+  for(int face = 0; face < FACES; face++)
+  {
+    this->faces[face].turnOnFaceLEDs(0, 1 , 0, 0);
+  }
+  wifiDelay(delayTime);
+  for(int face = 0; face < FACES; face++)
+  {
+    this->faces[face].turnOnFaceLEDs(1, 0 , 0, 0);
+  }
   /*
    * Turn them all off
    */
@@ -1577,34 +1594,40 @@ bool Cube::lightCube(Color* inputColor)
     if(r)
     {
       this->faces[i].setPinLow(this->faces[0].r_0);
-      this->faces[i].setPinLow(this->faces[0].r_1);
+      if(HALF_LIGHT == false)
+        this->faces[i].setPinLow(this->faces[0].r_1);
     }
     else
     {
       this->faces[i].setPinHigh(this->faces[0].r_0);
-      this->faces[i].setPinHigh(this->faces[0].r_1);
+      if(HALF_LIGHT == false)
+        this->faces[i].setPinHigh(this->faces[0].r_1);
     }
     
     if(g)
     {
       this->faces[i].setPinLow(this->faces[0].g_0);
-      this->faces[i].setPinLow(this->faces[0].g_1);
+      if(HALF_LIGHT == false)
+        this->faces[i].setPinLow(this->faces[0].g_1);
     }
     else
     {
       this->faces[i].setPinHigh(this->faces[0].g_0);
-      this->faces[i].setPinHigh(this->faces[0].g_1);
+      if(HALF_LIGHT == false)
+        this->faces[i].setPinHigh(this->faces[0].g_1);
     }
     
     if(b)
     {
       this->faces[i].setPinLow(this->faces[0].b_0);
-      this->faces[i].setPinLow(this->faces[0].b_1);
+      if(HALF_LIGHT == false)
+        this->faces[i].setPinLow(this->faces[0].b_1);
     }
     else
     {
       this->faces[i].setPinHigh(this->faces[0].b_0);
-      this->faces[i].setPinHigh(this->faces[0].b_1);
+      if(HALF_LIGHT == false)
+        this->faces[i].setPinHigh(this->faces[0].b_1);
     }
     this->faces[i].updateIOExpander();
   }
@@ -1642,77 +1665,84 @@ void Cube::lightPlaneRing(PlaneEnum corePlane)
  * 
  */
 {
-  if(corePlane == PLANE0123)
+  if(HALF_LIGHT)
   {
+    wifiDelay(10);
+  }
+  else
+  {
+    if(corePlane == PLANE0123)
+    {
+      for(int i = 0; i < 2; i++)
+      {
+        this->faces[0].turnOnFaceLEDs(1, 0, 1, 0);
+        this->faces[1].turnOnFaceLEDs(1, 0, 1, 0);
+        this->faces[2].turnOnFaceLEDs(1, 0, 1, 0);
+        this->faces[3].turnOnFaceLEDs(1, 0, 1, 0);
+        wifiDelay(0);
+        this->faces[0].turnOnFaceLEDs(0, 1, 0, 1);
+        this->faces[1].turnOnFaceLEDs(0, 1, 0, 1);
+        this->faces[2].turnOnFaceLEDs(0, 1, 0, 1);
+        this->faces[3].turnOnFaceLEDs(0, 1, 0, 1);
+        wifiDelay(100);
+        this->faces[0].turnOffFaceLEDs();
+        this->faces[1].turnOffFaceLEDs();
+        this->faces[2].turnOffFaceLEDs();
+        this->faces[3].turnOffFaceLEDs();
+      }
+    }
+    else if(corePlane == PLANE0425)
+    {
+      for(int i = 0; i < 2; i++)
+      {
+        this->faces[0].turnOnFaceLEDs(1, 0, 1, 0);
+        this->faces[4].turnOnFaceLEDs(1, 0, 1, 0);
+        this->faces[2].turnOnFaceLEDs(1, 0, 1, 0);
+        this->faces[5].turnOnFaceLEDs(1, 0, 1, 0);
+        wifiDelay(100);
+        this->faces[0].turnOnFaceLEDs(0, 1, 0, 1);
+        this->faces[4].turnOnFaceLEDs(0, 1, 0, 1);
+        this->faces[2].turnOnFaceLEDs(0, 1, 0, 1);
+        this->faces[5].turnOnFaceLEDs(0, 1, 0, 1);
+        wifiDelay(100);
+        this->faces[0].turnOffFaceLEDs();
+        this->faces[4].turnOffFaceLEDs();
+        this->faces[2].turnOffFaceLEDs();
+        this->faces[5].turnOffFaceLEDs();
+      }
+    }
+    else if(corePlane == PLANE1453)
+    {
     for(int i = 0; i < 2; i++)
-    {
-      this->faces[0].turnOnFaceLEDs(1, 0, 1, 0);
-      this->faces[1].turnOnFaceLEDs(1, 0, 1, 0);
-      this->faces[2].turnOnFaceLEDs(1, 0, 1, 0);
-      this->faces[3].turnOnFaceLEDs(1, 0, 1, 0);
-      wifiDelay(100);
-      this->faces[0].turnOnFaceLEDs(0, 1, 0, 1);
-      this->faces[1].turnOnFaceLEDs(0, 1, 0, 1);
-      this->faces[2].turnOnFaceLEDs(0, 1, 0, 1);
-      this->faces[3].turnOnFaceLEDs(0, 1, 0, 1);
-      wifiDelay(100);
-      this->faces[0].turnOffFaceLEDs();
-      this->faces[1].turnOffFaceLEDs();
-      this->faces[2].turnOffFaceLEDs();
-      this->faces[3].turnOffFaceLEDs();
+      {
+        this->faces[1].turnOnFaceLEDs(1, 0, 1, 0);
+        this->faces[4].turnOnFaceLEDs(1, 0, 1, 0);
+        this->faces[3].turnOnFaceLEDs(1, 0, 1, 0);
+        this->faces[5].turnOnFaceLEDs(1, 0, 1, 0);
+        wifiDelay(100);
+        this->faces[1].turnOnFaceLEDs(0, 1, 0, 1);
+        this->faces[4].turnOnFaceLEDs(0, 1, 0, 1);
+        this->faces[5].turnOnFaceLEDs(0, 1, 0, 1);
+        this->faces[3].turnOnFaceLEDs(0, 1, 0, 1);
+        wifiDelay(100);
+        this->faces[1].turnOffFaceLEDs();
+        this->faces[4].turnOffFaceLEDs();
+        this->faces[5].turnOffFaceLEDs();
+        this->faces[3].turnOffFaceLEDs();
+      }
     }
-  }
-  else if(corePlane == PLANE0425)
-  {
-    for(int i = 0; i < 2; i++)
+    else if(corePlane == PLANENONE)
     {
-      this->faces[0].turnOnFaceLEDs(1, 0, 1, 0);
-      this->faces[4].turnOnFaceLEDs(1, 0, 1, 0);
-      this->faces[2].turnOnFaceLEDs(1, 0, 1, 0);
-      this->faces[5].turnOnFaceLEDs(1, 0, 1, 0);
-      wifiDelay(100);
-      this->faces[0].turnOnFaceLEDs(0, 1, 0, 1);
-      this->faces[4].turnOnFaceLEDs(0, 1, 0, 1);
-      this->faces[2].turnOnFaceLEDs(0, 1, 0, 1);
-      this->faces[5].turnOnFaceLEDs(0, 1, 0, 1);
-      wifiDelay(100);
-      this->faces[0].turnOffFaceLEDs();
-      this->faces[4].turnOffFaceLEDs();
-      this->faces[2].turnOffFaceLEDs();
-      this->faces[5].turnOffFaceLEDs();
+      wifiDelay(10);
     }
-  }
-  else if(corePlane == PLANE1453)
-  {
-  for(int i = 0; i < 2; i++)
+    else if(corePlane == PLANEERROR)
     {
-      this->faces[1].turnOnFaceLEDs(1, 0, 1, 0);
-      this->faces[4].turnOnFaceLEDs(1, 0, 1, 0);
-      this->faces[3].turnOnFaceLEDs(1, 0, 1, 0);
-      this->faces[5].turnOnFaceLEDs(1, 0, 1, 0);
-      wifiDelay(100);
-      this->faces[1].turnOnFaceLEDs(0, 1, 0, 1);
-      this->faces[4].turnOnFaceLEDs(0, 1, 0, 1);
-      this->faces[5].turnOnFaceLEDs(0, 1, 0, 1);
-      this->faces[3].turnOnFaceLEDs(0, 1, 0, 1);
-      wifiDelay(100);
-      this->faces[1].turnOffFaceLEDs();
-      this->faces[4].turnOffFaceLEDs();
-      this->faces[5].turnOffFaceLEDs();
-      this->faces[3].turnOffFaceLEDs();
+      wifiDelay(10);
     }
-  }
-  else if(corePlane == PLANENONE)
-  {
-    wifiDelay(10);
-  }
-  else if(corePlane == PLANEERROR)
-  {
-    wifiDelay(10);
-  }
-  else if(corePlane == PLANEMOVING)
-  {
-    wifiDelay(10);
+    else if(corePlane == PLANEMOVING)
+    {
+      wifiDelay(10);
+    }
   }
 }
 

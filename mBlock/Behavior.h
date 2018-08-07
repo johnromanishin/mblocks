@@ -120,7 +120,7 @@ String behaviorsToCmd(Behavior inputBehavior);
 Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior);
 void wifiTargetFace(Cube* c, int faceToSend, int recipientCube = -1);
 
-void goToPlane(int FaceToGoTo);
+void goToPlane(Cube* c, int FaceToGoTo);
 
 
 #endif

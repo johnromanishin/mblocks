@@ -41,7 +41,8 @@ void setup() // starts up the various electronic hardware...
   Serial.print("WIFI ID: ");
   Serial.println(mesh.getNodeId());
   wifiDelay(2000);
-  for(int i = 0; i < 3; i++);
+  
+  for(int i = 0; i < 2; i++);
   {
     sendAck(SPECIAL_MID);
     wifiDelay(800);
@@ -52,7 +53,7 @@ void loop() // Main Loop... Just continually loops, most of the action happens i
 {
   /*
    * The "Game" is the overarching program that the cube runs, at startup we define it here
-   * It is just a string that can be defined anywhere...
+   * It is just a global string that can be defined anywhere...
    */
   Game = "Line";
   

@@ -40,7 +40,7 @@ bool Face::updateFace()
   
   updateSuccess = (this->enableSensors() &&
                    this->updateAmbient(true) &&
-                   this->turnOnFaceLEDs(0,1,1,0) &&
+                   this->turnOnFaceLEDs(1,0,0,0) &&
                    this->updateMagneticBarcode() && // actually reads magnetic valuess
                    this->turnOffFaceLEDs());
 
@@ -95,8 +95,9 @@ bool Face::updateFace()
      */
     if((Game == "Line") && (this->returnNeighborLightDigit(0) > 0))
     {
-      int oppositeFaceFromUs = oppositeFace(IOExpanderAddress - IO_Address_offset);
+      int oppositeFaceFromUs = oppositeFace(this->IOExpanderAddress - IO_Address_offset);
       FACES_LIGHTS[oppositeFaceFromUs] = 1;
+      FACES_LIGHTS[this->IOExpanderAddress - IO_Address_offset] = 1;
       //Serial.println("WHAT THE FUCK");
       //Serial.print("REturn neighbor light digit(0): ");
       //Serial.println(this->returnNeighborLightDigit(0));
@@ -389,7 +390,7 @@ int Face::processLightData(int samplesTaken)
 {
   int endResult = 0;
   int tempResult = 0;
-  int thresholdValue = 3400;
+  int thresholdValue = 2000;
   for(int indexx = 0; indexx < samplesTaken; indexx++)
   {
     if(this->returnAmbientValue(indexx) > thresholdValue)

@@ -21,12 +21,14 @@ extern int f5 = -1;
 
 int thisCubeID = 0;
 String Game = "nothing";
+extern bool HALF_LIGHT = false;
 
 /*
  * GLobal Variables that are Flags...
  */
 bool PART_OF_LINE = false;
 bool magicTheLight = false;
+bool doubleCheck = true;
 extern bool THE_CHOSEN_ONE = false;
 
 
@@ -59,6 +61,9 @@ Motion roll_R             = {"roll"       , false   , 6500    ,    0    ,    0  
 
 Motion cornerClimb_F      = {"cornerClimb", true    , 15500   , 7000    , 3300    , 12        , 250         , "f"};
 Motion cornerClimb_R      = {"cornerClimb", true    , 15500   , 7000    , 3300    , 12        , 250         , "r"};
+
+Motion stepDownStair_F    = {"stairDown"  , true    , 12000   , 6000    , 4500    , 20        , 55          , "f"};
+Motion stepDownStair_R    = {"stairDown"  , true    , 12000   , 6000    , 4500    , 20        , 55          , "r"};
 
 Motion shake_F            = {"shake"      , false   , 4500    , 4000    , 3500    , 20        , 250         , "f"};
 Motion softShake_F        = {"softShake"  , false   , 3500    , 3000    , 3000    , 20        , 250         , "f"};
@@ -101,6 +106,9 @@ extern int CC_CURRENT_F = 3000;
 extern int CC_CURRENT_R = 3000;
 extern int CC_BRAKETIME_F = 12;
 extern int CC_BRAKETIME_R = 12;
+
+extern int STEP_DOWN_STAIR_CURRENT_F = 4500;
+extern int STEP_DOWN_STAIR_CURRENT_R = 4500;
 
 extern int horizontal_CURRENT_F = 3000;
 extern int horizontal_CURRENT_R = 3000;
