@@ -49,6 +49,16 @@ void testDatabase()
   {
     if(database[cubeEntry][leaveAloneFor] < 0)
     {
+       if(checkIfInLine(cubeEntry) == true)
+       {
+          Serial.println("I FOUND A CUBE WITH A LINE!!!!!");
+          if(FOUND_LINE == false)
+            {
+               pushMessage(cubeEntry, "THE_ONE");
+               pushMessage(cubeEntry, "THE_ONE");
+               FOUND_LINE = true;
+            }
+       }
        //This Loop repeates for every cube ENTRY
 //      if(database[cubeEntry][bottom_Face] != -1)
 //      {
@@ -71,17 +81,17 @@ void testDatabase()
       {
         if(checkIfBottomIsConnected(cubeEntry))
         {
-          Serial.println("WOOO! Added time and told it to go forward");
-          pushMessage(cubeEntry, "f");
-          addTimeToNoContactTimer(cubeEntry, 5000);
+          //Serial.println("WOOO! Added time and told it to go forward");
+          //pushMessage(cubeEntry, "f");
+          //addTimeToNoContactTimer(cubeEntry, 5000);
         }
       }
     
       if(database[cubeEntry][numberOfNeighbors] > 1)
       {
-        pushMessage(cubeEntry, "R");
-        addTimeToNoContactTimer(cubeEntry, 5000);
-        wifiDelay(300);
+        //pushMessage(cubeEntry, "R");
+        //addTimeToNoContactTimer(cubeEntry, 5000);
+        //wifiDelay(300);
       }
     }
     else // this means we should leave the cube alone, but decrement the timer
@@ -176,3 +186,67 @@ int initializeDatabase()
   }
 }
 
+/*
+ * This is intended to check the first two neighbors that it finds and tests
+ * to see if they are in a line - Eveuntually it should be able to check all of
+ * the pairs of faces
+ */
+bool checkIfInLine(int CubeToCheck)
+{
+   bool inAnLine = false;
+   int face1 = -1;
+   int face2 = -1;
+   int face3 = -1;
+   int face4 = -1;
+   int counter = 1;
+   for(int face = face_0; face < (face_0 + FACES); face++) // 
+   {
+    if(database[CubeToCheck][face] != -1)
+      {
+      if(counter == 1)
+        {
+          face1 = face-face_0;
+          counter++;
+        }
+        else if(counter == 2)
+        {
+          face2 = face-face_0;
+          counter++;
+
+        }
+        else if(counter == 3)
+        {
+          face3 = face-face_0;
+          counter++;
+        }
+        else if(counter == 4)
+        {
+          face3 = face-face_0;
+          counter++;
+        }
+      }
+    }
+    /*
+     * Now we have up to 4 cube faces 
+     * with counter equal to the number of faces...
+     */
+     if(counter == 2)
+     {
+      if(areFacesOpposite(face1, face2))
+        inAnLine = true;
+     }
+     else if(counter == 3)
+     {
+        if(areFacesOpposite(face1, face2) || areFacesOpposite(face1, face3) ||
+           areFacesOpposite(face2, face3))
+          inAnLine = true;
+     }
+     /*
+      * If we have 4 neighbors, at least one pair must be on opposite faces
+      */
+     else if(counter == 4)
+     {
+        inAnLine = true;
+     }
+   return(inAnLine);
+}

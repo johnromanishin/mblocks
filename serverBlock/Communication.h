@@ -8,7 +8,7 @@
 #include "Defines.h"
 
 #define WINDOW_SIZE 1
-#define AVERAGE_FIRST_DELAY_MS 100
+#define AVERAGE_FIRST_DELAY_MS 300
 
 struct outboxEntry
 {

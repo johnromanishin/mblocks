@@ -6,6 +6,7 @@
 #define FACES 6
 #define NUM_CUBES   17
 
+extern bool FOUND_LINE;
 // Giant Data Table
 // Basic Data
 // [index] = ID number of the cube...
@@ -77,5 +78,6 @@ bool areFacesOpposite(int face1, int face2);
 int oppositeFace(int face);
 void wifiDelay(int delayTime);
 uint32_t getAddressFromCubeID(int CubeID);
+int getCubeIDFromAddress(uint32_t wifiAddress);
 
 #endif

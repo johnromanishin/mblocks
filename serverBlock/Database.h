@@ -17,10 +17,12 @@ void testDatabase();
 void processConnections();
 //int determineAvailableCubes();
 int initializeDatabase();
+bool checkIfInLine(int CubeToCheck);
 
 int countNeighborsFromDatabase(int cubeNumber);
 bool checkIfBottomIsConnected(int cubeNumber);
 void addTimeToNoContactTimer(int cubeNumber, int timeToAdd);
+bool areFacesOpposite(int face1, int face2);
 
 
 #endif
