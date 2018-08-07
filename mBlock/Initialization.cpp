@@ -516,7 +516,7 @@ void lookUpCalibrationValues(long wifiID)
 
       TRAVERSE_RPM_F = 6500;
       TRAVERSE_RPM_R = 7000;
-      TRAVERSE_CURRENT_F = 2800;s
+      TRAVERSE_CURRENT_F = 2800;
       TRAVERSE_CURRENT_R = 3500;
 
       horizontal_Stair_RPM_F = 14000;

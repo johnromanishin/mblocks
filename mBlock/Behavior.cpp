@@ -688,7 +688,7 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
       }
       else
       {
-        c->superSpecialBlink(&yellow);
+        c->superSpecialBlink(&yellow, 100);
       }
     }
 
