@@ -272,13 +272,14 @@ void receivedCallback(uint32_t from, String & stringMsg)
 
 void newConnectionCallback(uint32_t nodeId)
 {
-  Serial.print("New Connection, nodeId: ");
-  Serial.println(nodeId);
+  Serial.print("New Connection... Cube: ");
+  Serial.println(getCubeIDFromAddress(nodeId));
+  database[nodeId][ACTIVE] = 1;
 }
 
 void changedConnectionCallback()
 {
-  Serial.printf("Connection Event\n");
+  //Serial.printf("Connection Event\n");
 }
 
 void nodeTimeAdjustedCallback(int32_t offset) 

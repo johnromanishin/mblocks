@@ -7,7 +7,58 @@
 int database[NUM_CUBES][tableWidth] = {};
 //
 
+extern bool FOUND_LINE = false;
+
+
 int connectionDatabase[Connections][Connection_Parameters] = {};
+
+int getCubeIDFromAddress(uint32_t wifiAddress)
+{
+  /*
+   * This functions returns the Wifi Address (long) from the short digit ID number (1-16)
+   * The values are from a lookup table in defines.h
+   */
+  switch (wifiAddress) { // used to be ESP.getChipID
+    default:
+      return (-1);
+    case wifiAddress_SERVER:                      //  ESP WIFI  885790061 || Server
+      return (99);
+    case wifiAddress_cube00:                       //  ESP WIFI 2133796284 ||  Test Mblock
+      return (0);
+    case wifiAddress_cube01:
+      return (1);
+    case wifiAddress_cube02:
+      return (2);
+    case wifiAddress_cube03:
+      return (3);
+    case wifiAddress_cube04:
+      return (4);
+    case wifiAddress_cube05:                       //  960427 PEI RED  D0:D5:6F:CB:32:4C
+      return (5);
+    case wifiAddress_cube06:
+      return (6);
+    case wifiAddress_cube07:
+      return (7);
+    case wifiAddress_cube08:
+      return (8);
+    case wifiAddress_cube09:
+      return (9);
+    case wifiAddress_cube10:
+      return (10);
+    case wifiAddress_cube11:
+      return (11);
+    case wifiAddress_cube12:
+      return (12);
+    case wifiAddress_cube13:
+      return (13);
+    case wifiAddress_cube14:
+      return (14);
+    case wifiAddress_cube15:
+      return (15);
+    case wifiAddress_cube16:
+      return (16);
+  }
+}
 
 uint32_t getAddressFromCubeID(int CubeID)
 {

@@ -79,7 +79,7 @@ void loop()
   updateBoxes(); // checks messages from the WiFi Message queue
   interactWithRangeSensor(); // checks the range value to send messages based on user input
   wifiDelay(5);
-  if((loopCounter % 300) == 0)
+  if((loopCounter % 500) == 0)
   {
     for(int cube = 0; cube < NUM_CUBES; cube++)
     {
@@ -165,15 +165,15 @@ void interactWithRangeSensor()
     //sendBroadcastMessage(createJsonStringFlood(-1, "attractive"));
   }
 
-  else if (rangeValue > 100 && rangeValue < 200)
-  {
-    for(int cube = 0; cube < NUM_CUBES; cube++)
-    {
-      if(database[cube][ACTIVE] == 1)
-      {
-        pushForwardMessage(cube);
-      }
-    }
-    wifiDelay(1000);
-  }
+//  else if (rangeValue > 100 && rangeValue < 200)
+//  {
+//    for(int cube = 0; cube < NUM_CUBES; cube++)
+//    {
+//      if(database[cube][ACTIVE] == 1)
+//      {
+//        pushForwardMessage(cube);
+//      }
+//    }
+//    wifiDelay(1000);
+//  }
 }
