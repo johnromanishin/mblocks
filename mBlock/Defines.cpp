@@ -22,15 +22,15 @@ extern int f5 = -1;
 int thisCubeID = 0;
 String Game = "nothing";
 extern bool HALF_LIGHT = false;
-
+extern int TOP_FACE_LIGHT = 0;
+extern int TOTAL_LIGHT = 0;
 /*
  * GLobal Variables that are Flags...
  */
 bool PART_OF_LINE = false;
-bool magicTheLight = false;
-bool doubleCheck = true;
+bool MAGIC_THE_LIGHT = false;
+bool DOUBLE_CHECK = true;
 extern bool THE_CHOSEN_ONE = false;
-
 
 extern int FACES_LIGHTS[FACES] = {0,0,0,0,0,0};
 

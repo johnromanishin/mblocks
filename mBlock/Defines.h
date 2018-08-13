@@ -1,13 +1,14 @@
 #ifndef DEFINES
 #define DEFINES
 #include <Arduino.h>
+
 /*
  * Number of faces on a cube - often used in for loops to iterate over all 6 faces..
  */
 #define FACES 6 
 
 /*
- * This number is the cube's unique ID number, Populated from a look up dable in initialization.cpp
+ * This number is the cube's unique ID number, Populated from a look up table in initialization.cpp
  * This is used for WIFI messages, and for updating calibration data
  */
 extern int thisCubeID;
@@ -16,17 +17,35 @@ extern int thisCubeID;
  * Top Level State machine, 
  * The most common values are:
  *    Line - try to assemble into a line
- *    Tower - try to climb into a giant tower
- *    ??
+ *    LightSeek - try to follow light
+ *    Cube - Turn into Giant Cube
  */
 extern String Game;
+/*
+ * These variables are involved with the light tracking state machine
+ */
 extern bool PART_OF_LINE;
 extern bool THE_CHOSEN_ONE;
+extern bool MAGIC_THE_LIGHT;
+extern int FACES_LIGHTS[FACES];
+
+/*
+ * Double check makes it so thatwhenwe request a plane change, it only happens if we
+ * ask for the same plane change twice in a row.
+ */
+extern bool DOUBLE_CHECK;
+
+/*
+ * Some of therobots havebad batteries, so inorder to prevent electrical problems
+ * HALF_LIGHT limites the number of lights we turn onfor specific cubes,
+ * this is changed to true/false by initialization.cpp for each cube
+ */
 extern bool HALF_LIGHT;
 
-extern bool magicTheLight;
+extern int TOP_FACE_LIGHT;
+extern int TOTAL_LIGHT;
+
 extern int FACES_LIGHTS[FACES];
-extern bool doubleCheck;
 
 /*
  * These Global variables are involved with sending an acknowledgement message

@@ -8,6 +8,7 @@
  * 
  * *LINE  - LINE FORMING State Machine switching
  * *LIGHT - Light Tracking State Machine switching
+ * *GIANT_CUBE - code to form a large cube
  * 
  * *DEMO  - "Demo" behavior
  */
@@ -354,11 +355,11 @@ int checkForMagneticTagsStandard(Cube* c)
         (c->faces[face].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE))
     {
       neighbors++;
-      if (c->faces[face].returnNeighborAngle(0) > -1)
+      if ((c->faces[face].returnNeighborAngle(0) > -1) && (MAGIC_THE_LIGHT == false))
       {
-        //c->lightFace(faceArrowPointsTo(face, c->faces[face].returnNeighborAngle(0)), &purple);
-        //wifiDelay(200);
-        //c->lightCube(&off);
+        c->lightFace(faceArrowPointsTo(face, c->faces[face].returnNeighborAngle(0)), &purple);
+        wifiDelay(100);
+        c->lightCube(&off);
       }
     }
     
@@ -417,23 +418,21 @@ int checkForMagneticTagsStandard(Cube* c)
   }
   return (neighbors);
 }
-//=============================================================================================
-//================================================================
-//========================== *DEMO ================================
-//================================================================
-//=============================================================================================
 
+//=============================================================================================
+//=============================================================================================
+//========================== *DEMO ============================================================
+//=============================================================================================
+//=============================================================================================
 Behavior demo(Cube* c)
 {
-  if (MAGIC_DEBUG) Serial.println("Beginning DEMO Behaviour");
   Behavior nextBehavior = DEMO;
   int loopCounter = 0;
   
   while (nextBehavior == DEMO) // loop until something changes the next behavior
   {
-    
+    loopCounter++;
     nextBehavior = basicUpkeep(c, nextBehavior);
-    
     mesh.update();
     wifiDelay(200);
   }
@@ -468,10 +467,9 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
   
   if (MAGIC_DEBUG) 
   {
-    Serial.println("Running LineStateMachine...");
-    Serial.print("magicTheLight: ");Serial.println(magicTheLight);
-    Serial.print("PART_OF_LINE: ");Serial.println(PART_OF_LINE);
-    Serial.print("THE CHONES ONE: ");Serial.println(THE_CHOSEN_ONE);
+    Serial.print("MAGIC_THE_LIGHT: ");Serial.print(MAGIC_THE_LIGHT);
+    Serial.print(" | PART_OF_LINE: ");Serial.print(PART_OF_LINE);
+    Serial.print(" | THE CHOSEN ONE: ");Serial.print(THE_CHOSEN_ONE);
     Serial.print("FIRST_NEIGHBOR FACE: ");Serial.println(first_neighborFace);
     Serial.print("SECOND_NEIGHBOR FACE: ");Serial.println(second_neighborFace);
     Serial.print("FACES_LIGHTS: ");
@@ -496,7 +494,7 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
       if(FACES_LIGHTS[face] > 0)
       {
         PART_OF_LINE = true;
-        magicTheLight = true;
+        MAGIC_THE_LIGHT = true;
       }
     }
   }
@@ -506,11 +504,14 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
    */
   if((c->numberOfNeighbors(0) == 0) && (c->numberOfNeighbors(2) == 0))
   {
-    if(MAGIC_DEBUG){
+    if(MAGIC_DEBUG)
+    {
        Serial.println("Erassing magic the light and all faces...");
     }
-    magicTheLight = false;
+    
+    MAGIC_THE_LIGHT = false;
     PART_OF_LINE = false;
+    
     for(int face = 0; face < FACES; face++)
     {
       FACES_LIGHTS[face] = 0;
@@ -523,13 +524,13 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
    * We just arbitrarily pick the first face with a neighbor, and make that face, and its opposite
    * to be active faces...
    */
-  if((PART_OF_LINE == true) && (magicTheLight == false))
+  if((PART_OF_LINE == true) && (MAGIC_THE_LIGHT == false))
   {
     if((first_neighborFace > -1) && (first_neighborFace < 6))
     {
        FACES_LIGHTS[first_neighborFace] = 1;
        FACES_LIGHTS[oppositeFace(first_neighborFace)] = 1;
-       magicTheLight = true;
+       MAGIC_THE_LIGHT = true;
     }
   }
 
@@ -541,7 +542,7 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
   if(PART_OF_LINE == true)
   {
     c->lightCube(&green);
-    wifiDelay(500);
+    wifiDelay(500+random(500));
   }
   /*
    * We are NOT part of a line... Now we base our behavior based on the
@@ -760,14 +761,14 @@ Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior, int numberOf
     int neighborFace = c->whichFaceHasNeighbor();
     if (c->faces[neighborFace].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE)
     {
-      if (true) // magicTheLight
+      if (true) // MAGIC_THE_LIGHT
         newBehavior = CLIMB;
       else if (c->numberOfNeighbors(1, 0) == 1) // if the last one also shows that there is a neighbor...
         newBehavior = DUO_LIGHT_TRACK;
     }
     else if (c->faces[neighborFace].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE)
     {
-      //magicTheLight = true;
+      //MAGIC_THE_LIGHT = true;
       if (neighborFace == c->returnBottomFace())
       {
         newBehavior = ATTRACTIVE;
@@ -1639,16 +1640,16 @@ void wifiLightChange(Cube* c, int number, bool turnOff)
  */
 void goToPlane(Cube* c, int FaceToGoTo)
 {
-  if(doubleCheck == true)
+  if(DOUBLE_CHECK == true)
   {
     c->findPlaneStatus(true);
-    doubleCheck = false;
+    DOUBLE_CHECK = false;
   }
   else
   {
     magicFace = FaceToGoTo;
     magicVariable = 1;
-    doubleCheck = true;
+    DOUBLE_CHECK = true;
   }
 }
 

@@ -12,12 +12,12 @@
  * ** Cube Name ** #  **   NOTES          * Plane Ch Stuck  * BAD Red     * Just DIe       * Motor Jitter    * Mech. Rubbing *  Drains Bat  * Acceler Issue*  6000ma Kills * batteries Replaced
  * *************************************************************************************************************************************************************************************
  * ** PEI BLACK   **                      *                 *             *                *                 *               *              *              *               *    2017-12-21      *
- * ** PEI GREEN   **                      *                 *             *                *                 *               *              *              *               *    2017-12-17      *
+ * ** PEI GREEN   **                      *                 *             *                *     X           *               *              *              *               *    2017-12-17      *
  * ** PEI ORANGE ** 07 **   goes green    *                 *  X          *                *                 *               *              *              *               *                    *
  * ** PEI PURPLE ** 14 **   Bat 4 is bad  *                 *             *       X        *                 *               *    X         *              *               *                    *
  * ** PEI RED    **                       *                 *             *                *                 *               *              *              *               *                    *
  * ** PEI YELLOW ** 12 **                 *                 *             *       X        *                 *               *              *     X        *               *                    *
- * ** PEI BROWN  ** 01 **                 *                 *             *       X        *                 *               *              *              *               *    2017-12-21      *
+ * ** PEI BROWN  ** 01 **                 *                 *  X          *       X X      *                 *               *              *              *               *    2017-12-21      *
  * ** PEI BLUE   ** 10 **                 *                 *  X          *                *                 *               *              *              *               *                    *
  *
  * ** PC BLACK  ** 09 **  Cut out Black   *                 *             *                *                 *               *              *              *               *                    *

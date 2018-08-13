@@ -5,6 +5,8 @@
 #include "CBuff.h"
 #include "Face.h"
 #include <Arduino.h>
+#include <Wire.h> 
+#include <stdint.h>
 
 //typedef enum PlaneEnum {PLANE0123, PLANE0425, PLANE1453, PLANENONE, PLANEMOVING, PLANEERROR} PlaneEnum;
 // These are the six possible states that the core can be in in regards to the frame
@@ -67,7 +69,10 @@ class Cube
     void resetI2C();      // does (disconnect) and the (connect) of the i2C
     void blinkParasiteLED(int blinkTime = 100); // blinks the tiny LED attached to the "parasite" board 
     //- difficult to see from outside
-    int wifiDelayWithMotionDetection(int delayTime); // This function returns the accumulated 
+    
+    // This function returns the accumulated 
+    int wifiDelayWithMotionDetection(int delayTime, bool onlyX = false, bool onlyY = false, bool onlyZ = false);
+    
     //sum of the gyros while waiting
     int shutDownTime = (60000*10); // time until board goes to sleep with the units in milliseconds
 
@@ -76,6 +81,7 @@ class Cube
     bool update(); // Updates almost everything on the cube...
     bool updateFaces();
 //*******************************************************************
+
     int numberOfNeighbors(int index = 0, bool lightFace = false);
     
     int numberOfNeighborsCheckNow(); 

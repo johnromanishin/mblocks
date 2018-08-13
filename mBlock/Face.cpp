@@ -101,7 +101,7 @@ bool Face::updateFace()
       //Serial.println("WHAT THE FUCK");
       //Serial.print("REturn neighbor light digit(0): ");
       //Serial.println(this->returnNeighborLightDigit(0));
-      magicTheLight = true;
+      MAGIC_THE_LIGHT = true;
     }
   }
 
@@ -671,19 +671,22 @@ void activateLightSensor(int i2caddress)
   // 0x10 = 100 ms
 }
 
-int readMagnetSensorAngle(int i2cAddress) {
+int readMagnetSensorAngle(int i2cAddress) 
+{
   // Returns the angle of the measured magnet as a 14 bit number
   int value = magnetSensorRead(i2cAddress, byte(0xFF));
   return(value);
 }
 
-int readMagnetSensorFieldStrength(int i2cAddress) {
+int readMagnetSensorFieldStrength(int i2cAddress) 
+{
   // AGC is the "strength" of the magnet returned as an 8-bit number, 255 = magnet field is too weak, 
   //0 = very strong magnetic field.
   return(magnetSensorRead(i2cAddress, byte(0xFA)));
 }
 
-int magnetSensorRead(int i2cAddress, byte dataRegisterAddress) {
+int magnetSensorRead(int i2cAddress, byte dataRegisterAddress) 
+{
   // read either the angle or the field strength of the AMS5048
   Wire.beginTransmission(i2cAddress);
   Wire.write(dataRegisterAddress);
@@ -704,19 +707,33 @@ int magnetSensorRead(int i2cAddress, byte dataRegisterAddress) {
 int returnFaceNumber(int magDigit)
 {
          if((magDigit == 29) || (magDigit == 28))
-            {return 0;}
+            {
+              return 0;
+            }
     else if((magDigit == 27) || (magDigit == 26))
-            {return 1;}
+            {
+              return 1;
+            }
     else if((magDigit == 25) || (magDigit == 24))
-            {return 2;}
+            {
+              return 2;
+            }
     else if((magDigit == 23) || (magDigit == 22))
-            {return 3;}
+            {
+              return 3;
+            }
     else if((magDigit == 21) || (magDigit == 20))
-            {return 4;}
+            {
+              return 4;
+            }
     else if((magDigit == 19) || (magDigit == 18))
-            {return 5;}
+            {
+              return 5;
+            }
     else
-            {return -1;}
+            {
+              return -1;
+            }
 }     
 
 
