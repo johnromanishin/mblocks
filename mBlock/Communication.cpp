@@ -162,6 +162,7 @@ void sendAck(uint32_t messageID)
   JsonObject& msg = jsonBuffer.createObject(); // & is "c++ reference"
   msg["mID"] = messageID; // message ID
   msg["sID"] = thisCubeID; // sender ID
+  msg["tL"] = TOP_FACE_LIGHT[0]; // Light value of the top face...
   
   //if(messageID != SPECIAL_MID)
   

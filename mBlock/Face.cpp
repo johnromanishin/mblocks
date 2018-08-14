@@ -79,14 +79,16 @@ bool Face::updateFace()
       Serial.println("Investigating a regular cube...");
     }
     
-    int numberOfSamplesToTake = 16;
+    int numberOfSamplesToTake = 24;
     for(int i = 0; i < numberOfSamplesToTake; i++)
-      {
-        this->updateAmbient(false);
-      }
+    {
+      this->updateAmbient(false);
+    }
+    
     /*
      * Now our the last 16 items in our buffer have ambient light values taken 20ms apart
      */
+     
     this->neighborLightDigitBuffer.push(this->processLightData(numberOfSamplesToTake)); 
 
     /*
@@ -98,9 +100,6 @@ bool Face::updateFace()
       int oppositeFaceFromUs = oppositeFace(this->IOExpanderAddress - IO_Address_offset);
       FACES_LIGHTS[oppositeFaceFromUs] = 1;
       FACES_LIGHTS[this->IOExpanderAddress - IO_Address_offset] = 1;
-      //Serial.println("WHAT THE FUCK");
-      //Serial.print("REturn neighbor light digit(0): ");
-      //Serial.println(this->returnNeighborLightDigit(0));
       MAGIC_THE_LIGHT = true;
     }
   }

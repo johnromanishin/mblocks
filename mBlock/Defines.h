@@ -37,15 +37,21 @@ extern bool DOUBLE_CHECK;
 
 /*
  * Some of therobots havebad batteries, so inorder to prevent electrical problems
- * HALF_LIGHT limites the number of lights we turn onfor specific cubes,
+ * HALF_LIGHT limites the number of lights we turn on for specific cubes,
  * this is changed to true/false by initialization.cpp for each cube
  */
 extern bool HALF_LIGHT;
 
-extern int TOP_FACE_LIGHT;
+/*
+ * The following are global variables involved with *CUBE game
+ */
+#define SAMPLES 12
+extern int TOP_FACE_LIGHT[SAMPLES];
 extern int TOTAL_LIGHT;
-
+#define TOP_LIGHT_THRESHOLD 1000
 extern int FACES_LIGHTS[FACES];
+extern int LIGHT_TRANSITIONS;
+extern int DIRECTION;
 
 /*
  * These Global variables are involved with sending an acknowledgement message

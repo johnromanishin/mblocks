@@ -68,19 +68,20 @@ void setup() // starts up the various electronic hardware...
 void loop() // Main Loop... Just continually loops, most of the action happens in checkForBehaviors...
 {
   /*
-     The "Game" is the overarching program that the cube runs, at startup we define it here
-     It is just a global string that can be defined anywhere...
+   * The "Game" is the overarching program that the cube runs, at startup we define it here
+   * It is just a global string that can be defined anywhere...
+   * IT is set in defines.cpp
   */
-  if((TOP_FACE_LIGHT > TOP_LIGHT_THRESHOLD) && 
-              (c.numberOfNeighbors(0) == 0) && 
-              (c.numberOfNeighbors(2) == 0))
-  {
-    Game = "lightSeek";
-  }
-  else if(TOP_FACE_LIGHT > TOP_LIGHT_THRESHOLD)
-  {
-    Game = "Line";
-  }
+//  if((TOP_FACE_LIGHT[0] > TOP_LIGHT_THRESHOLD) && 
+//              (c.numberOfNeighbors(0) == 0) && 
+//              (c.numberOfNeighbors(2) == 0))
+//  {
+//    Game = "lightSeek";
+//  }
+//  else if(TOP_FACE_LIGHT[0] > TOP_LIGHT_THRESHOLD)
+//  {
+//    Game = "Line";
+//  }
 
   if (MAGIC_DEBUG) Serial.println("Running Main loop Once...");
   behavior = checkForBehaviors(&c, behavior);

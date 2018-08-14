@@ -98,14 +98,14 @@ class Face
     }
     
       // Data storage spaces
-    int ambientData[32];
+    int ambientData[30];
     CircularBuffer<int> ambientBuffer;
 
       // Magnetic data Buffers
-    int magnetAngleData_A[5];
-    int magnetStrengthData_A[5];
-    int magnetAngleData_B[5];
-    int magnetStrengthData_B[5];
+    int magnetAngleData_A[4];
+    int magnetStrengthData_A[4];
+    int magnetAngleData_B[4];
+    int magnetStrengthData_B[4];
     
     CircularBuffer<int> magnetAngleBuffer_B;
     CircularBuffer<int> magnetStrengthBuffer_B;
@@ -113,15 +113,15 @@ class Face
     CircularBuffer<int> magnetStrengthBuffer_A;
     
       // Neighbor Information Buffers
-    int neighborData[5];
-    TagType     neighborTypeData[5];
-    TagCommand  neighborCommandData[5];
-    int neighborIDData[5];
-    int neighborFaceData[5];
-    int neighborAngleData[5];
-    bool neighborPresenceData[5];
+    int neighborData[4];
+    TagType     neighborTypeData[4];
+    TagCommand  neighborCommandData[4];
+    int neighborIDData[4];
+    int neighborFaceData[4];
+    int neighborAngleData[4];
+    bool neighborPresenceData[4];
     
-    int neighborLightDigitData[10];
+    int neighborLightDigitData[6];
     
       // Circular Buffers for Magnetic Tag Variables
     CircularBuffer<TagType>     neighborTypeBuffer;     // This stores the type of the tag on this face

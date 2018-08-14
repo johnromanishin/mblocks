@@ -8,7 +8,7 @@
  * 
  * *LINE  - LINE FORMING State Machine switching
  * *LIGHT - Light Tracking State Machine switching
- * *GIANT_CUBE - code to form a large cube
+ * *CUBE - code to form a large cube
  * 
  * *DEMO  - "Demo" behavior
  */
@@ -29,6 +29,7 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
    */
   c->update();
   wifiDelay(200);
+  
   /*
    * checkForWifiCommands looks to see if it should take any actions based on received WIFI commands
    * these fit into the following categories
@@ -51,14 +52,19 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
    */
   int numberOfNeighborz = checkForMagneticTagsStandard(c);
 
-  if (Game == "lightSeek")
+  if (Game == "lightSeek") // *LIGHT
   {
     return(LightTrackingStateMachine(c, newBehavior, numberOfNeighborz));
   }
   
-  else if(Game == "Line")
+  else if(Game == "Line") // *LINE
   {
     return(LineStateMachine(c, newBehavior, numberOfNeighborz));
+  }
+  
+  else if(Game == "CUBE") // *CUBE
+  {
+    return(CubeStateMachine(c, newBehavior, numberOfNeighborz));
   }
   
   return (newBehavior);
@@ -621,7 +627,7 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
    /*
     * IF WE HAVE 2 NEIGHBOR...
     */
-    else if ((numberOfNeighborz == 2) && (c->numberOfNeighbors(2) == 2) && millis() > 50000)
+    else if ((numberOfNeighborz == 2) && (c->numberOfNeighbors(2) == 2) && millis() > (50000+random(10000)))
     {
       int CW_or_CCW = 0;
       if(c->areFacesOpposite(first_neighborFace, second_neighborFace) == true)
@@ -834,6 +840,106 @@ Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior, int numberOf
     newBehavior = ATTRACTIVE;
   }
 
+  return (newBehavior);
+}
+
+
+//=============================================================================================
+//======================== *CUBE ==============================================================
+//=============================================================================================
+
+Behavior CubeStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
+/*
+ * This code determines what to do if the goal is to TURN a line of 8 cubes into
+ * one Giant Cube
+ * 
+*/
+{
+  Behavior newBehavior = inputBehavior; 
+  int numberOfNeighborz = c->numberOfNeighbors(0);
+  int first_neighborFace = c->whichFaceHasNeighbor(0);
+  int second_neighborFace = c->whichFaceHasNeighbor(1);
+  /*
+   * First we check to see if we are part of a line or not...
+   * bool PART_OF_LINE is a global variable keeping track of this...
+   * First we check to see if any of the faces has seen part of a line...
+   */
+   
+  /*
+   * If we lose all of our neighbors... reset the light things...
+   */
+  if((c->numberOfNeighbors(0) == 0) && (c->numberOfNeighbors(2) == 0))
+  {
+    if(TOP_FACE_LIGHT[1] < TOP_LIGHT_THRESHOLD && TOP_FACE_LIGHT[0] > TOP_LIGHT_THRESHOLD)
+      c->blockingBlink(&red);
+  }
+  /*
+   * If we get triggered by the changing light...
+   */
+  else if((TOP_FACE_LIGHT[1] < TOP_LIGHT_THRESHOLD) && (TOP_FACE_LIGHT[0] > TOP_LIGHT_THRESHOLD))
+  {
+   newBehavior = DEMO;
+   /*
+   * IF WE HAVE 0 NEIGHBOR...
+   */
+    if ((numberOfNeighborz == 0) && (c->numberOfNeighbors(2) == 0))
+    {
+      c->blockingBlink(&teal);
+    }
+    /*
+    * IF WE HAVE 1 NEIGHBOR...
+    */
+    else if ((numberOfNeighborz == 1) && (c->numberOfNeighbors(2) == 1))
+    {
+      /*
+       * If we have ONE neighbor, and it is on the BOTTOM, then our strategy is to just move forward
+       * until we have two neighbors, or we have succeeded
+       */
+      if(c->returnForwardFace() != -1)
+      {
+        newBehavior = CLIMB;
+        if(first_neighborFace == c->returnBottomFace())
+        {
+          if(c->returnForwardFace() != -1)
+          {
+            if(DIRECTION == 1)
+              c->moveOnLattice(&traverse_F);
+            else if(DIRECTION == -1)
+              c->moveOnLattice(&traverse_R);
+          }
+        }
+      }
+      /*
+       * This means we are triggered, we have 1 neighbor, and 
+       * our flywheel is parallel to the ground
+       */
+      else if(c->returnForwardFace() == -1)
+      {
+        c->moveOnLattice(&horizontal_F);
+      }
+    }
+   /*
+    * IF WE HAVE 2 NEIGHBOR...
+    */
+    else if (numberOfNeighborz == 2)
+    {
+      c->blockingBlink(&teal);
+    }
+
+    /*
+    * IF WE HAVE 2+ NEIGHBOR...
+    */
+
+    else if (numberOfNeighborz > 2)
+    {
+        wifiDelay(100);
+    }
+  }
+  else
+  {
+    c->blockingBlink(&yellow);
+  }
+  wifiDelay(400);
   return (newBehavior);
 }
 
@@ -1080,9 +1186,15 @@ Behavior climb(Cube* c)
         delay(50);
         int CW_or_CCW = faceClockiness(connectedFace, c->returnBottomFace());
         if (CW_or_CCW == 1)
-          c->moveOnLattice(&cornerClimb_F);
+          {
+            c->moveOnLattice(&cornerClimb_F);
+            DIRECTION = 1;
+          }
         if (CW_or_CCW == -1)
-          c->moveOnLattice(&cornerClimb_R);
+          {
+            c->moveOnLattice(&cornerClimb_R);
+            DIRECTION = -1;
+          }
       }
       else
       {

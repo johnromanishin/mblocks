@@ -43,24 +43,31 @@ bool Cube::update()
   wifiDelay(random(100));
   this->processState();// this deals with anything involving IMUs 
   this->updateFaces();
+
+  /*
+   * Manage Light Digits... GLobal values from the top face...
+   */
   int topFacee = this->returnTopFace();
   if(topFacee > -1 && topFacee < FACES)
   {
-    TOP_FACE_LIGHT = this->faces[this->returnTopFace()].returnAmbientValue(0);
+    // TOPFACELIGHT -- [0] [1] [2] [3] ... [n]...
+    // TOPFACELIGHT -- [99] [4] [4]
+    
+    for(int i = 0; i < (SAMPLES-1); i++)
+    {
+      TOP_FACE_LIGHT[i+1] = TOP_FACE_LIGHT[i];
+    }
+    TOP_FACE_LIGHT[0] = this->faces[this->returnTopFace()].returnAmbientValue(0);
+    if(TOP_FACE_LIGHT[0] > TOP_LIGHT_THRESHOLD && TOP_FACE_LIGHT[1] < TOP_LIGHT_THRESHOLD)
+    {
+      LIGHT_TRANSITIONS++;
+    }
   }
-  TOTAL_LIGHT = 0;
   
+  TOTAL_LIGHT = 0;
   for(int face = 0; face < FACES; face++)
   {
     TOTAL_LIGHT += this->faces[face].returnAmbientValue(0);
-  }
-  
-  if(MAGIC_DEBUG)
-  {
-    Serial.print("TOP FACE LIGHT: ");
-    Serial.println(TOP_FACE_LIGHT);
-    Serial.print("TOTAL LIGHT: ");
-    Serial.println(TOTAL_LIGHT);
   }
   return(true);
 }

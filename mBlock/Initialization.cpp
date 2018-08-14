@@ -32,6 +32,9 @@
  */
 
 void initializeCube()
+/*
+ * 
+ */
 {
   initializeHardware();
   delay(400);
@@ -67,6 +70,7 @@ bool checkIfConnected()
     wifiDelay(1000);
   }
 }
+
 void shutDownMasterBoard()
 /*
  * this shuts down just the board with the ESP on it (The one running this software)
@@ -130,11 +134,11 @@ void disableAutoReset()
   Serial.println("espprogram");
 }
 
+int inputVoltage()
 /*
  * Obtains the input voltage from the slave board to
  * detect when the block is charging, and to put the master board to sleep
  */
-int inputVoltage()
 {
   int timeout = 60; // ms - how long the function will attempt to parse text for.
   long startTime = millis();
@@ -170,49 +174,66 @@ int inputVoltage()
 }
 
 int get_battery_voltage()
+/*
+ * 
+ */
+{
+  int vbat[4];
+  long begin_function = millis();
+  while(Serial.available()){Serial.read();} // empty serial buffer just in case...
+  delay(3);
+  Serial.println("vbat");
+  delay(23);
+  char prev_char = ' ';
+  String temp_string = "";
+  int battery_counter = 1;
+  while (Serial.available() > 0 && (millis()-begin_function) < 60)
+  // while there are things in the serial buffer...
   {
-    int vbat[4];
-    long begin_function = millis();
-    while(Serial.available()){Serial.read();} // empty serial buffer just in case...
-    delay(3);
-    Serial.println("vbat");
-    delay(23);
-    char prev_char = ' ';
-    String temp_string = "";
-    int battery_counter = 1;
-    while (Serial.available() > 0 && (millis()-begin_function) < 60)
-    // while there are things in the serial buffer...
+    char c = Serial.read();
+    if(c == ' ' && prev_char == ':')
     {
-        char c = Serial.read();
-        if(c == ' ' && prev_char == ':')
-          {
-              for(int i = 0; i < 4; i++)
-                  {
-                  char a = Serial.read();
-                  delayMicroseconds(250);
-                  if(isDigit(a)){temp_string += a;}
-                  }
-              if(battery_counter == 1){vbat[1] = temp_string.toInt();}
-              else if(battery_counter == 2){vbat[2] = temp_string.toInt();}
-              else if(battery_counter == 3){vbat[3] = temp_string.toInt();}
-              else if(battery_counter == 4){vbat[4] = temp_string.toInt();}
-              battery_counter++;
-              temp_string = "";
-          }
-        delayMicroseconds(200);
-        prev_char = c;
+      for(int i = 0; i < 4; i++)
+      {
+        char a = Serial.read();
+        delayMicroseconds(250);
+        if(isDigit(a)){temp_string += a;}
+      }
+      
+      if(battery_counter == 1)
+      {
+        vbat[1] = temp_string.toInt();
+      }
+      
+      else if(battery_counter == 2)
+      {
+        vbat[2] = temp_string.toInt();
+      }
+      
+      else if(battery_counter == 3)
+      {
+        vbat[3] = temp_string.toInt();
+      }
+      
+      else if(battery_counter == 4)
+      {
+        vbat[4] = temp_string.toInt();
+      }
+      
+      battery_counter++;
+      temp_string = "";
     }
+    delayMicroseconds(200);
+    prev_char = c;
+  }
   vbat[0] = (vbat[1]+vbat[2]+vbat[3]+vbat[4])/4;
   return (vbat[0]);
 }
 
+void lookUpCalibrationValues(long wifiID)
 /*
- *
  * Updates global variables with values according to the esp.getchipid
  */
-
-
-void lookUpCalibrationValues(long wifiID)
 {
   if(MAGIC_DEBUG) Serial.println("Entering lookUpCalibrationValues()");
   switch (wifiID)  // used to be ESP.getChipID
@@ -483,8 +504,8 @@ void lookUpCalibrationValues(long wifiID)
       break;
 
     //********************************
-    case wifiAddress_cube09: //8576514 PC BLACK  E3:6B:C6:CE:DA:31
-      thisCubeID = 9;
+    case wifiAddress_cube14: //8576514 PC BLACK  E3:6B:C6:CE:DA:31
+      thisCubeID = 14;
       HALF_LIGHT = false;
 
       TRAVERSE_RPM_F = 6500;
@@ -621,8 +642,8 @@ void lookUpCalibrationValues(long wifiID)
       break;
 
     //********************************
-    case wifiAddress_cube14: //959694 PEI PURPLE | FA:AA:25:19:C7:DF
-      thisCubeID = 14;
+    case wifiAddress_cube09: //959694 PEI PURPLE | FA:AA:25:19:C7:DF
+      thisCubeID = 09;
       HALF_LIGHT = false;
 
       GlobalPlaneAccel = 2000;
@@ -671,8 +692,8 @@ void lookUpCalibrationValues(long wifiID)
       
       CC_RPM_F = 15500;
       CC_RPM_R = 15000;
-      CC_CURRENT_F = 3500;
-      CC_CURRENT_R = 3200;
+      CC_CURRENT_F = 3300;
+      CC_CURRENT_R = 3100;
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
       break;
