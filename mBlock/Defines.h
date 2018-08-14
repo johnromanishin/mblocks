@@ -78,12 +78,12 @@ extern int f5;
 #define wifiAddress_cube06  2139284147  //  {8577715, 6},   // PC Brown  C5:FF:AB:04:3B:9D
 #define wifiAddress_cube07  2131666674  //  {960242, 7},    // PEI ORANGE E6:F6:05:69:08:F2
 #define wifiAddress_cube08  2131666141  //  {959709, 8},    // PC YELLOW  - FB:0D:8F:2C:3B:B4           
-#define wifiAddress_cube09  2139282946  //  {8576514, 9},   // PC BLACK  E3:6B:C6:CE:DA:31
+#define wifiAddress_cube09  2131666126  //  {959694, 14},   // PEI PURPLE | FA:AA:25:19:C7:DF
 #define wifiAddress_cube10  2131667020  //  {960558, 10},   // PEI BLUE  f7:AE:59:2B:D9:4D
 #define wifiAddress_cube11  2139283535  //  {8577103, 11},  // PC ORANGE  - E6:E5:82:26:C7:8B
 #define wifiAddress_cube12  2131666475  //  {960043, 12},   // PEI YELLOW  CC:F1:4F:AF:64:A8  
 #define wifiAddress_cube13  887459658   //  {15044426, 13}, // PC Blue  D8:9C:4D:EA:27:65
-#define wifiAddress_cube14  2131666126  //  {959694, 14},   // PEI PURPLE | FA:AA:25:19:C7:DF
+#define wifiAddress_cube14  2139282946  //  {8576514, 9},   // PC BLACK  E3:6B:C6:CE:DA:31 
 #define wifiAddress_cube15  2131666780  //  {960348, 15},   // PEI GREEN
 #define wifiAddress_cube16  2131666271  //  {959839, 16},   // PEI BLACK DB:9D:99:1A:BA:23
 // Hardware Pin Definitions
