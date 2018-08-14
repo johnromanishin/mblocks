@@ -2,20 +2,44 @@
 #define DEFINES
 
 #include "Communication.h"
+#include <painlessMesh.h> // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
 
-#define FACES 6
-#define NUM_CUBES   17
+/*
+ * Each cube has this many faces...
+ * This is often used in a for loop to iterate over all of the faces
+ */
+#define FACES               6
+#define NUM_CUBES           17
+#define DATABASE_DEBUG      0
+#define MESSAGE_DEBUG       1
+#define Switch              13
+#define SPECIAL_MESSAGE_ID  42
 
+/*
+ * This is a flag which we can turn to true if we have verified that one
+ * cube thinks it is in a line
+ */
 extern bool FOUND_LINE;
-// Giant Data Table
-// Basic Data
-// [index] = ID number of the cube...
 
+/*
+ * This is the main State machine Variable... The options are as follows"
+ *  1. "LINE"  - Attempts to turn any random group of cubes into a line
+ *  2. "CUBE"  - attempts to help cubes turn into a giant cube
+ *  3. "LIGHT" - helps cubes perform light tracking
+ */
+extern String GAME;
 
+/*
+ * The following parameters are the indexes to a two dimensional database which is intended 
+ * to store and analyze the information we get from the cubes
+ */
 #define timeContacted       0
 #define bottom_Face         1
 #define forwardFace         2
-// Neighbor Related
+
+/*
+ * Parameters related to neighbors and the neighbors which each cubes have
+ */
 #define numberOfNeighbors   3
 #define face_0              4
 #define face_1              5
@@ -23,7 +47,10 @@ extern bool FOUND_LINE;
 #define face_3              7
 #define face_4              8
 #define face_5              9
-// Other Flags?
+
+/*
+ * Flags for specific Cubes
+ */
 #define inLine              10
 #define changedFlag         11
 #define justMoved           12
@@ -34,6 +61,10 @@ extern bool FOUND_LINE;
 #define tableWidth          17
 extern int database[NUM_CUBES][tableWidth];  
 
+/*
+ *  The second "database" is a list of connections, instead of cubes.
+ *  Each connection has a pair of ID numbers and faces associated with it
+ */
 #define Connections       40  // Maximum number of connections in database
 
 #define ConnectionCube_A  1
@@ -42,10 +73,10 @@ extern int database[NUM_CUBES][tableWidth];
 #define ConnectionFace_B  4
 #define Connection_Parameters 5
 
+/*
+ * This creates the reference for the database of connections
+ */
 extern int connectionDatabase[Connections][Connection_Parameters]; 
-
-
-#include <painlessMesh.h> // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
 
 #define ARRAY_SIZEOF(x) ((sizeof(x) / sizeof(x[0])))
 #define SERVER_ID 99
@@ -53,10 +84,16 @@ extern int connectionDatabase[Connections][Connection_Parameters];
 #define OUTBOX_SIZE 10
 #define INBOX_SIZE 20
 
+/*
+ * These are the WIFI addresses for the various cubes and a string which includes the ID number
+ * This is used to translate between cube ID "5" or "6" and the WIFI address, e.g. "2139281740"
+ */
 #define wifiAddress_SERVER  885790061   //  Sparkfun THing SERVER
 #define wifiAddress_cube00  2133796284  //  Sparkfun Thing LArge Breadboard
 
-//  16 Actual Cubes...
+/*
+ * These are the values for the actual 16 cubes. 
+ */
 #define wifiAddress_cube01  2131667094  //  {960662,    1},     // PEI BROWN  - F1:E8:71:B2:99:B5
 #define wifiAddress_cube02  882644344   //  {10229112,  2},     // PC PURPLE  - DF:DF:3C:A0:F1:77
 #define wifiAddress_cube03  887459591   //  {15044359,  3}      // ORANGE PC RED  CD:2B:5E:AB:3E:F3
@@ -74,10 +111,38 @@ extern int connectionDatabase[Connections][Connection_Parameters];
 #define wifiAddress_cube15  2131666780  //  {960348,    15},    // PEI GREEN
 #define wifiAddress_cube16  2131666271  //  {959839,    16},    // PEI BLACK DB:9D:99:1A:BA:23
 
-bool areFacesOpposite(int face1, int face2);
-int oppositeFace(int face);
-void wifiDelay(int delayTime);
-uint32_t getAddressFromCubeID(int CubeID);
-int getCubeIDFromAddress(uint32_t wifiAddress);
+/*
+ * -----------------------------------------------------------------------------------------------------
+ *  -------------------------------------  Random Functions   ------------------------------------------
+ * -----------------------------------------------------------------------------------------------------
+ */
 
+bool areFacesOpposite(int face1, int face2);
+/*
+ * This function takes in two faces, e.g. 1, and 4, and returns TRUE if they are opposite, and
+ * FALSE if the are not opposites
+ */
+ 
+int oppositeFace(int face);
+/*
+ * This function returns the face number which is opposite from the requested face
+ * this is used by areFacesOpposite
+ */
+
+void wifiDelay(int delayTime);
+/*
+ * This function delays for a specific ammount of time (in ms) while still checking
+ * the wifi to make sure that is keeps up with the WIFI goings-ons
+ */
+ 
+uint32_t getAddressFromCubeID(int CubeID);
+/*
+ * This function returns the wifi Address from a given ID number "4" or "7"
+ */
+ 
+int getCubeIDFromAddress(uint32_t wifiAddress);
+/*
+ * This Function returns the ID number "5" or "7" from the wifiAddress...
+ */
+ 
 #endif

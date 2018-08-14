@@ -1,29 +1,45 @@
 #include "Defines.h"
-//#include "espconn.h"
-//#include <Arduino.h>              // library with basic arduino commands
-//#include <painlessMesh.h> // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
-
-// Database
-int database[NUM_CUBES][tableWidth] = {};
-//
-
+/*
+ * Flags - 
+ */
 extern bool FOUND_LINE = false;
 
+/*
+ * State Machine Variable
+ */
+extern String GAME = "CUBE";
 
+
+/*
+ * Cube Data Base - Check in Defines.h fore more details
+ */
+int database[NUM_CUBES][tableWidth] = {};
+
+/*
+ * Connection Database - check for more information in Defines.h
+ */
 int connectionDatabase[Connections][Connection_Parameters] = {};
 
+
+
+/* ------------------------------------------------------------------------------------
+ * ----------------------------------  Functions --------------------------------------
+ * ------------------------------------------------------------------------------------
+ */
+ 
 int getCubeIDFromAddress(uint32_t wifiAddress)
+/*
+ * This functions returns the Wifi Address (long) from the short digit ID number (1-16)
+ * The values are from a lookup table in defines.h
+ */
 {
-  /*
-   * This functions returns the Wifi Address (long) from the short digit ID number (1-16)
-   * The values are from a lookup table in defines.h
-   */
-  switch (wifiAddress) { // used to be ESP.getChipID
+  switch (wifiAddress) 
+  {
     default:
       return (-1);
-    case wifiAddress_SERVER:                      //  ESP WIFI  885790061 || Server
+    case wifiAddress_SERVER:                      
       return (99);
-    case wifiAddress_cube00:                       //  ESP WIFI 2133796284 ||  Test Mblock
+    case wifiAddress_cube00:                       
       return (0);
     case wifiAddress_cube01:
       return (1);
@@ -33,7 +49,7 @@ int getCubeIDFromAddress(uint32_t wifiAddress)
       return (3);
     case wifiAddress_cube04:
       return (4);
-    case wifiAddress_cube05:                       //  960427 PEI RED  D0:D5:6F:CB:32:4C
+    case wifiAddress_cube05:                       
       return (5);
     case wifiAddress_cube06:
       return (6);
@@ -61,17 +77,18 @@ int getCubeIDFromAddress(uint32_t wifiAddress)
 }
 
 uint32_t getAddressFromCubeID(int CubeID)
+/*
+ * This functions returns the Wifi Address (long) from the short digit ID number (1-16)
+ * The values are from a lookup table in defines.h
+ */
 {
-  /*
-   * This functions returns the Wifi Address (long) from the short digit ID number (1-16)
-   * The values are from a lookup table in defines.h
-   */
-  switch (CubeID) { // used to be ESP.getChipID
+  switch (CubeID) 
+  { 
     default:
       return (0);
-    case 99:                      //  ESP WIFI  885790061 || Server
+    case 99:                      
       return (wifiAddress_SERVER);
-    case 0:                       //  ESP WIFI 2133796284 ||  Test Mblock
+    case 0:                       
       return (wifiAddress_cube00);
     case 1:
       return (wifiAddress_cube01);
@@ -81,7 +98,7 @@ uint32_t getAddressFromCubeID(int CubeID)
       return (wifiAddress_cube03);
     case 4:
       return (wifiAddress_cube04);
-    case 5:                       //  960427 PEI RED  D0:D5:6F:CB:32:4C
+    case 5:                       
       return (wifiAddress_cube05);
     case 6:
       return (wifiAddress_cube06);
@@ -109,7 +126,6 @@ uint32_t getAddressFromCubeID(int CubeID)
 }
 
 bool areFacesOpposite(int face1, int face2)
-
 /*
  * This function takes two integers, and returns true if they are
  * any of the following pairs, 
@@ -125,17 +141,32 @@ bool areFacesOpposite(int face1, int face2)
 }
 
 int oppositeFace(int face)
+/*
+ * This simple function just maps the sets of faces which are 
+ * opposites, and returns the one which is opposite to the one we are 
+ * interested in.
+ */
 {
-  if(face == 0){return(2);}
-  else if(face == 1){return(3);}
-  else if(face == 2){return(0);}
-  else if(face == 3){return(1);}
-  else if(face == 4){return(5);}
-  else if(face == 5){return(4);}
-  else{return(-1);}
+  if(face == 0)
+    return(2);
+  else if(face == 1)
+    return(3);
+  else if(face == 2)
+    return(0);
+  else if(face == 3)
+    return(1);
+  else if(face == 4)
+    return(5);
+  else if(face == 5)
+    return(4);
+  else
+    return(-1);
 }
 
 void wifiDelay(int delayTime)
+/*
+ * This function delays for a specific ammount of time while still updating the WIFI
+ */
 {
   long releaseTime = millis() + delayTime;
   while(releaseTime > millis())

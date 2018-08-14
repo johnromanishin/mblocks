@@ -1,12 +1,9 @@
-#include <ESP8266WiFi.h>
-#include <painlessMesh.h> // Wireless library which forms mesh network https://github.com/gmag11/painlessMesh
 #include "Communication.h"
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////INDEX////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/* -----------------------------------------------------------------------------------------------------------
+ * ------------------------------- More Defines and Initial Varaibles ----------------------------------------
+ * -----------------------------------------------------------------------------------------------------------
+ */
 
 // Parameters for the the WIFI mesh network
 #define   BLINK_PERIOD    3000000 // microseconds until cycle repeat
@@ -17,14 +14,17 @@
 
 #define   MAXIMUM_MESSAGE_ATTEMPTS 7
 
-// Class instance for the WIFI mesh
+/*
+ *  Actual class which implements the painless message class
+ */
 painlessMesh mesh;
 
 /* INBOX
-   These variables hold messages that need to be sent, and recieved messages that need to be
-   processed
-*/
-inboxEntry inbox[INBOX_SIZE]; //inbox stores incomming messages into an array of mailboxes
+ *  These variables hold messages that need to be sent, and recieved messages that need to be
+ *  processed //inbox stores incomming messages into an array of mailboxes
+ *  This creates an array of inboxes of length INBOX_SIZE - this is mangges as a circular bugger
+ */
+inboxEntry inbox[INBOX_SIZE]; 
             
 int inboxHead = 0; // Current empty position to add more messages
 int inboxTail = 0; // The oldest message in the buffer... first one to process
@@ -36,31 +36,13 @@ int inboxTail = 0; // The oldest message in the buffer... first one to process
       outbox[5][outboxTail[5]...
 */
 outboxEntry outbox[NUM_CUBES][OUTBOX_SIZE] ; // 2D Array of OutboxEntry Instances
+/*
+ * The head and tail are both 1 dimensional arrays, one for each of the Cube Numbers...
+ * Each one stores the current state of the outbox heads in reference to its status 
+ * as a circular buffer
+ */
 int outboxHead[NUM_CUBES] = {};
 int outboxTail[NUM_CUBES] = {};
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////1. Info regarding the state model//////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//void updateStateModel(int cubeID)
-//{
-//  for (int i=0; i<6; i++)
-//  {
-//    //cubesState[cubeID][i] = inbox[inboxTail].faceStates[i];
-//    wifiDelay(10);
-//  }
-//}
-
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////2. INBOX / OUTBOX///////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
    This function checks the inbox to see if it is an ack for a message currently in the outbox.
@@ -71,14 +53,9 @@ int outboxTail[NUM_CUBES] = {};
 
 void updateBoxes()
 {
-  // Clear out the inbox
   while (!inboxIsEmpty()) // This means there is something in the inbox
   {
     int cubeThatSentMessage = inbox[inboxTail].senderID;
-    
-    //Serial.println("Checking to see if message matches...");
-    //Serial.print("senderID: ");
-    //Serial.println(cubeThatSentMessage);
     
     if (outbox[cubeThatSentMessage][outboxTail[cubeThatSentMessage]].mID == inbox[inboxTail].mID) 
     /*
@@ -92,17 +69,11 @@ void updateBoxes()
     {
        // if inbox is ack for outbox
        //updateStateModel(inbox[inboxTail].senderID); // process ack for the cube 
-
-       //
        outbox[inbox[inboxTail].senderID][outboxTail[inbox[inboxTail].senderID]].mID = 0; // clear outbox entry
        advanceOutboxTail(inbox[inboxTail].senderID); // move on to next outbox slot...
-       
-       //Serial.print("senderID: ");
-       //Serial.println(inbox[inboxTail].senderID);
-       //Serial.println("Clearing out Message");
     }
     else 
-    {       
+    {
       Serial.println("Spurious ACK");
       /*
        * If the message received does not match the item in the outbox...
@@ -111,7 +82,14 @@ void updateBoxes()
        *  2. 
        */
     }
-    inbox[inboxTail].mID = 0; // clear inbox entry
+    /*
+     * Set the message ID of the inbox message pointed to by the TAIL
+     * to be equal to 0. This essentially clears this message from existance
+     */
+    inbox[inboxTail].mID = 0;
+    /*
+     * We then advance the inbvox tail, since we processed this specific message
+     */
     advanceInboxTail();
   }
   
@@ -149,20 +127,16 @@ void updateBoxes()
        *  from the que...
        */
       {
-        //generate message
-        sendMessage(cubeID, generateMessageText(outbox[cubeID][outboxTail[cubeID]].cmd, outbox[cubeID][outboxTail[cubeID]].mID)); // send it...
+        //generate message and actually send it...
+        sendMessage(cubeID, generateMessageText(outbox[cubeID][outboxTail[cubeID]].cmd, outbox[cubeID][outboxTail[cubeID]].mID)); 
+
+        /*
+         * Updated the message deadline
+         */
         outbox[cubeID][outboxTail[cubeID]].mDeadline = 
           millis() + random((1UL << outbox[cubeID][outboxTail[cubeID]].backoff) * AVERAGE_FIRST_DELAY_MS * 2);
-        // set the next deadline using exponential backoff,
-        
+                  
         outbox[cubeID][outboxTail[cubeID]].backoff++;
-        // and increment the counter to reflect the number of tries.
-        //Serial.print("Just Processed outbox for Cube #: "); Serial.println(cubeID);
-        // Serial.println(String(outbox[cubeID][outboxTail[cubeID]].cmd));
-        //Serial.print("backoff: ");
-        //Serial.println(String(outbox[cubeID][outboxTail[cubeID]].backoff));
-        //Serial.print("mDeadline: ");
-        //Serial.println(String(outbox[cubeID][outboxTail[cubeID]].mDeadline));
         
         /*
          * This means that we have tried to send the message a lot of times... remove from que
@@ -171,7 +145,10 @@ void updateBoxes()
          
         if(outbox[cubeID][outboxTail[cubeID]].backoff > MAXIMUM_MESSAGE_ATTEMPTS)
         {
-          // This effectivly deletes the current message.
+          /*
+           *  This effectivly deletes the current message.
+           */
+           
           outbox[cubeID][outboxTail[cubeID]].mID = 0; // clear outbox entry
           advanceOutboxTail(cubeID); // move on to next outbox slot...
           database[cubeID][failedMessageCount]++;
@@ -180,9 +157,13 @@ void updateBoxes()
           
           if(database[cubeID][failedMessageCount] > 2)
           {
-            Serial.print("Cube: ");
-            Serial.print(cubeID);
-            Serial.print(" has failed to respond to several messages...");
+            if(MESSAGE_DEBUG)
+            {
+              Serial.print("Cube: ");
+              Serial.print(cubeID);
+              Serial.print(" has failed to respond to several messages...");
+            }
+            
             database[cubeID][ACTIVE] = 0;
             database[cubeID][failedMessageCount] = 0;
           }
@@ -197,42 +178,62 @@ void receivedCallback(uint32_t from, String & stringMsg)
  * This function gets called by the mesh library whenever we receive a wifi Message
  * 
  * The goal is to check to see if it is a new message, and if so, we add it to a 
- * list of messages to be processed by inboxbuffer
+ * list of messages to be processed by inboxbuffer, and also update the database
  */
 {
-  Serial.print("M From: ");
-  Serial.print(from);
-  Serial.print(" | ");
-  Serial.println(stringMsg);
-  
-  StaticJsonBuffer<256> jsonMsgBuffer; // allocate memory for json
-  JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg); // parse message
+  if(MESSAGE_DEBUG)
+  {
+    Serial.print("M From: ");
+    Serial.print(from);
+    Serial.print(" | ");
+    Serial.println(stringMsg);
+  }
+
+  /*
+   * The following set of lines creates space in a temporary buffer
+   * then parses the JSON message, and teases out the two variables
+   * senderCubeID: the wifi ID of the cube which sent the message
+   * recievedMID: The message ID of the message
+   */
+  StaticJsonBuffer<256> jsonMsgBuffer; 
+  JsonObject& jsonMsg = jsonMsgBuffer.parseObject(stringMsg); 
   int senderCubeID = jsonMsg["sID"];
   uint32_t recievedMID = jsonMsg["mID"];
-  
-  if(recievedMID == 42)
+
+  /*
+   * If the message ID is 42, then it is just a very quick message
+   * telling us that the cube is active, we are not going to 
+   */
+  if(recievedMID == SPECIAL_MESSAGE_ID)
   {
-    //Serial.println("Recieved an special ACK from a cube...");
+    /*
+     * Mark this particular cube as active in the database
+     */
     database[senderCubeID][ACTIVE] = 1;
   }
-  
-  if (inbox[inboxHead].mID == 0) //if there is space in the inbox circular buffer
+
+  /*
+   * If there is space in the inbox
+   */
+  if (inbox[inboxHead].mID == 0)
   {
     int tempBottomFace = jsonMsg["bFace"];
     /*
-     * Update the parameters that go into the ibox entry
+     * Update the parameters that go into the inbox entry if the
+     * message is NOT the special message... SPECIAL_MESSAGE_ID
      */
-    if(recievedMID != 42)
+    if(recievedMID != SPECIAL_MESSAGE_ID)
     {
       inbox[inboxHead].mID = recievedMID;
-      inbox[inboxHead].bottomFace = tempBottomFace;
       inbox[inboxHead].senderID = senderCubeID;
       advanceInboxHead();
     }
+    
     /*
      * Update the parameters in the database
      */
     database[senderCubeID][bottom_Face] = tempBottomFace;
+    
     if(jsonMsg.containsKey("f0"))
       database[senderCubeID][face_0] = jsonMsg["f0"];
     else
@@ -262,32 +263,54 @@ void receivedCallback(uint32_t from, String & stringMsg)
       database[senderCubeID][face_5] = jsonMsg["f5"];
     else
       database[senderCubeID][face_5] = -1;
-      
-    Serial.println("Just updated the database...");
-    /*
-     * We have now processed this message ... so message is 
-     */
+  }
+  else
+  {
+    Serial.println(" NO SPACE IN THE INBOX BUFFER!!!!!, HELP!!!");
   }
 }
 
 void newConnectionCallback(uint32_t nodeId)
+/*
+ * This function gets called if we form a new connection
+ */
 {
+  /*
+   * Convert the wifi ID to cubeID space...
+   */
+  int tempCubeID = getCubeIDFromAddress(nodeId);
+  
   Serial.print("New Connection... Cube: ");
-  Serial.println(getCubeIDFromAddress(nodeId));
-  database[nodeId][ACTIVE] = 1;
+  Serial.println(tempCubeID);
+  /*
+   * Make 100% sure we are protecting the indexing of the array...
+   */
+  if(tempCubeID > 0 && tempCubeID < NUM_CUBES)
+  {
+    database[getCubeIDFromAddress(nodeId)][ACTIVE] = 1;
+  }
 }
 
 void changedConnectionCallback()
+/*
+ * We don't use this yet...
+ */
 {
   //Serial.printf("Connection Event\n");
 }
 
 void nodeTimeAdjustedCallback(int32_t offset) 
+/*
+ * We don't use this yet either...
+ */
 {
 
 }
 
 void delayReceivedCallback(uint32_t from, int32_t delay) 
+/*
+ * We also don't use this yet either...
+ */
 {
 
 }
@@ -308,16 +331,25 @@ String generateMessageText(String cmd, uint32_t mID)
   if (mID == 0) {
     mID = advanceLfsr();
   }
-  StaticJsonBuffer<512> jsonBuffer; // Space Allocated to construct json instance
-  JsonObject& jsonMsg = jsonBuffer.createObject(); // & is "c++ reference"
-  //jsonMsg is our output, but in JSON form
-
+  /*
+   * Allocate Space to construct a json instance
+   */
+  StaticJsonBuffer<512> jsonBuffer;
+  JsonObject& jsonMsg = jsonBuffer.createObject();
+  /*
+   * jsonMsg is our output
+   * We are the server so our ID goes in the sID field
+   */
   jsonMsg["mID"] =  mID;
   jsonMsg["sID"] =  SERVER_ID;
   jsonMsg["cmd"] =  cmd;
-  String strMsg; // generate empty string
-  //strMsg is our output in String form
-  jsonMsg.printTo(strMsg); // print to JSON readable string...
+
+  /*
+   * Generate en empty string, then print the 
+   * JSON message to this string, and return it
+   */
+  String strMsg;
+  jsonMsg.printTo(strMsg);
   return strMsg;
 }
 
@@ -359,19 +391,22 @@ void pushStatusMessage(int cubeID)
   Serial.println(cubeID);
 }
 
-void pushColorMessage(int cubeID, char Color)
-{
-  //pushMessage(cubeID, char(Color));
-  Serial.print("Pushing Color Message to: ");
-  Serial.println(cubeID);
-}
-
 void pushMessage(int cubeID, String command)
 {
+  /*
+   * If we aren't given a valid address, we return
+   */
   if (getAddressFromCubeID(cubeID) == 0)
     return;
+  /*
+   * Or if the outbox is full, we also return without doing anything
+   */
   if (outboxIsFull(cubeID))
     return;
+  /*
+   * This section updates all of the parameters of the outbox entry
+   * for this specific cube
+   */
   outbox[cubeID][outboxHead[cubeID]].mID = advanceLfsr();
   outbox[cubeID][outboxHead[cubeID]].senderID = SERVER_ID;
   outbox[cubeID][outboxHead[cubeID]].backoff = 0;
@@ -384,13 +419,15 @@ void pushMessage(int cubeID, String command)
 void advanceOutboxHead(int cubeID)
 {
   outboxHead[cubeID]++;
-  if (outboxHead[cubeID] == OUTBOX_SIZE) outboxHead[cubeID] = 0;
+  if (outboxHead[cubeID] == OUTBOX_SIZE) 
+    outboxHead[cubeID] = 0;
 }
 
 void advanceOutboxTail(int cubeID)
 {
   outboxTail[cubeID]++;
-  if (outboxTail[cubeID] == OUTBOX_SIZE) outboxTail[cubeID] = 0;
+  if (outboxTail[cubeID] == OUTBOX_SIZE)
+    outboxTail[cubeID] = 0;
 }
 
 bool outboxIsFull(int cubeID)
@@ -408,7 +445,8 @@ void advanceInboxHead()
 void advanceInboxTail()
 {
   inboxTail++;
-  if (inboxTail == NUM_CUBES) inboxTail = 0;
+  if (inboxTail == NUM_CUBES)
+    inboxTail = 0;
 }
 
 bool inboxIsFull()
@@ -420,11 +458,6 @@ bool inboxIsEmpty()
 {
   return (inbox[inboxTail].mID == 0);
 }
-
-// Cube Data Object
-int cubesState[NUM_CUBES][6];
-
-// Misc Helper Functions
 
 uint32_t advanceLfsr() // this call returns a message ID. these are not sequential.
 {
@@ -443,6 +476,9 @@ bool calc_delay = false;
 SimpleList<uint32_t> nodes;
 
 void initializeWifiMesh()
+/*
+ * This function starts the WIFI mesh
+ */
 {
   mesh.init(MESH_SSID, MESH_PASSWORD, MESH_PORT);
   mesh.onReceive(&receivedCallback);
@@ -455,11 +491,19 @@ void initializeWifiMesh()
 
 
 bool sendMessage(int recipientID, String msg)
+/*
+ * This function actually sends the message, if the recipientID is -1, then it sends it as a broadcast
+ * to all cubes, else it sends it to the specific cube that it is intended for
+ */
 {
-  Serial.print("sending to:  ");
-  Serial.print(recipientID);
-  Serial.print(" | ");
-  Serial.println(msg);
+  if(MESSAGE_DEBUG)
+  {
+    Serial.print("sending to:  ");
+    Serial.print(recipientID);
+    Serial.print(" | ");
+    Serial.println(msg);
+  }
+  
   if (recipientID == -1)
   {
     return (mesh.sendBroadcast(msg));

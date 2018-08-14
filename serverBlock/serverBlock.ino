@@ -1,10 +1,9 @@
-/**
+/*
     This includes the main code for the ESP8266 board, aka the "Master Board"
     Copyright John Romanishin, MIT CSAIL
     johnrom@mit.edu
 */
 
-// External Libraries
 #include <Wire.h>                 // Arduino's implementation of the i2c wireless protocal
 #include <painlessMesh.h>         // Wifi Mesh Library found on the internet  
 #include <ArduinoJson.h>
@@ -13,14 +12,15 @@
 #include "Interaction.h"
 #include "Communication.h"
 #include "Defines.h"
-#include "Database.h"
-#include <VL6180X.h>
+#include "Database.h"             // This tab deals with processing information about the cubes
+#include <VL6180X.h>              // This includes the code for the VL6180 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////Setup////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+bool LIGHT_TOGGLE = false;
 void setup()
+/*
+ * This runs in the beginning, and initialized a few things, and the passes control to the
+ * loop function below
+ */
 {
   Serial.begin(115200);
   initializeWifiMesh();
@@ -29,24 +29,33 @@ void setup()
   wifiDelay(500);
   Serial.print("\n WIFI ID: ");
   Serial.println(mesh.getNodeId());
+  pinMode(Switch, OUTPUT);
   espconn_tcp_set_max_con(6); // this is supposed to increase the maximum number of WIFI connections to 6
-  wifiDelay(1000);  
   Serial.println("Exiting Setup");
+  wifiDelay(1000);
+//  for(int i = 0; i < 2; i++)
+//  {
+//    digitalWrite(Switch, LOW);
+//    wifiDelay(1000);
+//    digitalWrite(Switch, HIGH);
+//    wifiDelay(1000);
+//  }
+  digitalWrite(Switch, LOW);
+  wifiDelay(1000);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////// Global Vriables ////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
+ * -----------------------------------------------------------------------------------------------------------
+ * ----------------------------------- Global Variables ------------------------------------------------------
+ * -----------------------------------------------------------------------------------------------------------
+ */
+ 
 int loopCounter = 0;
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////// MAIN LOOP ////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
- * The main loops goal is to:
- * 1. 
- */
 void resetActiveCubes()
+/*
+ * This function 
+ */
 {
   for(int cube = 0; cube < NUM_CUBES; cube++)
   {
@@ -68,7 +77,7 @@ void discoverActiveCubes(int waitTime)
       {
         Serial.print("Cube: ");
         Serial.print(cube);
-        Serial.println(" Reporting for Cuty");
+        Serial.println(" Reporting for Duty");
       }
   }
   Serial.println("------------------------------");
@@ -92,13 +101,7 @@ void loop()
   
   if((loopCounter % 9999) == 0)
   {
-    //pushBlinkMessage(TESTCUBE_ID);
-    
-    //pushBlinkMessage(4);
-    //pushBlinkMessage(5);
-    //pushBlinkMessage(7);
-    //pushBlinkMessage(8);
-    //Serial.println("Added message to que");
+   
   }
   if((loopCounter % 9399) == 0)
   {    
@@ -109,9 +112,7 @@ void loop()
     //pushBlinkMessage(1);
     //pushBlinkMessage(3);
     //pushBlinkMessage(9);
-    
-    //Serial.println("Added message to que");
-  }
+      }
   if((loopCounter % 99999) == 0)
   {
     //pushBlinkMessage(TESTCUBE_ID);
@@ -141,16 +142,27 @@ void interactWithRangeSensor()
   int rangeValue = readRangeSensor();
   if (rangeValue < 20)
   {
-    wifiDelay(300); // wait a bit to make sure it is a valid reading
-    rangeValue = readRangeSensor();
-    if(rangeValue < 20)
-    {
-      discoverActiveCubes(5000);
-    }
+//    wifiDelay(300); // wait a bit to make sure it is a valid reading
+//    rangeValue = readRangeSensor();
+//    if(rangeValue < 20)
+//    {
+//      discoverActiveCubes(5000);
+//    }
   }
   
   else if (rangeValue > 20 && rangeValue < 50)
   {
+    if(LIGHT_TOGGLE)
+    {
+      digitalWrite(Switch, LOW);
+      LIGHT_TOGGLE = false;
+    }
+    else
+    {
+      digitalWrite(Switch, HIGH);
+      LIGHT_TOGGLE = true;
+    }
+    wifiDelay(500);
 //    for(int cube = 0; cube < NUM_CUBES; cube++)
 //    {
 //      if(database[cube][ACTIVE] == 1)
