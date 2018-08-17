@@ -14,13 +14,13 @@
  * ** PEI BLACK   **                      *                 *             *                *                 *               *              *              *               *    2017-12-21      *
  * ** PEI GREEN   **                      *                 *             *                *     X           *               *              *              *               *    2017-12-17      *
  * ** PEI ORANGE ** 07 **   goes green    *                 *  X          *                *                 *               *              *              *               *                    *
- * ** PEI PURPLE ** 14 **   Bat 4 is bad  *                 *             *       X        *                 *               *    X         *              *               *                    *
+ * ** PEI PURPLE ** 09 **   Bat 4 is bad  *                 *             *       X        *                 *               *    X         *              *               *                    *
  * ** PEI RED    **                       *                 *             *                *                 *               *              *              *               *                    *
  * ** PEI YELLOW ** 12 **                 *                 *             *       X        *                 *               *              *     X        *               *                    *
  * ** PEI BROWN  ** 01 **                 *                 *  X          *       X X      *                 *               *              *              *               *    2017-12-21      *
  * ** PEI BLUE   ** 10 **                 *                 *  X          *                *                 *               *              *              *               *                    *
  *
- * ** PC BLACK  ** 09 **  Cut out Black   *                 *             *                *                 *               *              *              *               *                    *
+ * ** PC BLACK  ** 14 **  Cut out Black   *                 *             *                *                 *               *              *              *               *                    *
  * ** PC BLUE   ** 13 **  Goes green?     *                 *  X          *                *                 *               *              *              *               *                    *
  * ** PC PURPLE ** 02 **                  *                 *             *       X        *                 *               *              *              *               *                    *
  * ** PC GREEN    **                      *                 *             *                *                 *               *              *              *               *                    *
@@ -644,7 +644,7 @@ void lookUpCalibrationValues(long wifiID)
     //********************************
     case wifiAddress_cube09: //959694 PEI PURPLE | FA:AA:25:19:C7:DF
       thisCubeID = 09;
-      HALF_LIGHT = false;
+      HALF_LIGHT = true;
 
       GlobalPlaneAccel = 2000;
       TRAVERSE_RPM_F = 7000;
