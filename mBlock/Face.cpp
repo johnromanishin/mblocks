@@ -95,7 +95,7 @@ bool Face::updateFace()
      * If the "Game" is "Line" and we just saw a light on this face, then we are going to set a flag
      * to permenantly turn on the light on the OPPOSITE face from our face...
      */
-    if((Game == "Line") && (this->returnNeighborLightDigit(0) > 0))
+    if(this->returnNeighborLightDigit(0) > 0)
     {
       int oppositeFaceFromUs = oppositeFace(this->IOExpanderAddress - IO_Address_offset);
       FACES_LIGHTS[oppositeFaceFromUs] = 1;

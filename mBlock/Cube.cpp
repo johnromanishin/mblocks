@@ -79,9 +79,9 @@ bool Cube::updateFaces()
 {
   for(int i = 0; i< FACES; i++)
     {
-      delay(3); // we wait a bit to allow the i2c switches to switch, so that we don't get collisions on the I2C bus
+      delay(4); // we wait a bit to allow the i2c switches to switch, so that we don't get collisions on the I2C bus
       this->faces[i].updateFace();  // update Face  reads the light and Magnetic sensors  
-      delay(3);
+      delay(4);
     }
   return(true);
 }
@@ -368,8 +368,22 @@ bool Cube::moveOnLattice(Motion* motion)
       + String(motion->brakeTime) + " "
       + stringAtEnd;
 
-      this->printString(iaString); // print the command to kyles Board
-      wifiDelay(motion->timeout); // wait for the action to complete
+      /*
+       * If we currently have the correct number of neighbors, 
+       * or if the move requires only 1 neighbor, then we go ahead with the move
+       * if not, we exit as a failure
+       */
+      if((motion->expected_neighbors == 1) || 
+         (this->numberOfNeighborsCheckNow() == motion->expected_neighbors))
+      {
+        this->printString(iaString); // print the command to kyles Board
+        wifiDelay(motion->timeout); // wait for the action to complete
+      }
+      else
+      {
+        return(false);
+      }
+
 
       /*
        * we are now waiting, and collecting data
@@ -397,7 +411,7 @@ bool Cube::moveOnLattice(Motion* motion)
       else if(this->numberOfNeighbors(0, 0) == 0)
       {
         this->printString(secondString);
-        wifiDelay(3500);
+        wifiDelay(4000);
         this->printString("bldcstop b");
         wifiDelay(1000);
         this->printString("bldcstop b");
@@ -495,7 +509,7 @@ int Cube::numberOfNeighbors(int index, bool doIlightFace)
 {
   int neighbors = 0; // initialize a empty integer
   for(int face = 0; face < FACES; face++)
-    {
+  {
     if((this->faces[face].returnNeighborType(index) == TAGTYPE_REGULAR_CUBE) ||
        (this->faces[face].returnNeighborType(index) == TAGTYPE_PASSIVE_CUBE))
     {
@@ -507,7 +521,7 @@ int Cube::numberOfNeighbors(int index, bool doIlightFace)
       }
     }
   }
-return(neighbors);
+  return(neighbors);
 }
 
 int Cube::whichFaceHasNeighbor(int index)
@@ -541,10 +555,12 @@ int Cube::whichFaceHasNeighbor(int index)
     {
       facesCount++;
       if(facesCount > 0)
-        facesNeighbors[facesCount-1] = face;
+      {
+        facesNeighbors[facesCount - 1 ] = face;
+      }
     }
   }
-return(facesNeighbors[index]);
+  return(facesNeighbors[index]);
 }
 
 int Cube::numberOfNeighborsCheckNow()
@@ -603,39 +619,47 @@ bool Cube::goToPlaneIncludingFaces(int face1, int face2)
 
 bool Cube::isPlaneParallel(int faceExclude)
 /*
- * 
+ * Checks to see if the plane is parallel to the face that we 
+ * input... e.g. isPlaneParallel(c->returnTopFace);
+ * will tell us if the cube is in the plane parallel to the top
  */
 {
   bool result = false;
   if((faceExclude == 4 )|| (faceExclude == 5))
   {
     if(this->currentPlaneBuffer.access(0) == PLANE0123)
+    {
       result = true;
+    }
   }
   else if((faceExclude == 1) ||( faceExclude == 3))
   {
     if(this->currentPlaneBuffer.access(0) == PLANE0425)
+    {
       result = true;
+    }
   }
   else if((faceExclude == 0) || (faceExclude == 2))
   {
     if(this->currentPlaneBuffer.access(0) == PLANE1453)
+    {
       result = true;
+    }
   }
 return(result);
 }
 
 bool Cube::goToPlaneParallel(int faceExclude)
 /*
- * 
+ *  This will set the core plane to be parallel to a certian face
  */
 {
   bool result = false;
-  if((faceExclude == 4 )|| (faceExclude == 5))
+  if((faceExclude == 4 ) || (faceExclude == 5))
   {
     result = this->setCorePlaneSimple(PLANE0123);
   }
-  else if((faceExclude == 1) ||( faceExclude == 3))
+  else if((faceExclude == 1) ||(faceExclude == 3))
   {
     result = this->setCorePlaneSimple(PLANE0425);
   }
@@ -648,12 +672,15 @@ bool Cube::goToPlaneParallel(int faceExclude)
 
 bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
 /*
- * 
+ * This function tries to change the plane of the cube to the targerCorePlane
  */
 {   
+  /*
+   * First we check to make sure the input is valid
+   */
   if((targetCorePlane == PLANENONE)  ||
      (targetCorePlane == PLANEERROR) || 
-     (targetCorePlane == PLANEMOVING)) // this protects the inputs
+     (targetCorePlane == PLANEMOVING)) 
   {
     return(false);
   }
@@ -664,17 +691,23 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
   }
   
   this->lightPlaneRing(targetCorePlane); // blink the desired plane to go into...
-  this->printString("sma retractcurrent 1000");
+  wifiDelay(200);
+  this->printString("sma retractcurrent 975");
   wifiDelay(800);
   bool succeed = false;
+  
   this->printString("sma retract 7500");
-  int beginTime = millis();
+  
+  long beginTime = millis();
   wifiDelay(500);
+  
   while((this->findPlaneStatus(false) != targetCorePlane) && ((millis()-beginTime) < 8300))
   {
     PlaneEnum likelyStatus = this->currentPlaneBuffer.access(0);
     if(likelyStatus == PLANEMOVING)
+    {
       wifiDelay(300);
+    }
       
     String bldcaccelString = "bldcaccel f " + String(GlobalPlaneAccel) + " 800";
     
@@ -697,8 +730,12 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
     }
     wifiDelay(1800);
   }
-  
-  while((millis()-beginTime) < 8000)
+
+  /*
+   * We need to wait out a full 8 seconds even if we have reached the correct plane
+   * so as to not mess up the functioning of the shape memory alloy
+   */
+  while((millis() - beginTime) < 8000)
   {
     wifiDelay(100);
   }
@@ -742,23 +779,26 @@ static const int32_t rotationMatricies[3][3][3] =
 };
 
 bool Cube::isValidPlane()
-/*
- * 
+/* This function checks to make sure we are currently in 
+ * one of the three actual planes, and not inbetween
  */
 {
   if((this->currentPlaneBuffer.access(0) == PLANE0123) ||
      (this->currentPlaneBuffer.access(0) == PLANE0425) || 
-     (this->currentPlaneBuffer.access(0) == PLANE1453)) //  This makes sure we don't move when we shouldn't
+     (this->currentPlaneBuffer.access(0) == PLANE1453)) 
   {
     return(true);
   }
   else
+  {
     return(false);
+  }
 }
 
 PlaneEnum Cube::findPlaneStatus(bool reset)
 /*
- * 
+ * This function tries to determine which plane the cube is in based on checking the comparison 
+ * between the two accelerometers
  */
 {
   if(this->cubeID > 50 || this->cubeID == 0) 
@@ -768,15 +808,13 @@ PlaneEnum Cube::findPlaneStatus(bool reset)
     this->currentPlaneBuffer.push(PLANE0123);
     return(PLANE0123);
   }
-  if(MAGIC_DEBUG)
-  {
-    Serial.println("WE TRIED TO FIND PLANE STATUS, CALLED HERE!");
-  }
+  
   PlaneEnum likelyStatus = PLANEERROR; 
   if(this->updateBothIMUs()) // try to update IMU...
   {
     delay(1);
   }
+  
   else                       // if it fails, flip power switch
   {
     wifiDelay(30);
@@ -794,76 +832,76 @@ PlaneEnum Cube::findPlaneStatus(bool reset)
       return(likelyStatus);   // if it fails on second try... exit which will be PLANEERROR
     }
   }
-    const int validPlaneThreshold = 240; // This number is what determines if it is actually in a proper plane
-    const int gyroMovingThreshold  = 1700; // This represents what "moving" is in terms GYRO values
+  const int validPlaneThreshold = 240; // This number is what determines if it is actually in a proper plane
+  const int gyroMovingThreshold  = 1700; // This represents what "moving" is in terms GYRO values
+  
+  int32_t coreAccel[3] =   {this->axCoreBuffer.access(0),     
+                            this->ayCoreBuffer.access(0),     
+                            this->azCoreBuffer.access(0)};
+    // Access the most recent X Y and Z Values for the accelerometer
+    // These should have just been updated...
+       
+  int32_t frameAccel[3] =  {this->axFrameBuffer.access(0), 
+                            this->ayFrameBuffer.access(0),
+                            this->azFrameBuffer.access(0)};
+  int32_t transformed[3][3];
+  int32_t distance[3];
     
-    int32_t coreAccel[3] =   {this->axCoreBuffer.access(0),     
-                              this->ayCoreBuffer.access(0),     
-                              this->azCoreBuffer.access(0)};
-      // Access the most recent X Y and Z Values for the accelerometer
-      // These should have just been updated...
-         
-    int32_t frameAccel[3] =  {this->axFrameBuffer.access(0), 
-                              this->ayFrameBuffer.access(0),
-                              this->azFrameBuffer.access(0)};
-    int32_t transformed[3][3];
-    int32_t distance[3];
+  int     centralGyro[3] =  {this->gxCoreBuffer.access(0),
+                             this->gyCoreBuffer.access(0),
+                             this->gzCoreBuffer.access(0)};
+                             
+  int     sumOfGyros = (abs(centralGyro[0]) + // add up three components of gyro
+                        abs(centralGyro[1]) + // tells us how much "movement"
+                        abs(centralGyro[2]));
     
-    int     centralGyro[3] =  {this->gxCoreBuffer.access(0),
-                               this->gyCoreBuffer.access(0),
-                               this->gzCoreBuffer.access(0)};
-                               
-    int     sumOfGyros = (abs(centralGyro[0]) + // add up three components of gyro
-                          abs(centralGyro[1]) + // tells us how much "movement"
-                          abs(centralGyro[2]));
+  //test each of the rotation matricies.  Store all results for debug purposes.
+  // We are evaluating the "distance" from the actual accelerometer on the "core" 
+  // to that of the accelerometer values on the "frame"
+  for(int i = 0; i < 3; i++)
+  {
+    apply_3x3_mult(&rotationMatricies[i][0][0], coreAccel, &transformed[i][0]);
+    distance[i] = vector_distance_squared(&transformed[i][0], frameAccel);
+  }
     
-    //test each of the rotation matricies.  Store all results for debug purposes.
-    // We are evaluating the "distance" from the actual accelerometer on the "core" 
-    // to that of the accelerometer values on the "frame"
-    for(int i = 0; i < 3; i++)
+  int mindist = distance[0];
+  int minidx = 0;
+  for(int i = 1; i < 3; i++) // figure out which one is closest to the value
+  {
+    if(distance[i] < mindist)
     {
-      apply_3x3_mult(&rotationMatricies[i][0][0], coreAccel, &transformed[i][0]);
-      distance[i] = vector_distance_squared(&transformed[i][0], frameAccel);
+      minidx = i;
+      mindist = distance[i];
     }
+  }
+  // At this point we should have a vector with the distance between the actual readings
+  // and the perfect readings for each of the three planes... 
+  // and we know the one with the lowest value: minidx
+  if(sumOfGyros > gyroMovingThreshold)
+  {
+    likelyStatus = PLANEMOVING;
+  }
     
-    int mindist = distance[0];
-    int minidx = 0;
-    for(int i = 1; i < 3; i++) // figure out which one is closest to the value
-    {
-      if(distance[i] < mindist)
-      {
-        minidx = i;
-        mindist = distance[i];
-      }
-    }
-    // At this point we should have a vector with the distance between the actual readings
-    // and the perfect readings for each of the three planes... 
-    // and we know the one with the lowest value: minidx
-    if(sumOfGyros > gyroMovingThreshold)
-    {
-      likelyStatus = PLANEMOVING;
-    }
-    
-    // If one of the distances, for either 0, 1 or 2 is less than the threshold
-    // then we return that plane from the planeEnumMap... This means we are in an 
-    // actual plane
-    else if((distance[minidx] < validPlaneThreshold) && 
-            (sumOfGyros < gyroMovingThreshold))
-    {
-      likelyStatus = planeEnumMap[minidx];
-    }
-    
-    // This returns of the minumium distance is greater than the valid plane threshold... we might be close
-    // but it is dangerous to assume we are in a valid plane if we really aren't
-    else if(distance[minidx] > validPlaneThreshold)
-    { 
-      likelyStatus = PLANENONE;
-    }  
-    // the default is to return an error
-    else
-    {
-      likelyStatus = PLANEERROR;
-    }
+  // If one of the distances, for either 0, 1 or 2 is less than the threshold
+  // then we return that plane from the planeEnumMap... This means we are in an 
+  // actual plane
+  else if((distance[minidx] < validPlaneThreshold) && 
+          (sumOfGyros < gyroMovingThreshold))
+  {
+    likelyStatus = planeEnumMap[minidx];
+  }
+  
+  // This returns of the minumium distance is greater than the valid plane threshold... we might be close
+  // but it is dangerous to assume we are in a valid plane if we really aren't
+  else if(distance[minidx] > validPlaneThreshold)
+  { 
+    likelyStatus = PLANENONE;
+  }  
+  // the default is to return an error
+  else
+  {
+    likelyStatus = PLANEERROR;
+  }
   // Add the result of this else if tree to the currentPlaneBuffer
   this->currentPlaneBuffer.push(likelyStatus);
   if(MAGIC_DEBUG)
@@ -880,23 +918,26 @@ static void apply_3x3_mult(const int32_t* R, const int32_t* V, int32_t* target)
  * be 1x3.
  */
 {
-    for(int i = 0; i < 3; i++)
+  for(int i = 0; i < 3; i++)
+  {
+    target[i] = 0;
+    for(int j = 0; j < 3; j++)
     {
-        target[i] = 0;
-        for(int j = 0; j < 3; j++)
-            target[i] += (V[j] * R[j + (3 * i)]) / (65536);
+      target[i] += (V[j] * R[j + (3 * i)]) / (65536);
     }
+  }
 }
 
 static int32_t vector_distance_squared(const int32_t* a, const int32_t* b)
 /*
- * 
+ * This function calculates the vector distance between two numbers
  */
 {
     int32_t accum = 0;
     for(int i = 0; i < 3; i++)
-        accum += ((a[i] - b[i]) * (a[i] - b[i])) / (65536);
-
+    {
+      accum += ((a[i] - b[i]) * (a[i] - b[i])) / (65536);
+    }
     return accum;
 }
 
@@ -907,20 +948,11 @@ static int32_t vector_distance_squared(const int32_t* a, const int32_t* b)
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
-void Cube::disconnectI2C()
-{
-  digitalWrite(Switch, LOW); 
-}
-void Cube::reconnectI2C()
-{
-  digitalWrite(Switch, HIGH); 
-}
-
 void Cube::resetI2C()
 {
-  this->disconnectI2C();
+  digitalWrite(Switch, LOW);
   wifiDelay(300);
-  this->reconnectI2C();
+  digitalWrite(Switch, HIGH); 
   wifiDelay(300);
 }
 
@@ -930,7 +962,8 @@ void Cube::shutDown()
 {
   while(1)
   {
-    Serial.println("sleep");delay(1000);
+    Serial.println("sleep");
+    delay(1000);
   }
 }   
 
@@ -939,7 +972,8 @@ void Cube::shutDownESP()
 {
   while(1)
   {
-    Serial.println("espoff");delay(1000);
+    Serial.println("espoff");
+    delay(1000);
   }
 }  
 
@@ -1093,9 +1127,9 @@ bool Cube::anythingOnSerial(int waitTime)
       bytesSeen++;
     }
     if(bytesSeen > 5)
-      {
-        return(true);
-      }
+    {
+      return(true);
+    }
   }
   return(false);
 }
@@ -1212,13 +1246,13 @@ bool Cube::updateFrameIMU()
   
   // This returns true if the i2c command was a success...
   if(error == 0)
-    {
-      return(true);
-    }
+  {
+    return(true);
+  }
   else
-    {
-      return(false);
-    }
+  {
+    return(false);
+  }
 }
 
 bool Cube::updateCoreIMU()
@@ -1247,13 +1281,13 @@ bool Cube::updateCoreIMU()
   
   // This returns true if the i2c command was a success...
   if(error == 0)
-    {
-      return true;
-    }
+  {
+    return true;
+  }
   else
-    {
-      return false;
-    }
+  {
+    return false;
+  }
 }
 
 bool Cube::determineTopFace(int threshold)
@@ -1702,11 +1736,7 @@ void Cube::lightPlaneRing(PlaneEnum corePlane)
       facess[face] = false;
     }
   }
-//  
-//  if(HALF_LIGHT)
-//  {
-//    //wifiDelay(10);
-//  }
+
   if(true);
   {
     if(corePlane == PLANE0123)
@@ -1853,9 +1883,7 @@ void Cube::setFaceLEDsAtEdge(int primaryFace, int adjacentFace)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
 ////////////////////// *DEBUG PRINTING RELATED//////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
 String Cube::returnCurrentPlane_STRING()
@@ -1874,7 +1902,6 @@ String Cube::returnCurrentPlane_STRING()
 
 String Cube::debugAccelerometers()
 {
-  //PlaneEnum likelyStatus = PLANEERROR;
   Serial.println("beginning Debug Accelerometers");
   if(this->updateBothIMUs())
   {
@@ -1952,5 +1979,3 @@ String Cube::debugAccelerometers()
   return("bro");
   //**************************************************************************************                
 }
-
-

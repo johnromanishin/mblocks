@@ -201,8 +201,7 @@ typedef enum Behavior
     TESTING, 
     SHUT_DOWN,
     SLEEP,
-    RELAY_SLEEP,
-    DEMO
+    RELAY_SLEEP
 } Behavior;
 
 // This is a struct for organizing information about motions
@@ -214,7 +213,7 @@ typedef struct Motion
   int timeout;       // time that we will wait untill for confirmation of the speed
   int current;     // Current we apply to the brake in mA ... Maximum is 6000 ma
   int brakeTime;        // Time (milli Seconds) we apply the brake for Maximum time*current < some value
-  int difficulty;     // Estimated difficulty of the move on a scale 1-255; with 1 == easy, 255 == very hard;
+  int expected_neighbors;     // number of neighbors we expect to have
   String for_rev;
 } Motion;
 

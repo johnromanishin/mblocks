@@ -9,17 +9,17 @@
  * *LINE  - LINE FORMING State Machine switching
  * *LIGHT - Light Tracking State Machine switching
  * *CUBE - code to form a large cube
- * 
- * *DEMO  - "Demo" behavior
  */
-//=============================================================================================
-//=============================================================================================
-//=============================================================================================
-//============================= *BASIC STATE MACHINE UPKEEP====================================
-//=============================================================================================
-//=============================================================================================
-//=============================================================================================
 
+/*
+ * ===============================================================================================================
+ * ===============================================================================================================
+ * ===============================================================================================================
+ * ============================= *BASIC STATE MACHINE UPKEEP======================================================
+ * ===============================================================================================================
+ * ===============================================================================================================
+ * ===============================================================================================================
+ */
 
 Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
 {
@@ -38,26 +38,27 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
    * 3. Status update
    * 4. Change "game"
    */
+  
   Behavior newBehavior = checkForWifiCommands(c, inputBehavior);
   
   if (MAGIC_DEBUG) {
     Serial.print("nextBehavior is... ");
     Serial.println(behaviorsToCmd(newBehavior));
   }
+  
   /*
    * checkForMagneticTagsStandard - this function "processes" the magnetic tags
    * some tags will prompt immediate actions, including making it go to sleep, 
    * or changing to specific colors.
-   * 
    */
   int numberOfNeighborz = checkForMagneticTagsStandard(c);
 
-  if (Game == "lightSeek") // *LIGHT
+  if (Game == "LIGHT") // *LIGHT
   {
     return(LightTrackingStateMachine(c, newBehavior, numberOfNeighborz));
   }
   
-  else if(Game == "Line") // *LINE
+  else if(Game == "LINE") // *LINE
   {
     return(LineStateMachine(c, newBehavior, numberOfNeighborz));
   }
@@ -66,18 +67,19 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
   {
     return(CubeStateMachine(c, newBehavior, numberOfNeighborz));
   }
-  
   return (newBehavior);
 }
 
-//=============================================================================================
-//=============================================================================================
-//=============================================================================================
-//============================= *WIFI Checking CHECKING========================================
-//=============================================================================================
-//=============================================================================================
-//=============================================================================================
-
+/*
+ * ===============================================================================================================
+ * ===============================================================================================================
+ * ===============================================================================================================
+ * ============================= *WIFI Checking CHECKING==========================================================
+ * ===============================================================================================================
+ * ===============================================================================================================
+ * ===============================================================================================================
+ */
+ 
 Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
 {
   /*
@@ -85,274 +87,269 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
    * wifi message, and then act on them. 
    */
   Behavior resultBehavior = currentBehavior;
-  if (!jsonCircularBuffer.empty()) // while there are still messages
+  if (!jsonCircularBuffer.empty()) 
   {
-    StaticJsonBuffer<512> jb; // Create a buffer to store our Jason Objects...
+    /* At this point, we have determined that the message is for us... so now we try to decode the contents
+     * this extracts the contents of "cmd" and puts it into a local variable
+     * Create a buffer to store our Jason Objects...
+     */
+    StaticJsonBuffer<512> jb;
     JsonObject& jsonMsg = jb.parseObject(jsonCircularBuffer.pop());
-      /* At this point, we have determined that the message is for us... so now we try to decode the contents
-         this extracts the contents of "cmd" and puts it into a local variable
-      */
-      String receivedCMD = jsonMsg["cmd"];
+    
+    String receivedCMD = jsonMsg["cmd"];
 
-      /*  checks to see if the recieved message matches a behavior...
-          If it doesn't we default to the currentBehavior
-      */
-      //  resultBehavior = cmdToBehaviors(receivedCMD, currentBehavior);
-      
-      /*  If the command is "blink" then we will really quickly blink the face LED's
-          This can be used to visually verify which cubes are actually connectd to the wifi mesh
-          and are working properly
-      */
-      if (receivedCMD == "b")
-      {
-        c->flashFaceLEDs();
-      }
-      /*
-       * Motion Commands
-       * "f" - attempts to move "forward" - either ontop, or on the side/ground
-       * "r" - attempts to move "reverse" - either ontop, or on side/ground
-       * "c" - attempts to climb, if this is possible
+    /*  checks to see if the recieved message matches a behavior...
+        If it doesn't we default to the currentBehavior
+    */
+    //  resultBehavior = cmdToBehaviors(receivedCMD, currentBehavior);
+    
+    /*  If the command is "blink" then we will really quickly blink the face LED's
+     *  This can be used to visually verify which cubes are actually connectd to the wifi mesh
+     *  and are working properly
+     */
+    
+    if (receivedCMD == "b")
+    {
+      c->flashFaceLEDs();
+    }
+    
+    /*
+     * Motion Commands
+     * "f" - attempts to move "forward" - either ontop, or on the side/ground
+     * "r" - attempts to move "reverse" - either ontop, or on side/ground
+     * "c" - attempts to climb, if this is possible
+     */
+    else if((receivedCMD == "f") || (receivedCMD == "r"))
+    {
+      /*  First we check to see if we have (1) neighbor
+       *  and that neighbor is on the bottom,
+       *  then we want to do a regular traverse
        */
-      else if(receivedCMD == "f" || receivedCMD == "r")
+      int tempNeighbors = c->numberOfNeighbors(0,0);
+      if(tempNeighbors < 3)
       {
-        /*  First we check to see if we have (1) neighbor
-         *  and that neighbor is on the bottom,
-         *  then we want to do a regular traverse
+        /*
+         * Ok so we know we only have one or two neighbor,s now we check to see 
+         * if the neighbor is on the bottom, or on the side...
          */
-        //uint32_t mID = jsonMsg["mID"];
-        int tempNeighbors = c->numberOfNeighbors(0,0);
-        Serial.print("Checking on things...: Neighbor # = ");
-        Serial.println(tempNeighbors);
-        if(tempNeighbors < 3)
+        if((c->whichFaceHasNeighbor(0) == c->returnBottomFace()) &&
+           (tempNeighbors == 1))
         {
           /*
-           * Ok so we know we only have one neighbor, now we check to see 
-           * if the neighbor is on the bottom, or on the side...
+           * Now we need to check to make sure that we have a forward face...
+           * Assuming this is true, we will finally actually move...
            */
-          if(c->whichFaceHasNeighbor(0) == c->returnBottomFace())
+          if(c->returnForwardFace() != -1)
           {
-            /*
-             * Now we need to check to make sure that we have a forward face...
-             * Assuming this is true, we will finally actually move...
-             */
-            if(c->returnForwardFace() != -1)
+            if(receivedCMD == "f")
             {
-              if(receivedCMD == "f")
-              {
-                c->moveOnLattice(&traverse_F);
-                if(MAGIC_DEBUG) {
-                  Serial.println("Preparring to move forward");
-                }
+              c->moveOnLattice(&traverse_F);
+              if(MAGIC_DEBUG) {
+                Serial.println("Preparring to move forward");
               }
-              else if(receivedCMD == "r")
-              {
-                c->moveOnLattice(&traverse_R);
-                if(MAGIC_DEBUG) {
-                Serial.println("Preparring to move IN REVERSE");
-                }
+            }
+            else if(receivedCMD == "r")
+            {
+              c->moveOnLattice(&traverse_R);
+              if(MAGIC_DEBUG) {
+              Serial.println("Preparring to move IN REVERSE");
               }
             }
           }
-          /*
-           * Horizontal moves, when the face with a neighbor is neither top nor bottom...
-           * and the plane is correct...
-           */
-          else if((c->whichFaceHasNeighbor(0) != c->returnBottomFace()) && 
-                  (c->whichFaceHasNeighbor(0) != c->returnTopFace()) &&
-                  c->returnForwardFace() == -1)
-          {
-            if(receivedCMD == "f")
-              {
-                Serial.println("Preparring to move forward");
-                if(tempNeighbors == 1)
-                {
-                  c->moveOnLattice(&horizontal_F);
-                }
-                else if(tempNeighbors == 2)
-                {
-                  c->moveOnLattice(&horizontal_Stair_F);
-                }
-              }
-              
-              else if(receivedCMD == "r")
-              {
-                Serial.println("Preparring to move IN REVERSE");
-                if(tempNeighbors == 1)
-                {
-                  c->moveOnLattice(&horizontal_R);
-                }
-                else if(tempNeighbors == 2)
-                {
-                  c->moveOnLattice(&horizontal_Stair_R);
-                }
-              }
-          }
-             
-          /*
-           * Ok, now we know that we are only connected to one cube, but that 
-           * connection is on one of the four ring faces... 
-           *  And the plane is not in the right orientation
-           */
-           else if(c->whichFaceHasNeighbor(0) != c->returnBottomFace())
-           {
-            //WIP
-            c->superSpecialBlink(&yellow, 50);
-            c->superSpecialBlink(&yellow, 70);
-            c->superSpecialBlink(&yellow, 50);
-           }
         }
-        
-        /* If we happen to be connected by more than one face... then we need to think this through
-         *  right now all we do is blink, WIP
+        /*
+         * Horizontal moves, when the face with a neighbor is neither top nor bottom...
+         * and the plane is correct...
          */
-        else if(c->numberOfNeighbors() > 1)
+        else if((c->whichFaceHasNeighbor(0) != c->returnBottomFace()) && 
+                (c->whichFaceHasNeighbor(0) != c->returnTopFace()) &&
+                c->returnForwardFace() == -1)
         {
-          c->superSpecialBlink(&red, 50);
-          c->superSpecialBlink(&red, 70);
-          c->superSpecialBlink(&red, 50);
+          if(receivedCMD == "f")
+          {
+            if(tempNeighbors == 1)
+            {
+              c->moveOnLattice(&horizontal_F);
+            }
+            else if(tempNeighbors == 2)
+            {
+              c->moveOnLattice(&horizontal_Stair_F);
+            }
+          }
+            
+          else if(receivedCMD == "r")
+          {
+            if(tempNeighbors == 1)
+            {
+              c->moveOnLattice(&horizontal_R);
+            }
+            else if(tempNeighbors == 2)
+            {
+              c->moveOnLattice(&horizontal_Stair_R);
+            }
+          }
         }
-        mesh.update();
+        else if(c->whichFaceHasNeighbor(0) != c->returnBottomFace())
+        {
+          //WIP
+          c->superSpecialBlink(&yellow, 50);
+          c->superSpecialBlink(&yellow, 70);
+          c->superSpecialBlink(&yellow, 50);
+        }
       }
-
-      /*
-       * LED Related Commands
+        
+      /* If we happen to be connected by more than one face... then we need to think this through
+       *  right now all we do is blink, WIP
        */
-      else if(receivedCMD == "s")
+      else if(c->numberOfNeighbors() > 2)
       {
-        c->shutDown();
+        c->superSpecialBlink(&red, 50);
+        c->superSpecialBlink(&red, 70);
+        c->superSpecialBlink(&red, 50);
       }
-      
-      else if(receivedCMD == "Y")
-      {
-        c->lightCube(&yellow);
-        mesh.update();
-      }
-      
-      else if(receivedCMD == "B")
-      {
-        c->lightCube(&blue);
-        mesh.update();
-      }
-      
-      else if(receivedCMD == "R")
-      {
-        c->lightCube(&red);
-        mesh.update();
-      }
-      
-      else if(receivedCMD == "P")
-      {
-        c->lightCube(&purple);
-        mesh.update();
-      }
-      
-      else if(receivedCMD == "G")
-      {
-        c->lightCube(&green);
-        mesh.update();
-      }
-      else if(receivedCMD == "W")
-      {
-        c->lightCube(&white);
-        mesh.update();
-      }
-      
-      else if(receivedCMD == "O")
-      {
-        c->lightCube(&off);
-        mesh.update();
-      }
+    }
 
-      else if(receivedCMD == "P")
-      {
-        c->lightCube(&off);
-        mesh.update();
-      }
-
-      else if(receivedCMD == "CPPG")
-      {
-        c->goToPlaneParallel(c->returnTopFace());
-        mesh.update();
-      }
+    /*
+     * OTHER Related Commands
+     */
+    else if(receivedCMD == "s")
+    {
+      c->shutDown();
+    }
+    
+    else if(receivedCMD == "Y")
+    {
+      c->lightCube(&yellow);
+      mesh.update();
+    }
       
-      else if(receivedCMD == "off")
-      {
-        c->lightCube(&off);
-        mesh.update();
-      }
+    else if(receivedCMD == "B")
+    {
+      c->lightCube(&blue);
+      mesh.update();
+    }
+    
+    else if(receivedCMD == "R")
+    {
+      c->lightCube(&red);
+      mesh.update();
+    }
       
-      else if (receivedCMD == "lightSeek")
-      {
-        Game = "lightSeek";
-      }
-
-      else if (receivedCMD == "line")
-      {
-        Game = "Line";
-      }
-
-      else if (receivedCMD == "THE_ONE")
-      {
-        THE_CHOSEN_ONE = true;
-        if(MAGIC_DEBUG)
-          Serial.println("RECEIVED WIFI COMMAND TO BE CHOSEN ONE");
-      }
+    else if(receivedCMD == "P")
+    {
+      c->lightCube(&purple);
+      mesh.update();
+    }
+    
+    else if(receivedCMD == "G")
+    {
+      c->lightCube(&green);
+      mesh.update();
+    }
+    else if(receivedCMD == "W")
+    {
+      c->lightCube(&white);
+      mesh.update();
+    }
       
-      else if (receivedCMD == "chill")
-      {
-        Game = "Nothing";
-      }
-      
-      /* cubeID's == 0 means it is attached by a cable... not a real cube // so we print
-      */
+    else if(receivedCMD == "O")
+    {
+      c->lightCube(&off);
+      mesh.update();
+    }
 
-      if (thisCubeID == 0)
-      {
-        String receivedCMD = jsonMsg["cmd"];
-        String senderID = jsonMsg["sID"];
-        String stringMsg = "Message from: " + senderID + " to: " + 
-        thisCubeID + " Command is: " + receivedCMD;// + " Command is: ";
-        Serial.println(stringMsg);
-      }
+    else if(receivedCMD == "P")
+    {
+      c->lightCube(&off);
+      mesh.update();
+    }
+
+    else if(receivedCMD == "CPPG")
+    {
+      c->goToPlaneParallel(c->returnTopFace());
+      mesh.update();
+    }
+      
+    else if(receivedCMD == "off")
+    {
+      c->lightCube(&off);
+      mesh.update();
+    }
+    
+    else if (receivedCMD == "lightSeek")
+    {
+      Game = "LIGHT";
+    }
+
+    else if (receivedCMD == "line")
+    {
+      Game = "LINE";
+    }
+
+    else if (receivedCMD == "THE_ONE")
+    {
+      THE_CHOSEN_ONE = true;
+      if(MAGIC_DEBUG)
+        Serial.println("RECEIVED WIFI COMMAND TO BE CHOSEN ONE");
+    }
+    
+    else if (receivedCMD == "chill")
+    {
+      Game = "Nothing";
+    }
+      
+    /* cubeID's == 0 means it is attached by a cable... not a real cube // so we print
+    */
+
+    if (thisCubeID == 0)
+    {
+      String receivedCMD = jsonMsg["cmd"];
+      String senderID = jsonMsg["sID"];
+      String stringMsg = "Message from: " + senderID + " to: " + 
+      thisCubeID + " Command is: " + receivedCMD;
+      Serial.println(stringMsg);
+    }
   }
   return (resultBehavior);
 }
 
-//=============================================================================================
-//=============================================================================================
-//=============================================================================================
-//=============================*TAGS MAGNETIC TAGS CHECKING====================================
-//=============================================================================================
-//=============================================================================================
-//=============================================================================================
-
-//bool returnNeighborPresence(int index);
-//int returnNeighborID(int index);
-//int returnNeighborAngle(int index);
-//int returnNeighborFace(int index);
-//TagType returnNeighborType(int index);
-//TagCommand returnNeighborCommand(int index);
+/*
+ * ===============================================================================================================
+ * ===============================================================================================================
+ * ===============================================================================================================
+ * =============================*TAGS MAGNETIC TAGS CHECKING======================================================
+ * ===============================================================================================================
+ * ===============================================================================================================
+ * ===============================================================================================================
+ */
 
 int checkForMagneticTagsStandard(Cube* c)
 /*
-   This function processes the 6 magnetic tags on all 6 faces...
-   It returns an integer corresponding to how many actual cube neighbors the cube has at that instant.
-   // Additional actions need to be performed immedediatly from the 
-   //
-   // For reasons which are very difficult to explain this function also changes planes...
-*/
+ * This function processes the 6 magnetic tags on all 6 faces...
+ * It returns an integer corresponding to how many actual cube neighbors the cube has at that instant.
+ *  Additional actions need to be performed immedediatly from the 
+ *  These are the parameters we have access to:
+ *    a. bool returnNeighborPresence(int index);
+ *    b. int returnNeighborID(int index);
+ *    c. int returnNeighborAngle(int index);
+ *    d. int returnNeighborFace(int index);
+ *    e. TagType returnNeighborType(int index);
+ *    f. TagCommand returnNeighborCommand(int index);
+ *  
+ *  For reasons which are very difficult to explain this function also changes planes...
+ */
 {
   /*
-   * Count of the number of neighbors that we have
+   * variable to count of the number of neighbors that we have
    */
   int neighbors = 0; 
 
   /*
    * Now we loop over all six faces and evaluate the circular buffers filled with tag parameters
-   * for each of the magnetic sensors - this function doesn't actually update the values
+   * for each of the magnetic sensors - this function doesn't actually update the sensor values
    * that happens in the cube->update();
    */
-  for (int face = 0; face < 6; face++)
+  for (int face = 0; face < FACES; face++)
   {
     /* This gets activated if we are attached to an actual cube or passive cube
        for at least two time steps...
@@ -387,9 +384,6 @@ int checkForMagneticTagsStandard(Cube* c)
       magicVariable = 0;
       c->goToPlaneParallel(z);
     }
-    /*
-     * End plane changing section
-     */
 
     /*
      * This section checks for specific commaands, and does an action if that is appropriate
@@ -400,13 +394,13 @@ int checkForMagneticTagsStandard(Cube* c)
       PART_OF_LINE = true;
       THE_CHOSEN_ONE = true;
       if(MAGIC_DEBUG)
+      {
         Serial.println("BECAME THE CHOSEN ONE THROUGH MAGNETIC TAG");
+      }
     }
     else if (c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_27_GREEN)
     {
       c->lightCube(&green);
-      
-      wifiDelay(100); // Do Something?
     }
     
     else if (c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_23_BLUE)
@@ -425,30 +419,11 @@ int checkForMagneticTagsStandard(Cube* c)
   return (neighbors);
 }
 
-//=============================================================================================
-//=============================================================================================
-//========================== *DEMO ============================================================
-//=============================================================================================
-//=============================================================================================
-Behavior demo(Cube* c)
-{
-  Behavior nextBehavior = DEMO;
-  int loopCounter = 0;
-  
-  while (nextBehavior == DEMO) // loop until something changes the next behavior
-  {
-    loopCounter++;
-    nextBehavior = basicUpkeep(c, nextBehavior);
-    mesh.update();
-    wifiDelay(200);
-  }
-  return nextBehavior;
-}
-
-//=============================================================================================
-//======================== *LINE ==============================================================
-//=============================================================================================
-
+/*
+ * ===============================================================================================================
+ * ==================*LINE STATE MACHINE==========================================================================
+ * ===============================================================================================================
+ */
 Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
 /*
  * This code determines what to do if the goal is to get into a line...
@@ -459,8 +434,7 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
  * int FACES_LIGHTS[FACES];
  * State Discussion...
  * First... if we think we are part of a line | SEEN THE LIGHT! | then we have two special faces...
- * 
-*/
+ */
 {
   Behavior newBehavior = inputBehavior; 
   int numberOfNeighborz = c->numberOfNeighbors(0);
@@ -575,7 +549,7 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
    */
   else if(millis() > 20000)
   {
-    newBehavior = DEMO;
+    newBehavior = CHILLING;
     /*
    * IF WE HAVE 0 NEIGHBOR...
    */
@@ -646,7 +620,6 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
         c->blockingBlink(&white);
         if(c->isPlaneInPlaneOfFaces(first_neighborFace, second_neighborFace) && millis() > 55000)
         {
-          
           c->moveOnLattice(&horizontal_Stair_F);
         }
         else
@@ -712,10 +685,12 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
       c->blockingBlink(&red);
     }
   }
+  
   else
   {
     c->blockingBlink(&yellow);
   }
+  
   wifiDelay(400);
   return (newBehavior);
 }
@@ -745,104 +720,108 @@ Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior, int numberOf
 
   // update sensors, numberOfNeighbors, and check wifi commands...
   //int numberOfNeighborz = checkForMagneticTagsStandard(c);
-
-  // Check for Light Digits
-  //int lightDigit = processLightDigits(c);
-
-  //************************************
-  //NEIGHBORS == __ 0 __
-  //************************************
-  if (numberOfNeighborz == 0)
+  if(((TOP_FACE_LIGHT[0] < TOP_LIGHT_THRESHOLD) && (TOP_FACE_LIGHT[1] < TOP_LIGHT_THRESHOLD)) || 
+      millis() < 10000)
   {
-    //newBehavior = SOLO_LIGHT_TRACK;
+    newBehavior = CHILLING;
+    c->blockingBlink(&teal);
   }
-  //************************************
-  //NEIGHBORS == __ 1 __
-  //************************************
-  else if (numberOfNeighborz == 1)
+  else
   {
-    if (MAGIC_DEBUG) {
-      Serial.println("***NEIGHBORS == 1");
-    }
-    int neighborFace = c->whichFaceHasNeighbor();
-    if (c->faces[neighborFace].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE)
+    //************************************
+    //NEIGHBORS == __ 0 __
+    //************************************
+    if (numberOfNeighborz == 0)
     {
-      if (true) // MAGIC_THE_LIGHT
-        newBehavior = CLIMB;
-      else if (c->numberOfNeighbors(1, 0) == 1) // if the last one also shows that there is a neighbor...
-        newBehavior = DUO_LIGHT_TRACK;
+      newBehavior = SOLO_LIGHT_TRACK;
     }
-    else if (c->faces[neighborFace].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE)
-    {
-      //MAGIC_THE_LIGHT = true;
-      if (neighborFace == c->returnBottomFace())
-      {
-        newBehavior = ATTRACTIVE;
-      }
-      else if ((c->returnForwardFace() == neighborFace) ||
-               (c->returnReverseFace() == neighborFace))
-        newBehavior = CLIMB;
-      else
-        newBehavior = ATTRACTIVE;
-    }
-  }
-  //************************************
-  //NEIGHBORS == __ 2 __
-  //************************************
-  else if (numberOfNeighborz == 2)
-  {
-    int first_neighborFace = c->whichFaceHasNeighbor(0);
-    int second_neighborFace = c->whichFaceHasNeighbor(1);
-    if (MAGIC_DEBUG) {
-      Serial.println("***NEIGHBORS == 2");
-    }
-
-    if (true) 
+    //************************************
+    //NEIGHBORS == __ 1 __
+    //************************************
+    else if (numberOfNeighborz == 1)
     {
       if (MAGIC_DEBUG) {
-        Serial.println(" I SEE THE LIGHT - Don't do the next part...");
+        Serial.println("***NEIGHBORS == 1");
+      }
+      int neighborFace = c->whichFaceHasNeighbor();
+      if (c->faces[neighborFace].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE)
+      {
+        if (MAGIC_THE_LIGHT == true) // MAGIC_THE_LIGHT
+          newBehavior = CLIMB;
+        else if (c->numberOfNeighbors(3, 0) == 1) // if the last one also shows that there is a neighbor...
+          newBehavior = DUO_LIGHT_TRACK;
+      }
+      
+      else if (c->faces[neighborFace].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE)
+      {
+        MAGIC_THE_LIGHT = true;
+        if (neighborFace == c->returnBottomFace())
+        {
+          newBehavior = ATTRACTIVE;
+        }
+        //else if ((c->returnForwardFace() == neighborFace) ||
+        //         (c->returnReverseFace() == neighborFace))
+        //  newBehavior = CLIMB;
+        else
+          newBehavior = CLIMB;
+      }
+    }
+    //************************************
+    //NEIGHBORS == __ 2 __
+    //************************************
+    else if (numberOfNeighborz == 2)
+    {
+      int first_neighborFace = c->whichFaceHasNeighbor(0);
+      int second_neighborFace = c->whichFaceHasNeighbor(1);
+      if (MAGIC_DEBUG) {
+        Serial.println("***NEIGHBORS == 2");
+      }
+  
+      if (MAGIC_THE_LIGHT == true) 
+      {
+        if (MAGIC_DEBUG) {
+          Serial.println(" I SEE THE LIGHT - Don't do the next part...");
+        }
+        newBehavior = ATTRACTIVE;
+      }
+      else if (c->areFacesOpposite(first_neighborFace, second_neighborFace) == true)
+      {
+        c->blockingBlink(&purple, 50, 20);
+        newBehavior = MULTI_LIGHT_TRACK;
+      }
+      else if ((c->numberOfNeighbors(5, 0) == 2) &&
+               (c->numberOfNeighbors(0, 0) == 2)) // if we have been connected for a while to two cubes, 
+               //and haven't seen the light
+               //... we BOUNCE... disconnect
+      {
+        if (MAGIC_DEBUG) {
+          Serial.println(" SO IT HAS COME TO THIS.... PEACE OUT BROTHERS...");
+        }
+        c->blockingBlink(&red, 70, 50);
+        c->blockingBlink(&red, 70, 50);
+        c->blockingBlink(&red, 70, 50);
+        c->update();
+        delay(2000);
+        checkForMagneticTagsStandard(c); // give me a chance to turn it off before it explodes...
+        c->moveOnLattice(&explode_F);
+        newBehavior = SOLO_LIGHT_TRACK;
+      }
+    }
+  
+    //************************************
+    //NEIGHBORS == __ 2+ __
+    //************************************
+  
+    else if (numberOfNeighborz > 2)
+    {
+      if (MAGIC_DEBUG) {
+        Serial.println("***NEIGHBORS == __ 2+ __");
       }
       newBehavior = ATTRACTIVE;
     }
-    else if (c->areFacesOpposite(first_neighborFace, second_neighborFace) == true)
-    {
-      c->blockingBlink(&purple, 50, 20);
-      newBehavior = MULTI_LIGHT_TRACK;
-    }
-    else if ((c->numberOfNeighbors(5, 0) == 2) &&
-             (c->numberOfNeighbors(0, 0) == 2)) // if we have been connected for a while to two cubes, 
-             //and haven't seen the light
-             //... we BOUNCE... disconnect
-    {
-      if (MAGIC_DEBUG) {
-        Serial.println(" SO IT HAS COME TO THIS.... PEACE OUT BROTHERS...");
-      }
-      c->blockingBlink(&red, 70, 50);
-      c->blockingBlink(&red, 70, 50);
-      c->blockingBlink(&red, 70, 50);
-      c->update();
-      delay(1000);
-      checkForMagneticTagsStandard(c); // give me a chance to turn it off before it explodes...
-      c->moveOnLattice(&explode_F);
-      newBehavior = SOLO_LIGHT_TRACK;
-    }
   }
-
-  //************************************
-  //NEIGHBORS == __ 2+ __
-  //************************************
-
-  else if (numberOfNeighborz > 2)
-  {
-    if (MAGIC_DEBUG) {
-      Serial.println("***NEIGHBORS == __ 2+ __");
-    }
-    newBehavior = ATTRACTIVE;
-  }
-
   return (newBehavior);
 }
-
 
 //=============================================================================================
 //======================== *CUBE ==============================================================
@@ -878,7 +857,7 @@ Behavior CubeStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
    */
   else if((TOP_FACE_LIGHT[1] < TOP_LIGHT_THRESHOLD) && (TOP_FACE_LIGHT[0] > TOP_LIGHT_THRESHOLD))
   {
-   newBehavior = DEMO;
+   newBehavior = CHILLING;
    /*
    * IF WE HAVE 0 NEIGHBOR...
    */
@@ -1028,7 +1007,7 @@ Behavior Pre_Solo_Light(Cube* c)
 /* Solo Light Seek is designed to have the module follow the brightest light source that it can find.
     The secondary goal is to connect to other modules.
 */
-Behavior soloSeekLight(Cube* c) // green
+Behavior soloSeekLight(Cube* c) 
 {
   // General Starting things... initialize flags, etc...
   if (MAGIC_DEBUG) {
@@ -1132,13 +1111,14 @@ Behavior soloSeekLight(Cube* c) // green
     else if (c->returnForwardFace() == -1)
     {
       if (c->moveBLDCACCEL(1, GlobalMaxAccel, 1700) == false)
+      {
         iAmStuck = true;
+      }
       wifiDelay(100);
     }
     //**************************** this is regular light tracking...
     else
     {
-
       if (c->roll(direct, 9500) == false)
       {
         iAmStuck = true;
@@ -1162,6 +1142,7 @@ Behavior climb(Cube* c)
   if (MAGIC_DEBUG) {
     Serial.println("***Beginning CLIMB***");
   }
+  
   int connectedFace = -1;
   long loopCounter = 0;
   Behavior nextBehavior = CLIMB;
@@ -1186,27 +1167,28 @@ Behavior climb(Cube* c)
         delay(50);
         int CW_or_CCW = faceClockiness(connectedFace, c->returnBottomFace());
         if (CW_or_CCW == 1)
-          {
-            c->moveOnLattice(&cornerClimb_F);
-            DIRECTION = 1;
-          }
+        {
+          c->moveOnLattice(&cornerClimb_F);
+          DIRECTION = 1;
+        }
         if (CW_or_CCW == -1)
-          {
-            c->moveOnLattice(&cornerClimb_R);
-            DIRECTION = -1;
-          }
+        {
+          c->moveOnLattice(&cornerClimb_R);
+          DIRECTION = -1;
+        }
       }
       else
       {
         c->goToPlaneIncludingFaces(connectedFace, c->returnTopFace());
-        delay(1000);
+        wifiDelay(1000);
       }
     }
-    //////////////////////////////// loop upkeep...
-    c->superSpecialBlink(&yellow, 50);
-    c->superSpecialBlink(&white, 100);
     nextBehavior = basicUpkeep(c, nextBehavior);
     loopCounter++;
+    if(connectedFace == c->returnBottomFace())
+    {
+      nextBehavior = CHILLING;
+    }
   }
   return nextBehavior;
 }
@@ -1585,9 +1567,6 @@ Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior)
   else if (cmd == "attractive")          {
     behaviorToReturn = ATTRACTIVE;
   }
-  else if (cmd == "demo")                {
-    behaviorToReturn = DEMO;
-  }
   else if (cmd == "shut_down")           {
     behaviorToReturn = SHUT_DOWN;
   }
@@ -1630,10 +1609,6 @@ String behaviorsToCmd(Behavior inputBehavior)
   {
     return ("climb");
   }
-  else if (inputBehavior == DEMO)                   
-  {
-    return ("demo");
-  }
   else if (inputBehavior == ATTRACTIVE)            
   {
     return ("attractive");
@@ -1675,8 +1650,6 @@ Behavior checkForBehaviors(Cube* c, Behavior behavior)
       return climb(c);
     case ATTRACTIVE:
       return attractive(c);
-    case DEMO:
-      return demo(c);
     case SLEEP:
       return sleep(c);
     case PRE_SOLO_LIGHT:
@@ -1684,71 +1657,10 @@ Behavior checkForBehaviors(Cube* c, Behavior behavior)
   }
 }
 
-void blinkFaceLeds(Cube* c, int waitTime)
-{
-  for (int i = 0; i < 6; i++)
-  {
-    c->faces[i].turnOnFaceLEDs(0, 1, 0, 1);
-  }
-  wifiDelay(50);
-  for (int i = 0; i < 6; i++)
-  {
-    c->faces[i].turnOffFaceLEDs();
-  }
-}
-
-void wifiLightChange(Cube* c, int number, bool turnOff)
-{
-  int waitTime = 500;
-  switch (number)
-  {
-    //********************************
-    case 0:
-      c->lightCube(&white);
-      wifiDelay(waitTime);
-      break;
-      
-    case 1:
-      c->lightCube(&yellow);
-      wifiDelay(waitTime);
-      break;
-      
-    case 2:
-      c->lightCube(&red);
-      wifiDelay(waitTime);
-      break;
-      
-    case 3:
-      c->lightCube(&purple);
-      wifiDelay(waitTime);
-      break;
-      
-    case 4:
-      c->lightCube(&blue);
-      wifiDelay(waitTime);
-      break;
-      
-    case 5:
-      c->lightCube(&green);
-      wifiDelay(waitTime);
-      break;
-      
-    case 6:
-      c->lightCube(&teal);
-      wifiDelay(waitTime);
-      break;
-  }
-  if (turnOff)
-  {
-    c->lightCube(&off);
-  }
-}
-
 /*
  * This prompts the cube to go to a different plane,
  * It needs to be called TWICE for it to actually work, since
  * every other time it gets called, it checks to make sure it is going to do the right thing...
- * 
  */
 void goToPlane(Cube* c, int FaceToGoTo)
 {
@@ -1764,59 +1676,3 @@ void goToPlane(Cube* c, int FaceToGoTo)
     DOUBLE_CHECK = true;
   }
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////NOTES////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//Behavior basicUpkeep_DEMO_ONLY(Cube* c, Behavior inputBehavior)
-///*
-// * Then it checks the wifi BUFFER and checks the magnetic tags
-// * for actionable configurations
-// */
-//{
-//  // update sensors, numberOfNeighbors, and check wifi commands...
-//  c->update(); // actually read all of the sensors
-//  //int numberOfNeighborz = checkForMagneticTagsDEMO(c);
-//  if(c->returnTopFace(0) != c->returnTopFace(1)) // checking to see if there is a change in its own orientation
-//  {
-//    Serial.print("trying to send wifi Message");
-//    wifiTargetFace(c, c->returnTopFace(0), -1);
-//  }
-//  return(inputBehavior);
-//}
-
-//
-//void wifiTargetFace(Cube* c, int faceToSend, int recipientCube)
-//{
-//  //======Temporarily Generated a Broadcast message =========
-//  StaticJsonBuffer<512> jsonBuffer; //Space Allocated to store json instance
-//  JsonObject& root = jsonBuffer.createObject(); // & is "c++ reference"
-//             //^class type||^ Root   ^class method
-//  root["type"] = "cmd";
-//  root["cubeID"] = recipientCube;
-//  root["cmd"] = String(faceToSend);
-//  //^ "key"   |  ^ "Value"
-//  String str; // generate empty string
-//  root.printTo(str); // print to JSON readable string...
-//  //======== End Generating of Broadcast message ==========
-//  mesh.sendBroadcast(str);
-//}
-
-
-
-//void printDebugThings(Cube* c, Behavior behaviorToReturnFinal)
-//{
-//  Serial.println("-------------------------------------------");
-//  Serial.println("Ending Basic Upkeep, here is what we found:");
-//  Serial.print("Top face: ");           Serial.println(c->returnTopFace());
-//  Serial.print("Current Plane: ");
-//  Serial.print("forward Face ");        Serial.println(c->returnForwardFace());
-//  Serial.print("# of Neighbors: ");     Serial.println(c->numberOfNeighbors(0,0));
-//  Serial.print("Resultalt Behavior: "); Serial.println(behaviorsToCmd(behaviorToReturnFinal));
-//  Serial.println("--------------Ending BASIC UPKEEP---------------");
-//}
-

@@ -21,7 +21,7 @@
  * ** PEI BLUE   ** 10 **                 *                 *  X          *                *                 *               *              *              *               *                    *
  *
  * ** PC BLACK  ** 14 **  Cut out Black   *                 *             *                *                 *               *              *              *               *                    *
- * ** PC BLUE   ** 13 **  Goes green?     *                 *  X          *                *                 *               *              *              *               *                    *
+ * ** PC BLUE   ** 13 **  Goes green?     *                 *  X X        *                *                 *               *              *              *               *                    *
  * ** PC PURPLE ** 02 **                  *                 *             *       X        *                 *               *              *              *               *                    *
  * ** PC GREEN    **                      *                 *             *                *                 *               *              *              *               *                    *
  * ** PC BROWN    **                      *                 *             *                *                 *               *              *              *               *                    * X
@@ -643,7 +643,7 @@ void lookUpCalibrationValues(long wifiID)
 
     //********************************
     case wifiAddress_cube09: //959694 PEI PURPLE | FA:AA:25:19:C7:DF
-      thisCubeID = 09;
+      thisCubeID = 9;
       HALF_LIGHT = true;
 
       GlobalPlaneAccel = 2000;

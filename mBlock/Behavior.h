@@ -7,30 +7,42 @@
 #include "Defines.h"
 #include "Communication.h" // Includes wifi
 
-Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior);
-
+/*
+ * ----------------------------------------------------------------------------------------------------------------
+ * ----------------- Related to Basic Upkeeping -------------------------------------------------------------------
+ * ----------------------------------------------------------------------------------------------------------------
+ */
 Behavior basicUpkeep(Cube* c, Behavior currentBehavior);
 
 Behavior checkForBehaviors(Cube* c, Behavior behavior);
 
+/*
+ * Related to Magnetic Tags.
+ */
 int checkForMagneticTagsStandard(Cube* c);
-int processLightDigits(Cube* c);
 
-int checkForMagneticTagsDEMO(Cube* c);
-
-// WIFI RELATED
+/*
+ * Related to WIFI communciation with the server...
+ */
+Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior);
 String generateUpdateMessage(Cube* c);
 
-
-////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////// State Machine Switching Controllers ///////////////////
-////////////////////////////////////////////////////////////////////////////////////
+/*
+ * ----------------------------------------------------------------------------------------------------------------
+ * ----------------- State Machine Switching Controllers ----------------------------------------------------------
+ * ----------------------------------------------------------------------------------------------------------------
+ */
 Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior, int numberOfNeighborz);
+
 Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros);
+
 Behavior CubeStateMachine(Cube* c, Behavior inputBehavior, int numberOfNeighborz);
-////////////////////////////////////////////////////////////////////////////////////
-// I. Behaviors involving non lattice connected Cubes or small mobile assemblies////
-////////////////////////////////////////////////////////////////////////////////////
+
+/*
+ * ----------------------------------------------------------------------------------------------------------------
+ * ----------------- I. Behaviors involving non lattice connected Cubes or small mobile assemblies ----------------
+ * ----------------------------------------------------------------------------------------------------------------
+ */
 
 Behavior soloSeekLight(Cube* c);
 /*        --- What it does ---
@@ -55,14 +67,25 @@ Behavior Pre_Solo_Light(Cube* c);
 Behavior duoSeekLight(Cube* c);
 /*        --- What it does ---
  * 0.
+ *        --- Exit Conditions ---
+ * a.
+ */
+
+/*
+ * ----------------------------------------------------------------------------------------------------------------
+ * ----------------- II. Behaviors for Cubes connected on a large lattice -----------------------------------------
+ * ----------------------------------------------------------------------------------------------------------------
+ */
+ 
+Behavior climb(Cube* c);
+/*        --- What it does ---
+ * 0.
  * 1.
  *        --- Exit Conditions ---
  * a.
  * b.
  */
-///////////////////////////////////////////////////////////
-// II. Behaviors for Cubes connected on a large lattice////
-///////////////////////////////////////////////////////////
+ 
 Behavior chilling(Cube* c);
 /*        --- What it does ---
  * 0.
@@ -91,37 +114,20 @@ Behavior followArrows(Cube* c);
  * a.
  * b.
  */
-//////////////////////////////
-// III. Misc. Behaviors   ////
-//////////////////////////////
-/**
- * Tells all other cubes to go to sleep and then goes to sleep.
+ 
+/*
+ * ----------------------------------------------------------------------------------------------------------------
+ * ----------------- MISC. Helper functions -----------------------------------------
+ * ----------------------------------------------------------------------------------------------------------------
  */
-//Behavior relayBehavior(Cube* c, Behavior);
-
-Behavior demo(Cube* c);
-
-Behavior climb(Cube* c);
-/*        --- What it does ---
- * 0.
- * 1.
- *        --- Exit Conditions ---
- * a.
- * b.
- */
-
- //==================Utilities===============================
-void blinkFaceLeds(Cube* c, int waitTime = 50); // blinks LED's Once for a default time of 50ms
-
-void wifiLightChange(Cube*c, int number, bool turnOff = true);
-  // this turns the lights to a specific color based on the received integer 
   
 String behaviorsToCmd(Behavior inputBehavior);
+
 Behavior cmdToBehaviors(String cmd, Behavior defaultBehavior);
+
 void wifiTargetFace(Cube* c, int faceToSend, int recipientCube = -1);
 
 void goToPlane(Cube* c, int FaceToGoTo);
-
 
 #endif
 

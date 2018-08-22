@@ -20,7 +20,7 @@ extern int f4 = -1;
 extern int f5 = -1;
 
 int thisCubeID = 0;
-String Game = "CUBE";
+String Game = "LIGHT";
 extern bool HALF_LIGHT = false;
 
 /*
@@ -55,33 +55,33 @@ extern int FACES_LIGHTS[FACES] = {0,0,0,0,0,0};
 //  String for_rev;
 //} Motion;
 
-//                          moveName      , brake   , rpm     , timout  , current , brakeTime , difficult   , for_rev
-Motion traverse_F         = {"traverse"   , true    , 6000    , 6000    , 3000    , 12        , 9           , "f"};
-Motion traverse_R         = {"traverse"   , true    , 6000    , 6000    , 3000    , 12        , 9           , "r"};
+//                          moveName      , brake   , rpm     , timout  , current , brakeTime , neighbors   , for_rev
+Motion traverse_F         = {"traverse"   , true    , 6000    , 6000    , 3000    , 12        , 1           , "f"};
+Motion traverse_R         = {"traverse"   , true    , 6000    , 6000    , 3000    , 12        , 1           , "r"};
 
-Motion horizontal_F       = {"h_traverse" , true    , 5000    , 4000    , 3000    , 20        , 9           , "f"};
-Motion horizontal_R       = {"h_traverse" , true    , 5000    , 4000    , 3000    , 20        , 9           , "r"};
+Motion horizontal_F       = {"h_traverse" , true    , 5000    , 4000    , 3000    , 20        , 1           , "f"};
+Motion horizontal_R       = {"h_traverse" , true    , 5000    , 4000    , 3000    , 20        , 1           , "r"};
 
-Motion horizontal_Stair_F = {"h_traverse" , true    , 12000   , 6000    , 3000    , 20        , 9           , "f"};
-Motion horizontal_Stair_R = {"h_traverse" , true    , 12000   , 6000    , 3000    , 20        , 9           , "r"};
+Motion horizontal_Stair_F = {"h_traverse" , true    , 12000   , 6000    , 3000    , 20        , 2           , "f"};
+Motion horizontal_Stair_R = {"h_traverse" , true    , 12000   , 6000    , 3000    , 20        , 2           , "r"};
 
-Motion roll_F             = {"roll"       , false   , 6500    ,    0    ,    0    , 0         , 1           , "f"};
-Motion roll_R             = {"roll"       , false   , 6500    ,    0    ,    0    , 0         , 1           , "r"};
+Motion roll_F             = {"roll"       , false   , 6500    ,    0    ,    0    , 0         , 0           , "f"};
+Motion roll_R             = {"roll"       , false   , 6500    ,    0    ,    0    , 0         , 0           , "r"};
 
-Motion cornerClimb_F      = {"cornerClimb", true    , 15500   , 7000    , 3300    , 12        , 250         , "f"};
-Motion cornerClimb_R      = {"cornerClimb", true    , 15500   , 7000    , 3300    , 12        , 250         , "r"};
+Motion cornerClimb_F      = {"cornerClimb", true    , 15500   , 7000    , 3300    , 12        , 1         , "f"};
+Motion cornerClimb_R      = {"cornerClimb", true    , 15500   , 7000    , 3300    , 12        , 1         , "r"};
 
-Motion stepDownStair_F    = {"stairDown"  , true    , 12000   , 6000    , 4500    , 20        , 55          , "f"};
-Motion stepDownStair_R    = {"stairDown"  , true    , 12000   , 6000    , 4500    , 20        , 55          , "r"};
+Motion stepDownStair_F    = {"stairDown"  , true    , 12000   , 6000    , 4500    , 20        , 2          , "f"};
+Motion stepDownStair_R    = {"stairDown"  , true    , 12000   , 6000    , 4500    , 20        , 2          , "r"};
 
-Motion shake_F            = {"shake"      , false   , 4500    , 4000    , 3500    , 20        , 250         , "f"};
-Motion softShake_F        = {"softShake"  , false   , 3500    , 3000    , 3000    , 20        , 250         , "f"};
+Motion shake_F            = {"shake"      , false   , 4500    , 4000    , 3500    , 20        , 0         , "f"};
+Motion softShake_F        = {"softShake"  , false   , 3500    , 3000    , 3000    , 20        , 0         , "f"};
 
-Motion explode_F          = {"explode"    , false   , 15500   , 6000    , 5000    , 30        , 250         , "f"};
-Motion explode_R          = {"explode"    , false   , 15500   , 6000    , 5000    , 30        , 250         , "r"};
+Motion explode_F          = {"explode"    , false   , 15500   , 6000    , 5000    , 30        , 3         , "f"};
+Motion explode_R          = {"explode"    , false   , 15500   , 6000    , 5000    , 30        , 3         , "r"};
 //
-Motion rollDouble_F       = {"double"     , false   , 15500   , 3000    , 3000    , 5         , 250         , "f"};
-Motion rollDouble_R       = {"double"     , false   , 15500   , 3000    , 3000    , 5         , 250         , "r"};
+Motion rollDouble_F       = {"double"     , false   , 15500   , 3000    , 3000    , 5         , 0         , "f"};
+Motion rollDouble_R       = {"double"     , false   , 15500   , 3000    , 3000    , 5         , 0         , "r"};
 
 //  List of possible colors;
 Color red =     {1, 0, 0};
@@ -179,6 +179,7 @@ switch (CubeID) { // used to be ESP.getChipID
 
    For cubes
 */
+
 PlaneEnum returnPlane(int face1, int face2)
 {
   return (facePlanes[face1][face2]);

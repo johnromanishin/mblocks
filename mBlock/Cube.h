@@ -64,8 +64,7 @@ class Cube
     void updateCubeID(int idNUM, uint32_t wifiAddress); // this uses a lookup table to 
     //populate the cubeID based on a 
     //table of mac addresses in defines.h file
-    void disconnectI2C(); // turns off the I2C Bus
-    void reconnectI2C();  // turns the I2C bus back on
+
     void resetI2C();      // does (disconnect) and the (connect) of the i2C
     void blinkParasiteLED(int blinkTime = 100); // blinks the tiny LED attached to the "parasite" board 
     //- difficult to see from outside

@@ -91,6 +91,7 @@ T CircularBuffer<T, useTailParam>::access(int index)
 };
 
 #endif
+
 /**
  * int bufspace[128];
  * CircularBuffer<int> cb(128, &bufspace[0]);
