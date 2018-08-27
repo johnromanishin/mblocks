@@ -92,12 +92,12 @@ void setup() // starts up the various electronic hardware...
               (c.numberOfNeighbors(0) == 0) && 
               (c.numberOfNeighbors(2) == 0))
   {
-    Game = "LIGHT";
+    Game = "LINE";
   }
   
   else if(TOP_FACE_LIGHT[0] > TOP_LIGHT_THRESHOLD)
   {
-    Game = "LIGHT";
+    Game = "LINE";
   }
   
   /*
@@ -106,7 +106,7 @@ void setup() // starts up the various electronic hardware...
   for (int i = 0; i < 2; i++)
   {
     sendAck(SPECIAL_MID);
-    wifiDelay(800);
+    wifiDelay(600);
   }
 }
 

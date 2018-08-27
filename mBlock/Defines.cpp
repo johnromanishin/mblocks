@@ -27,7 +27,7 @@ extern bool HALF_LIGHT = false;
  * 
  */
 extern int LIGHT_TRANSITIONS = 0;
-extern int TOP_FACE_LIGHT[SAMPLES] = {};
+extern int TOP_FACE_LIGHT[TOP_LIGHT_SAMPLES] = {};
 extern int TOTAL_LIGHT = 0;
 extern int DIRECTION = 1;
 
@@ -41,7 +41,6 @@ bool DOUBLE_CHECK = true;
 extern bool THE_CHOSEN_ONE = false;
 
 extern int FACES_LIGHTS[FACES] = {0,0,0,0,0,0};
-
 
 //typedef struct Motion
 //{

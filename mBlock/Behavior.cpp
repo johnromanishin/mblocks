@@ -101,7 +101,6 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
     /*  checks to see if the recieved message matches a behavior...
         If it doesn't we default to the currentBehavior
     */
-    //  resultBehavior = cmdToBehaviors(receivedCMD, currentBehavior);
     
     /*  If the command is "blink" then we will really quickly blink the face LED's
      *  This can be used to visually verify which cubes are actually connectd to the wifi mesh
@@ -110,7 +109,9 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
     
     if (receivedCMD == "b")
     {
-      c->flashFaceLEDs();
+      c->lightCube(&green);
+      wifiDelay(300);
+      c->lightCube(&off);
     }
     
     /*
@@ -398,6 +399,7 @@ int checkForMagneticTagsStandard(Cube* c)
         Serial.println("BECAME THE CHOSEN ONE THROUGH MAGNETIC TAG");
       }
     }
+    
     else if (c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_27_GREEN)
     {
       c->lightCube(&green);
@@ -479,6 +481,28 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
     }
   }
 
+   /*
+   * If something else told us we are part of a line (e.g. WIFI, or special tag)
+   * Then we need to check our neighbors, etc...
+   * We just arbitrarily pick the first face with a neighbor, and make that face, and its opposite
+   * to be active faces...
+   */
+  if((PART_OF_LINE == true) && (MAGIC_THE_LIGHT == false))
+  {
+    if((first_neighborFace > -1) && (first_neighborFace < 6))
+    {
+       FACES_LIGHTS[first_neighborFace] = 1;
+       FACES_LIGHTS[oppositeFace(first_neighborFace)] = 1;
+       MAGIC_THE_LIGHT = true;
+    }
+  }
+  
+  if(PART_OF_LINE == true)
+  {
+    c->lightCube(&green);
+    wifiDelay(500+random(500));
+  }
+
   /*
    * If we lose all of our neighbors... reset the light things...
    */
@@ -498,64 +522,20 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
     }
   }
   
-  /*
-   * If something else told us we are part of a line (e.g. WIFI, or special tag)
-   * Then we need to check our neighbors, etc...
-   * We just arbitrarily pick the first face with a neighbor, and make that face, and its opposite
-   * to be active faces...
+  /* ----------------------------------------------------------------------------
+   * Now we base our behavior on whether or not the light is turned on...
+   * If it is turned on... we prepare to actually move
+   *
    */
-  if((PART_OF_LINE == true) && (MAGIC_THE_LIGHT == false))
-  {
-    if((first_neighborFace > -1) && (first_neighborFace < 6))
-    {
-       FACES_LIGHTS[first_neighborFace] = 1;
-       FACES_LIGHTS[oppositeFace(first_neighborFace)] = 1;
-       MAGIC_THE_LIGHT = true;
-    }
-  }
-
-  /*
-   * Now we need to figure out what to do based on:
-   * 1. If we are part of a line...
-   * 2. How Many Neighbors we have...
-   */
-  if(PART_OF_LINE == true)
-  {
-    c->lightCube(&green);
-    wifiDelay(500+random(500));
-  }
-  /*
-   * We are NOT part of a line... Now we base our behavior based on the
-   * number of neighbors and orientation of our flywheel...
-   * Steps... Based on Neighbors...
-   * 0. Neighbors...
-   *    a. If flywheel is parallel to ground...
-   *    b. If not       | Light Tracking...
-   *      
-   * 1. Neighbors...
-   *    a. Neighbor is on bottom
-   *      -> Make plane to NOT be parrallel...
-   *      -> Move
-   *    b. Neighbor is on side
-   *      -> Make sure the flywheel is parallel to the ground...
-   *      -> Move clockwise...
-   *    
-   * 2. Neighbors...
-   *    a. One of the neighbors is on the bottom
-   *      -> Move Flywheel to be in plane of two cubes
-   *      -> Try to move away from the non-bottom face
-   *    b. Both Neighbors are in ring around center
-   *      -> 
-   */
-  else if(millis() > 20000)
-  {
-    newBehavior = CHILLING;
-    /*
+   if(TOP_FACE_LIGHT[0] > TOP_LIGHT_THRESHOLD)
+   {
+        newBehavior = CHILLING;
+   /*
    * IF WE HAVE 0 NEIGHBOR...
    */
     if ((numberOfNeighborz == 0) && (c->numberOfNeighbors(2) == 0))
     {
-      //newBehavior = SOLO_LIGHT_TRACK;
+      newBehavior = SOLO_LIGHT_TRACK;
       c->blockingBlink(&teal);
     }
     /*
@@ -587,9 +567,16 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
        */
       else if((first_neighborFace != c->returnBottomFace()) && 
               (first_neighborFace != c->returnTopFace()) &&
-               c->returnForwardFace() == -1)
+               (c->returnForwardFace() == -1))
       {
-        c->moveOnLattice(&horizontal_F);
+        if(DIRECTION)
+        {
+          c->moveOnLattice(&horizontal_F);
+        }
+        else
+        {
+          c->moveOnLattice(&horizontal_R);
+        }
       }        
       
       else
@@ -601,9 +588,8 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
    /*
     * IF WE HAVE 2 NEIGHBOR...
     */
-    else if ((numberOfNeighborz == 2) && (c->numberOfNeighbors(2) == 2) && millis() > (50000+random(10000)))
+    else if ((numberOfNeighborz == 2) && (c->numberOfNeighbors(2) == 2) && (millis() > (30000+random(15000))))
     {
-      int CW_or_CCW = 0;
       if(c->areFacesOpposite(first_neighborFace, second_neighborFace) == true)
       {
         c->blockingBlink(&purple);
@@ -618,7 +604,7 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
              (second_neighborFace != c->returnBottomFace()) && (second_neighborFace != c->returnTopFace()))
       {
         c->blockingBlink(&white);
-        if(c->isPlaneInPlaneOfFaces(first_neighborFace, second_neighborFace) && millis() > 55000)
+        if(c->isPlaneInPlaneOfFaces(first_neighborFace, second_neighborFace) && millis() > random(60000))
         {
           c->moveOnLattice(&horizontal_Stair_F);
         }
@@ -632,25 +618,25 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
        * Then we need to set the plane to be in the plane of both neighbors, and then 
        * try to move DOWN away... Not to climb.
        */
-      else if((first_neighborFace == c->returnBottomFace()) || (second_neighborFace == c->returnTopFace()) ||
-              (second_neighborFace == c->returnTopFace()) || (second_neighborFace == c->returnBottomFace()))
+      else if((first_neighborFace == c->returnBottomFace()) ||
+              (second_neighborFace == c->returnBottomFace()))
       {
         if(first_neighborFace == c->returnBottomFace())
         {
-          CW_or_CCW = faceClockiness(c->returnBottomFace(), second_neighborFace);
+          DIRECTION = faceClockiness(c->returnBottomFace(), second_neighborFace);
         }
         
         else if(second_neighborFace == c->returnBottomFace())
         {
-          CW_or_CCW = faceClockiness(c->returnBottomFace(), first_neighborFace);
+          DIRECTION = faceClockiness(c->returnBottomFace(), first_neighborFace);
         }
         
-        if(CW_or_CCW == 1)
+        if(DIRECTION == 1)
         {
           c->moveOnLattice(&stepDownStair_F);
         }
         
-        else if(CW_or_CCW == -1)
+        else if(DIRECTION == -1)
         {
           c->moveOnLattice(&stepDownStair_R);
         }
@@ -685,12 +671,18 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
       c->blockingBlink(&red);
     }
   }
-  
+  /*
+   * THis means that the light is off what we are supposed to do...
+   * 1. if we have no neighbors, spin a little bit...
+   * 2. Try to get to the correct plane
+   * 3. Turn on if we are part of line...
+   * 4. Wait
+   */
   else
   {
+    wifiDelay(500);
     c->blockingBlink(&yellow);
   }
-  
   wifiDelay(400);
   return (newBehavior);
 }

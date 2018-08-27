@@ -45,8 +45,8 @@ extern bool HALF_LIGHT;
 /*
  * The following are global variables involved with *CUBE game
  */
-#define SAMPLES 12
-extern int TOP_FACE_LIGHT[SAMPLES];
+#define TOP_LIGHT_SAMPLES 12
+extern int TOP_FACE_LIGHT[TOP_LIGHT_SAMPLES];
 extern int TOTAL_LIGHT;
 #define TOP_LIGHT_THRESHOLD 1000
 extern int FACES_LIGHTS[FACES];

@@ -40,7 +40,7 @@ bool Cube::update()
    * This functions updates all of the sensor buffers on each cube
    * It also refreshes variables like this->topFace/ forwardFace/ ...
    */
-  wifiDelay(random(100));
+  wifiDelay(10+random(100));
   this->processState();// this deals with anything involving IMUs 
   this->updateFaces();
 
@@ -48,20 +48,32 @@ bool Cube::update()
    * Manage Light Digits... GLobal values from the top face...
    */
   int topFacee = this->returnTopFace();
+  
   if(topFacee > -1 && topFacee < FACES)
   {
     // TOPFACELIGHT -- [0] [1] [2] [3] ... [n]...
     // TOPFACELIGHT -- [99] [4] [4]
-    
-    for(int i = 0; i < (SAMPLES-1); i++)
-    {
-      TOP_FACE_LIGHT[i+1] = TOP_FACE_LIGHT[i];
-    }
     TOP_FACE_LIGHT[0] = this->faces[this->returnTopFace()].returnAmbientValue(0);
     if(TOP_FACE_LIGHT[0] > TOP_LIGHT_THRESHOLD && TOP_FACE_LIGHT[1] < TOP_LIGHT_THRESHOLD)
     {
       LIGHT_TRANSITIONS++;
     }
+  }
+  /*
+   * If we cannot identify a top face... 
+   * We blink red and soon will do something else
+   */
+  else
+  {
+    this->blockingBlink(&red);
+  }
+  
+  /*
+   * Shift the TOP_FACE_LIGHT circular buffer...
+   */
+  for(int i = 0; i < (TOP_LIGHT_SAMPLES-1); i++)
+  {
+    TOP_FACE_LIGHT[i+1] = TOP_FACE_LIGHT[i];
   }
   
   TOTAL_LIGHT = 0;
