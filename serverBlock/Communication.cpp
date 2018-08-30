@@ -211,7 +211,10 @@ void receivedCallback(uint32_t from, String & stringMsg)
      */
     database[senderCubeID][ACTIVE] = 1;
   }
-
+  else if(recievedMID == CONFIRM_MESSAGE_ID)
+  {
+    CONFIRMED = true;
+  }
   /*
    * If there is space in the inbox
    */
@@ -228,12 +231,13 @@ void receivedCallback(uint32_t from, String & stringMsg)
       inbox[inboxHead].senderID = senderCubeID;
       advanceInboxHead();
     }
+
     
     /*
      * Update the parameters in the database
      */
     database[senderCubeID][bottom_Face] = tempBottomFace;
-    
+
     if(jsonMsg.containsKey("f0"))
       database[senderCubeID][face_0] = jsonMsg["f0"];
     else
@@ -280,14 +284,14 @@ void newConnectionCallback(uint32_t nodeId)
    */
   int tempCubeID = getCubeIDFromAddress(nodeId);
   
-  Serial.print("New Connection... Cube: ");
+  Serial.print("New Cube: ");
   Serial.println(tempCubeID);
   /*
    * Make 100% sure we are protecting the indexing of the array...
    */
-  if(tempCubeID > 0 && tempCubeID < NUM_CUBES)
+  if(tempCubeID > -1 && tempCubeID < NUM_CUBES)
   {
-    database[getCubeIDFromAddress(nodeId)][ACTIVE] = 1;
+    database[getCubeIDFromAddress(tempCubeID)][ACTIVE] = 1;
   }
 }
 
@@ -498,7 +502,7 @@ bool sendMessage(int recipientID, String msg)
 {
   if(MESSAGE_DEBUG)
   {
-    Serial.print("sending to:  ");
+    Serial.print("To:  ");
     Serial.print(recipientID);
     Serial.print(" | ");
     Serial.println(msg);

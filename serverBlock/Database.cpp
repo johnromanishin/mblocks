@@ -58,8 +58,10 @@ void testDatabase()
        */
       if((GAME == "LINE") && (checkIfInLine(cubeEntry) == true))
       {
+        Serial.println("CHECK IF IN LINE is TRUE!");
         if(FOUND_LINE == false)
         {
+          Serial.println("Sending message to pick a cube...");
           pushMessage(cubeEntry, "THE_ONE");
           pushMessage(cubeEntry, "THE_ONE");
           FOUND_LINE = true;

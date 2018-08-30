@@ -39,6 +39,7 @@ void setup()
 //    wifiDelay(1000);
 //    digitalWrite(Switch, HIGH);
 //    wifiDelay(1000);
+
 //  }
   digitalWrite(Switch, LOW);
   wifiDelay(1000);
@@ -90,6 +91,7 @@ void loop()
   wifiDelay(5);
   if((loopCounter % 500) == 0)
   {
+    Serial.println("Sending message to active cubes...");
     for(int cube = 0; cube < NUM_CUBES; cube++)
     {
       if(database[cube][ACTIVE] == 1)
@@ -98,21 +100,7 @@ void loop()
       }
     }
   }
-  
-  if((loopCounter % 9999) == 0)
-  {
-   
-  }
-  if((loopCounter % 9399) == 0)
-  {    
-    //pushBlinkMessage(10);
-    //pushBlinkMessage(13);
-    
-    //pushBlinkMessage(2);
-    //pushBlinkMessage(1);
-    //pushBlinkMessage(3);
-    //pushBlinkMessage(9);
-      }
+ 
   if((loopCounter % 99999) == 0)
   {
     //pushBlinkMessage(TESTCUBE_ID);
@@ -123,7 +111,8 @@ void loop()
     //pushBlinkMessage(11);
     //Serial.println("Added message to que");
   }
-  if((loopCounter % 50) == 0)
+  
+  if((loopCounter % 57) == 0)
   {
     //pushBlinkMessage(TESTCUBE_ID);
     //Serial.println("Added message to que");
@@ -131,6 +120,14 @@ void loop()
   }
   //  testThingNow();
   loopCounter++;
+  if(CONFIRMED && millis() > 30000)
+  {
+    wifiDelay(4000);
+    
+    Serial.println("TURNING ON THE LIGHTS");
+    digitalWrite(Switch, HIGH);
+    CONFIRMED = false;
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -144,6 +141,7 @@ void interactWithRangeSensor()
   {
 //    wifiDelay(300); // wait a bit to make sure it is a valid reading
 //    rangeValue = readRangeSensor();
+
 //    if(rangeValue < 20)
 //    {
 //      discoverActiveCubes(5000);

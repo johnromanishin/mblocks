@@ -3,11 +3,13 @@
  * Flags - 
  */
 extern bool FOUND_LINE = false;
+extern bool CONFIRMED = false;
+
 
 /*
  * State Machine Variable
  */
-extern String GAME = "CUBE";
+extern String GAME = "LINE";
 
 
 /*
