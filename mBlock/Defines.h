@@ -8,6 +8,12 @@
 #define FACES 6 
 
 /*
+ * This is a special message ID which the cubes use to communicate to the
+ * server
+ */
+#define CONFIRM_MESSAGE_ID 333
+
+/*
  * This number is the cube's unique ID number, Populated from a look up table in initialization.cpp
  * This is used for WIFI messages, and for updating calibration data
  */
@@ -52,6 +58,7 @@ extern int TOTAL_LIGHT;
 extern int FACES_LIGHTS[FACES];
 extern int LIGHT_TRANSITIONS;
 extern int DIRECTION;
+extern long timeLightTurnedOn;
 
 /*
  * These Global variables are involved with sending an acknowledgement message
@@ -74,7 +81,7 @@ extern int f5;
 #define wifiAddress_cube02  882644344   //  {10229112, 2},  // PC PURPLE  - DF:DF:3C:A0:F1:77
 #define wifiAddress_cube03  887459591   //  {15044359, 3}   // ORANGE PC RED  CD:2B:5E:AB:3E:F3
 #define wifiAddress_cube04  2139281740  //  {8575308, 4},   // PC Green : ED:A6:6A:8E:1B:58
-#define wifiAddress_cube05  2131666859  //  {960427, 5},    // PEI RED  D0:D5:6F:CB:32:4C
+#define wifiAddress_cube05  2139282624     //  {960427, 5},    // PEI RED  D0:D5:6F:CB:32:4C
 #define wifiAddress_cube06  2139284147  //  {8577715, 6},   // PC Brown  C5:FF:AB:04:3B:9D
 #define wifiAddress_cube07  2131666674  //  {960242, 7},    // PEI ORANGE E6:F6:05:69:08:F2
 #define wifiAddress_cube08  2131666141  //  {959709, 8},    // PC YELLOW  - FB:0D:8F:2C:3B:B4           

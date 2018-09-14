@@ -41,7 +41,8 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
   
   Behavior newBehavior = checkForWifiCommands(c, inputBehavior);
   
-  if (MAGIC_DEBUG) {
+  if (MAGIC_DEBUG) 
+  {
     Serial.print("nextBehavior is... ");
     Serial.println(behaviorsToCmd(newBehavior));
   }
@@ -290,6 +291,9 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
     else if (receivedCMD == "THE_ONE")
     {
       THE_CHOSEN_ONE = true;
+      sendAck(CONFIRM_MESSAGE_ID);
+      wifiDelay(1000);
+      sendAck(CONFIRM_MESSAGE_ID);
       if(MAGIC_DEBUG)
         Serial.println("RECEIVED WIFI COMMAND TO BE CHOSEN ONE");
     }
@@ -520,156 +524,167 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
     {
       FACES_LIGHTS[face] = 0;
     }
+    
+    if((TOP_FACE_LIGHT[0] > TOP_LIGHT_THRESHOLD) && (TOP_FACE_LIGHT[8] > TOP_LIGHT_THRESHOLD))
+    {    
+      c->blockingBlink(&yellow);
+      c->moveOnLattice(&horizontal_F);
+    }
   }
   
   /* ----------------------------------------------------------------------------
+   * ----------------------------------------------------------------------------
+   * ----------------------------------------------------------------------------
    * Now we base our behavior on whether or not the light is turned on...
-   * If it is turned on... we prepare to actually move
-   *
+   * If it is turned on... we prepare to actually move. However we wait 10 seconds from when the light turned on
+   
    */
-   if(TOP_FACE_LIGHT[0] > TOP_LIGHT_THRESHOLD)
-   {
-        newBehavior = CHILLING;
-   /*
-   * IF WE HAVE 0 NEIGHBOR...
-   */
-    if ((numberOfNeighborz == 0) && (c->numberOfNeighbors(2) == 0))
+    int timeToWait = 10000;
+    if(TOP_FACE_LIGHT[0] > TOP_LIGHT_THRESHOLD && (millis() - timeLightTurnedOn) > timeToWait && 
+      (PART_OF_LINE == false ))
     {
-      newBehavior = SOLO_LIGHT_TRACK;
-      c->blockingBlink(&teal);
-    }
-    /*
-    * IF WE HAVE 1 NEIGHBOR...
-    */
-    else if ((numberOfNeighborz == 1) && (c->numberOfNeighbors(2) == 1))
-    {
+      newBehavior = CHILLING;
       /*
-       * If we have ONE neighbor, and it is on the BOTTOM, then our strategy is to just move until get down
-       * to the lower leve.
-       */
-      if (first_neighborFace == c->returnBottomFace())
+      * IF WE HAVE 0 NEIGHBOR...
+      */
+      if ((numberOfNeighborz == 0) && (c->numberOfNeighbors(2) == 0))
       {
-        if(c->returnForwardFace() != -1)
+        newBehavior = SOLO_LIGHT_TRACK;
+        c->blockingBlink(&teal);
+      }
+      /*
+      * IF WE HAVE 1 NEIGHBOR...
+      */
+      else if ((numberOfNeighborz == 1) && (c->numberOfNeighbors(2) == 1))
+      {
+        /*
+        * If we have ONE neighbor, and it is on the BOTTOM, then our strategy is to just move until get down
+        * to the lower leve.
+        */
+        if (first_neighborFace == c->returnBottomFace())
         {
-          c->moveOnLattice(&traverse_F);
+          if(c->returnForwardFace() != -1)
+          {
+            c->moveOnLattice(&traverse_F);
+          }
+          /*
+          * If our flywheel is parallel to the ground, then we attempt to change planes
+          */
+          else
+          {
+            goToPlane(c, faceArrowPointsTo(first_neighborFace, c->faces[first_neighborFace].returnNeighborAngle(0)));
+          }
         }
         /*
-         * If our flywheel is parallel to the ground, then we attempt to change planes
-         */
-        else
-        {
-          goToPlane(c, faceArrowPointsTo(first_neighborFace, c->faces[first_neighborFace].returnNeighborAngle(0)));
-        }
-      }
-      /*
-       * This means that we are ready to move... Since the face is neither top/botom
-       * and our plane is parallal to the ground
-       */
-      else if((first_neighborFace != c->returnBottomFace()) && 
+        * This means that we are ready to move... Since the face is neither top/botom
+        * and our plane is parallal to the ground
+        */
+        else if((first_neighborFace != c->returnBottomFace()) && 
               (first_neighborFace != c->returnTopFace()) &&
                (c->returnForwardFace() == -1))
-      {
-        if(DIRECTION)
         {
-          c->moveOnLattice(&horizontal_F);
-        }
-        else
-        {
-          c->moveOnLattice(&horizontal_R);
-        }
-      }        
+          if(DIRECTION)
+          {
+            c->moveOnLattice(&horizontal_F);
+          }
+          else
+          {
+            c->moveOnLattice(&horizontal_R);
+          }
+        }        
       
-      else
-      {
-        goToPlane(c, c->returnTopFace());
-      }
-    }
-  
-   /*
-    * IF WE HAVE 2 NEIGHBOR...
-    */
-    else if ((numberOfNeighborz == 2) && (c->numberOfNeighbors(2) == 2) && (millis() > (30000+random(15000))))
-    {
-      if(c->areFacesOpposite(first_neighborFace, second_neighborFace) == true)
-      {
-        c->blockingBlink(&purple);
-        wifiDelay(1000);
-        c->blockingBlink(&purple);
-      }
-      /*
-       * If both of the faces are in the plane parallel to the ground... we pick a direction (FORWARD)
-       * and move that way
-       */
-      else if((first_neighborFace != c->returnBottomFace()) && (first_neighborFace != c->returnTopFace()) &&
-             (second_neighborFace != c->returnBottomFace()) && (second_neighborFace != c->returnTopFace()))
-      {
-        c->blockingBlink(&white);
-        if(c->isPlaneInPlaneOfFaces(first_neighborFace, second_neighborFace) && millis() > random(60000))
-        {
-          c->moveOnLattice(&horizontal_Stair_F);
-        }
         else
         {
           goToPlane(c, c->returnTopFace());
         }
       }
-      /*
-       * if Either of the faces that we are connect to is the bottom face...
-       * Then we need to set the plane to be in the plane of both neighbors, and then 
-       * try to move DOWN away... Not to climb.
-       */
-      else if((first_neighborFace == c->returnBottomFace()) ||
-              (second_neighborFace == c->returnBottomFace()))
-      {
-        if(first_neighborFace == c->returnBottomFace())
-        {
-          DIRECTION = faceClockiness(c->returnBottomFace(), second_neighborFace);
-        }
-        
-        else if(second_neighborFace == c->returnBottomFace())
-        {
-          DIRECTION = faceClockiness(c->returnBottomFace(), first_neighborFace);
-        }
-        
-        if(DIRECTION == 1)
-        {
-          c->moveOnLattice(&stepDownStair_F);
-        }
-        
-        else if(DIRECTION == -1)
-        {
-          c->moveOnLattice(&stepDownStair_R);
-        }
-      }
-
-      /*
-       * This means one of the faces is the top/bottom face, and the flywheel is NOT
-       * in a valid plane, so we pick a face that isn't the bottom/top face
-       * and move the plane to be parallal to that
-       */
-      else if(c->returnForwardFace() == -1)
-      {
-        goToPlane(c, faceArrowPointsTo(c->returnBottomFace(), 
-        c->faces[c->returnBottomFace()].returnNeighborAngle(0)));
-      }
-      else
-      {
-        c->superSpecialBlink(&yellow, 100);
-      }
-    }
-
+  
     /*
-    * IF WE HAVE 2+ NEIGHBOR...
-    */
-
-    else if (numberOfNeighborz > 2)
-    {
-      if (MAGIC_DEBUG) 
+      * IF WE HAVE 2 NEIGHBOR...
+      */
+      else if ((numberOfNeighborz == 2) && (c->numberOfNeighbors(2) == 2) && 
+            ((millis() - timeLightTurnedOn) > (30000+random(20000))))
       {
-        Serial.println("***NEIGHBORS == __ 2+ __");
+        if(c->areFacesOpposite(first_neighborFace, second_neighborFace) == true)
+        {
+          c->blockingBlink(&purple);
+          wifiDelay(1000);
+          c->blockingBlink(&purple);
+        }
+        /*
+        * If both of the faces are in the plane parallel to the ground... we pick a direction (FORWARD)
+        * and move that way
+        */
+        else if((first_neighborFace != c->returnBottomFace()) && (first_neighborFace != c->returnTopFace()) &&
+             (second_neighborFace != c->returnBottomFace()) && (second_neighborFace != c->returnTopFace()))
+        {
+          c->blockingBlink(&white);
+          if(c->isPlaneInPlaneOfFaces(first_neighborFace, second_neighborFace) && millis() > random(60000))
+          {
+            c->moveOnLattice(&horizontal_Stair_F);
+          }
+          else
+          {
+            goToPlane(c, c->returnTopFace());
+          }
+        }
+        /*
+         * if Either of the faces that we are connect to is the bottom face...
+         * Then we need to set the plane to be in the plane of both neighbors, and then 
+         * try to move DOWN away... Not to climb.
+         */
+        else if((first_neighborFace == c->returnBottomFace()) ||
+                (second_neighborFace == c->returnBottomFace()))
+        {
+          if(first_neighborFace == c->returnBottomFace())
+          {
+            DIRECTION = faceClockiness(c->returnBottomFace(), second_neighborFace);
+          }
+        
+          else if(second_neighborFace == c->returnBottomFace())
+          {
+            DIRECTION = faceClockiness(c->returnBottomFace(), first_neighborFace);
+          }
+        
+          if(DIRECTION == 1)
+          {
+            c->moveOnLattice(&stepDownStair_F);
+          }
+        
+          else if(DIRECTION == -1)
+          {
+            c->moveOnLattice(&stepDownStair_R);
+          }
+        }
+
+        /*
+         * This means one of the faces is the top/bottom face, and the flywheel is NOT
+         * in a valid plane, so we pick a face that isn't the bottom/top face
+         * and move the plane to be parallal to that
+         */
+        else if(c->returnForwardFace() == -1)
+        {
+          goToPlane(c, faceArrowPointsTo(c->returnBottomFace(), 
+          c->faces[c->returnBottomFace()].returnNeighborAngle(0)));
+        }
+        else
+        {
+          c->superSpecialBlink(&yellow, 100);
+        }
       }
-      c->blockingBlink(&red);
-    }
+
+      /*
+      * IF WE HAVE 2+ NEIGHBOR...
+      */
+
+      else if (numberOfNeighborz > 2)
+      {
+        if (MAGIC_DEBUG) 
+        {
+          Serial.println("***NEIGHBORS == __ 2+ __");
+        }
+        c->blockingBlink(&red);
+      }
   }
   /*
    * THis means that the light is off what we are supposed to do...
@@ -691,7 +706,7 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
 //=============================================================================================
 //=============================================================================================
 //=============================================================================================
-//=============================*LIGHT MAGNETIC TAGS CHECKING====================================
+//=============================*LIGHT STATE MACHINECHECKING====================================
 //=============================================================================================
 //=============================================================================================
 //=============================================================================================
@@ -716,7 +731,8 @@ Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior, int numberOf
       millis() < 10000)
   {
     newBehavior = CHILLING;
-    c->blockingBlink(&teal);
+    c->blockingBlink(&blue);
+    wifiDelay(500);
   }
   else
   {

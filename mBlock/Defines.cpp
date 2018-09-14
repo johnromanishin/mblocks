@@ -20,8 +20,9 @@ extern int f4 = -1;
 extern int f5 = -1;
 
 int thisCubeID = 0;
-String Game = "LIGHT";
+String Game = "NOTHING";
 extern bool HALF_LIGHT = false;
+
 
 /*
  * 
@@ -30,6 +31,8 @@ extern int LIGHT_TRANSITIONS = 0;
 extern int TOP_FACE_LIGHT[TOP_LIGHT_SAMPLES] = {};
 extern int TOTAL_LIGHT = 0;
 extern int DIRECTION = 1;
+extern long timeLightTurnedOn = 0;
+
 
 
 /*

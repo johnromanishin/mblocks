@@ -67,7 +67,7 @@ void setup() // starts up the various electronic hardware...
   c.updateCubeID(thisCubeID, mesh.getNodeId()); // updated variable c.cubeID from initialization loop up table...
   c.findPlaneStatus(true); // Populate the initial reading for the current plane status
 
-    for(int updateTimes = 0; updateTimes < 3; updateTimes++)
+  for(int updateTimes = 0; updateTimes < 2; updateTimes++)
   {
     c.update();
     wifiDelay(200);
@@ -87,11 +87,17 @@ void setup() // starts up the various electronic hardware...
    * It is just a global string that can be defined anywhere...
    * IT is set in defines.cpp
   */
+  Game = "LINE";
   
   if((TOP_FACE_LIGHT[0] > TOP_LIGHT_THRESHOLD) && 
               (c.numberOfNeighbors(0) == 0) && 
               (c.numberOfNeighbors(2) == 0))
   {
+    //Game = "LIGHT";
+    
+    c.blockingBlink(&yellow);
+    c.moveOnLattice(&horizontal_F);
+    //
     Game = "LINE";
   }
   

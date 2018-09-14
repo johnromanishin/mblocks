@@ -57,6 +57,7 @@ bool Cube::update()
     if(TOP_FACE_LIGHT[0] > TOP_LIGHT_THRESHOLD && TOP_FACE_LIGHT[1] < TOP_LIGHT_THRESHOLD)
     {
       LIGHT_TRANSITIONS++;
+      timeLightTurnedOn = millis();
     }
   }
   /*

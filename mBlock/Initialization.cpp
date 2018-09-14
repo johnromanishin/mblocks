@@ -394,7 +394,7 @@ void lookUpCalibrationValues(long wifiID)
      //********************************
      case wifiAddress_cube05: //960427 PEI RED  D0:D5:6F:CB:32:4C
       thisCubeID = 5;
-      HALF_LIGHT = false;
+      HALF_LIGHT = true;
 
       TRAVERSE_RPM_F = 6500;
       TRAVERSE_RPM_R = 6500;
@@ -421,7 +421,7 @@ void lookUpCalibrationValues(long wifiID)
   //********************************
   case wifiAddress_cube06: //8577715 PC Brown  C5:FF:AB:04:3B:9D
       thisCubeID = 6;
-      HALF_LIGHT = false;
+      HALF_LIGHT = true;
 
       TRAVERSE_RPM_F = 6500;
       TRAVERSE_RPM_R = 6500;
