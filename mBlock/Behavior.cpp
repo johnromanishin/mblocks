@@ -11,8 +11,8 @@
  * *CUBE - code to form a large cube
  */
 
-/*
- * ===============================================================================================================
+/*p
+ * ==========================p=====================================================================================
  * ===============================================================================================================
  * ===============================================================================================================
  * ============================= *BASIC STATE MACHINE UPKEEP======================================================
@@ -39,14 +39,30 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
    * 4. Change "game"
    */
   
+
   Behavior newBehavior = checkForWifiCommands(c, inputBehavior);
-  
   if (MAGIC_DEBUG) 
   {
     Serial.print("nextBehavior is... ");
     Serial.println(behaviorsToCmd(newBehavior));
   }
   
+  /*
+   * If we have failed to properly move three times in a row, we reset...
+   */
+  if(c->moveSuccessBuffer.access(0) == false && 
+     c->moveSuccessBuffer.access(1) == false &&
+     c->moveSuccessBuffer.access(2) == false)
+     {
+          c->superSpecialBlink(&purple, 100);
+          c->superSpecialBlink(&purple, 90);
+          c->superSpecialBlink(&red, 80);
+          c->superSpecialBlink(&purple, 70);
+          c->superSpecialBlink(&yellow, 60);
+          Serial.println("esprst");
+          delay(100);
+          Serial.println("esprst");
+     }
   /*
    * checkForMagneticTagsStandard - this function "processes" the magnetic tags
    * some tags will prompt immediate actions, including making it go to sleep, 
@@ -67,6 +83,11 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
   else if(Game == "CUBE") // *CUBE
   {
     return(CubeStateMachine(c, newBehavior, numberOfNeighborz));
+  }
+  
+  else if(Game == "PATH") // *CUBE
+  {
+    return(PathStateMachine(c, newBehavior, numberOfNeighborz));
   }
   return (newBehavior);
 }
@@ -366,7 +387,7 @@ int checkForMagneticTagsStandard(Cube* c)
       if ((c->faces[face].returnNeighborAngle(0) > -1) && (MAGIC_THE_LIGHT == false))
       {
         c->lightFace(faceArrowPointsTo(face, c->faces[face].returnNeighborAngle(0)), &purple);
-        wifiDelay(100);
+        wifiDelay(200);
         c->lightCube(&off);
       }
     }
@@ -424,6 +445,7 @@ int checkForMagneticTagsStandard(Cube* c)
   }
   return (neighbors);
 }
+
 
 /*
  * ===============================================================================================================
@@ -565,7 +587,14 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
         {
           if(c->returnForwardFace() != -1)
           {
-            c->moveOnLattice(&traverse_F);
+            if(DIRECTION)
+            {
+              c->moveOnLattice(&traverse_F);
+            }
+            else
+            {
+              c->moveOnLattice(&traverse_R);
+            }
           }
           /*
           * If our flywheel is parallel to the ground, then we attempt to change planes
@@ -727,6 +756,37 @@ Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior, int numberOf
 
   // update sensors, numberOfNeighbors, and check wifi commands...
   //int numberOfNeighborz = checkForMagneticTagsStandard(c);
+  if(MAGIC_THE_LIGHT)
+  {
+    for(int face = 0; face < FACES; face++)
+    {
+      if(face == c->returnTopFace() || face == c->returnBottomFace())
+      {
+        wifiDelay(1);
+      }
+      else
+      {
+        FACES_LIGHTS[face] = 1;
+      }
+    }
+  }
+  if((c->numberOfNeighbors(0) == 0) && (c->numberOfNeighbors(2) == 0))
+  {
+    if(MAGIC_DEBUG)
+    {
+       Serial.println("Erassing magic the light and all faces...");
+    }
+    
+    MAGIC_THE_LIGHT = false;
+    PART_OF_LINE = false;
+    for(int face = 0; face < FACES; face++)
+    {
+      FACES_LIGHTS[face] = 0;
+    }
+  }
+  /*
+   * First check to see if we should try to move at all - if not, just chill for a bit
+   */
   if(((TOP_FACE_LIGHT[0] < TOP_LIGHT_THRESHOLD) && (TOP_FACE_LIGHT[1] < TOP_LIGHT_THRESHOLD)) || 
       millis() < 10000)
   {
@@ -734,6 +794,9 @@ Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior, int numberOf
     c->blockingBlink(&blue);
     wifiDelay(500);
   }
+  /*
+   * Now we know we are supposed to start moving... so 
+   */
   else
   {
     //************************************
@@ -748,9 +811,11 @@ Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior, int numberOf
     //************************************
     else if (numberOfNeighborz == 1)
     {
-      if (MAGIC_DEBUG) {
+      if (MAGIC_DEBUG) 
+      {
         Serial.println("***NEIGHBORS == 1");
       }
+      
       int neighborFace = c->whichFaceHasNeighbor();
       if (c->faces[neighborFace].returnNeighborType(0) == TAGTYPE_REGULAR_CUBE)
       {
@@ -930,6 +995,90 @@ Behavior CubeStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
   return (newBehavior);
 }
 
+
+/*
+ * ===============================================================================================================
+ * ==================*PATH STATE MACHINE==========================================================================
+ * ===============================================================================================================
+ */
+Behavior PathStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
+/*
+ * This code determines what to do if the goal is to get into a line...
+ * Issues...
+ * 
+ * Variables...
+ * bool PART_OF_LINE
+ * int FACES_LIGHTS[FACES];
+ * State Discussion...
+ * First... if we think we are part of a line | SEEN THE LIGHT! | then we have two special faces...
+ */
+{
+  Behavior newBehavior = inputBehavior; 
+  int numberOfNeighborz = c->numberOfNeighbors(0);
+  int first_neighborFace = c->whichFaceHasNeighbor(0);
+  
+  /* ----------------------------------------------------------------------------
+   * ----------------------------------------------------------------------------
+   * ----------------------------------------------------------------------------
+   * Now we base our behavior on whether or not the light is turned on...
+   * If it is turned on... we prepare to actually move. However we wait 10 seconds from when the light turned on
+  */ 
+    /*
+  * IF WE HAVE 0 NEIGHBOR...
+  */
+  if ((numberOfNeighborz == 0) && (c->numberOfNeighbors(2) == 0))
+  {
+    newBehavior = CHILLING;
+    c->blockingBlink(&teal);
+  }
+  if(MAGIC_THE_LIGHT)
+  {
+    c->lightCube(&green);
+    wifiDelay(5000);
+  }
+  /*
+  * IF WE HAVE 1 NEIGHBOR...
+  */
+  else if ((numberOfNeighborz == 1) && (c->numberOfNeighbors(2) == 1))
+  {
+    if(first_neighborFace == c->returnBottomFace())
+    {
+      newBehavior = FOLLOW_ARROWS;
+    }
+    else
+    {
+      newBehavior = CLIMB;
+    }
+  }
+  
+/*
+  * IF WE HAVE 2 NEIGHBOR...
+  */
+  if ((numberOfNeighborz == 2) && (c->numberOfNeighbors(2) == 2))
+  {
+    //c->faces[c->returnTopFace()].turnOnFaceLEDs(1, 1, 1, 1);
+    newBehavior = CHILLING;
+    wifiDelay(1000);
+    FACES_LIGHTS[c->returnTopFace()] = 1;
+  }
+
+  /*
+  * IF WE HAVE 2+ NEIGHBOR...
+  */
+  else if (numberOfNeighborz > 2)
+  {
+    //c->faces[c->returnTopFace()].turnOnFaceLEDs(1, 1, 1, 1);
+    newBehavior = CHILLING;
+    FACES_LIGHTS[c->returnTopFace()] = 1;
+    wifiDelay(1000);
+  }
+
+  wifiDelay(400);
+  return (newBehavior);
+}
+
+
+
 Behavior sleep(Cube* c)
 {
   c->blockingBlink(&red, 10);
@@ -953,9 +1102,6 @@ Behavior followArrows(Cube* c) // purple
   Behavior nextBehavior = FOLLOW_ARROWS; // default is to keep doing what we are doing.
   int loopCounter = 0;
   nextBehavior = basicUpkeep(c, nextBehavior);  // check wifi and Magnetic Sensors
-  //(*c).superSpecialBlink(&purple, 100);
-  c->superSpecialBlink(&purple, 100);
-  c->superSpecialBlink(&white, 200);
   while ((nextBehavior == FOLLOW_ARROWS) && (millis() < c->shutDownTime))
   {
     for (int i = 0; i < FACES; i ++)
@@ -986,6 +1132,8 @@ Behavior followArrows(Cube* c) // purple
   }
   return (nextBehavior);
 }
+
+
 
 /*
    Pre Solo Light is intented to run before we go into Solo Light Track

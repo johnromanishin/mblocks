@@ -38,6 +38,9 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros);
 
 Behavior CubeStateMachine(Cube* c, Behavior inputBehavior, int numberOfNeighborz);
 
+Behavior PathStateMachine(Cube* c, Behavior inputBehavior, int numberOfNeighborz);
+
+
 /*
  * ----------------------------------------------------------------------------------------------------------------
  * ----------------- I. Behaviors involving non lattice connected Cubes or small mobile assemblies ----------------

@@ -38,6 +38,7 @@ Cube c;
  *    a. Turn into a line
  *    b. Turn into a specific Shape
  *    c. Follow Light and Build random shape
+ *    d. Follow Arrow Path...
  *    
  * 2. Behavior - lower level behavior
  * 
@@ -48,6 +49,8 @@ Behavior behavior = CHILLING;
 void setup() // starts up the various electronic hardware...
 {
   bool shutDown = false;
+  c.moveSuccessBuffer.push(true);
+  c.moveSuccessBuffer.push(true);
   delay(500);
   
   /*
@@ -87,25 +90,32 @@ void setup() // starts up the various electronic hardware...
    * It is just a global string that can be defined anywhere...
    * IT is set in defines.cpp
   */
-  Game = "LINE";
-  
-  if((TOP_FACE_LIGHT[0] > TOP_LIGHT_THRESHOLD) && 
-              (c.numberOfNeighbors(0) == 0) && 
-              (c.numberOfNeighbors(2) == 0))
+  Game = "PATH";
+  bool DetermineGame = false;
+  if(DetermineGame)
   {
-    //Game = "LIGHT";
+    Game = "LIGHT";
     
-    c.blockingBlink(&yellow);
-    c.moveOnLattice(&horizontal_F);
-    //
-    Game = "LINE";
+    if((TOP_FACE_LIGHT[0] > TOP_LIGHT_THRESHOLD) && 
+                (c.numberOfNeighbors(0) == 0) && 
+                (c.numberOfNeighbors(1) == 0))
+    {
+      //Game = "LIGHT";
+      
+      c.blockingBlink(&yellow);
+      for(int i = 0; i < 3; i++);
+      {
+        c.moveOnLattice(&horizontal_F);
+      }
+      //
+      Game = "LINE";
+    }
+    
+    else if(TOP_FACE_LIGHT[0] > TOP_LIGHT_THRESHOLD)
+    {
+      Game = "LINE";
+    }
   }
-  
-  else if(TOP_FACE_LIGHT[0] > TOP_LIGHT_THRESHOLD)
-  {
-    Game = "LINE";
-  }
-  
   /*
    * Try to let the server know that we exist...
    */
@@ -122,6 +132,15 @@ void setup() // starts up the various electronic hardware...
  */
 void loop()
 {
+//  while(1)
+//  {
+//    c.faces[0].turnOnFaceLEDs(1, 1, 1, 1);
+//    wifiDelay(500);
+//    c.faces[0].turnOffFaceLEDs();
+//    wifiDelay(500);
+//  }
+
+  
   behavior = checkForBehaviors(&c, behavior);
   mesh.update();
   if (millis() > c.shutDownTime)
@@ -133,7 +152,7 @@ void loop()
 
 void startUpLightSequence()
 {
-  c.superSpecialBlink(&white, 100);
+  c.superSpecialBlink(&purple, 100);
   c.flashFaceLEDs();
   c.lightCube(&off);
   wifiDelay(500);

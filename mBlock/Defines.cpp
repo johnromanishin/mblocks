@@ -19,10 +19,30 @@ extern int f3 = -1;
 extern int f4 = -1;
 extern int f5 = -1;
 
+extern int ARROW_OFFSETS[CUBES][FACES] = 
+{
+  {0,0,0,0,0,0},  //Cube0
+  {0,0,0,0,0,0},  //Cube1
+  {0,0,0,0,0,0},  //Cube2
+  {0,0,0,0,0,0},  //Cube3
+  {0,0,0,0,0,0},  //Cube4
+  {0,0,0,0,0,0},  //Cube5
+  {0,0,0,0,0,0},  //Cube6 
+  {1,2,3,4,1,2},  //Cube7 Orange PEI
+  {0,0,0,0,0,0},  //Cube8
+  {0,0,0,0,0,0},  //Cube9
+  {0,0,0,0,0,0},  //Cube10
+  {0,0,0,0,0,0},  //Cube11
+  {0,0,0,0,0,0},  //Cube12
+  {0,0,0,0,0,0},  //Cube13
+  {0,0,0,0,0,0},  //Cube14
+  {0,0,0,0,0,0},   //Cube15
+  {0,0,0,0,0,0}   //Cube16
+};
+
 int thisCubeID = 0;
 String Game = "NOTHING";
 extern bool HALF_LIGHT = false;
-
 
 /*
  * 

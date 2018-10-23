@@ -92,9 +92,9 @@ bool Cube::updateFaces()
 {
   for(int i = 0; i< FACES; i++)
     {
-      delay(4); // we wait a bit to allow the i2c switches to switch, so that we don't get collisions on the I2C bus
+      delay(5); // we wait a bit to allow the i2c switches to switch, so that we don't get collisions on the I2C bus
       this->faces[i].updateFace();  // update Face  reads the light and Magnetic sensors  
-      delay(4);
+      delay(5);
     }
   return(true);
 }
@@ -761,6 +761,7 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
   /*
    * Nothing checked out... So the default is to return false
    */
+  this->moveSuccessBuffer.push(false);
   this->superSpecialBlink(&red, 100);
   return(false);
 }

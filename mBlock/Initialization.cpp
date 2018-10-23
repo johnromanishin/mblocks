@@ -311,13 +311,13 @@ void lookUpCalibrationValues(long wifiID)
     //********************************
     case wifiAddress_cube02: //10229112 PC PURPLE  - DF:DF:3C:A0:F1:77
       thisCubeID = 2;
-      HALF_LIGHT = false;
+      HALF_LIGHT = true;
       GlobalPlaneAccel = 3000;
 
-      TRAVERSE_RPM_F = 7000;
-      TRAVERSE_RPM_R = 7000;
-      TRAVERSE_CURRENT_F = 3600;
-      TRAVERSE_CURRENT_R = 4000;
+      TRAVERSE_RPM_F = 7500;
+      TRAVERSE_RPM_R = 7500;
+      TRAVERSE_CURRENT_F = 3900;
+      TRAVERSE_CURRENT_R = 4200;
 
       horizontal_Stair_RPM_F = 14000;
       horizontal_Stair_RPM_R = 14000;
@@ -342,9 +342,9 @@ void lookUpCalibrationValues(long wifiID)
       HALF_LIGHT = false;
 
       TRAVERSE_RPM_F = 6500;
-      TRAVERSE_RPM_R = 6500;
-      TRAVERSE_CURRENT_F = 2800;
-      TRAVERSE_CURRENT_R = 3000;
+      TRAVERSE_RPM_R = 7000;
+      TRAVERSE_CURRENT_F = 2900;
+      TRAVERSE_CURRENT_R = 3100;
 
       horizontal_Stair_RPM_F = 14000;
       horizontal_Stair_RPM_R = 14000;
@@ -478,10 +478,10 @@ void lookUpCalibrationValues(long wifiID)
       thisCubeID = 8;
       HALF_LIGHT = true;
 
-      TRAVERSE_RPM_F = 6500;
-      TRAVERSE_RPM_R = 7000;
-      TRAVERSE_CURRENT_F = 3000;
-      TRAVERSE_CURRENT_R = 3300;
+      TRAVERSE_RPM_F = 7500;
+      TRAVERSE_RPM_R = 7500;
+      TRAVERSE_CURRENT_F = 3200;
+      TRAVERSE_CURRENT_R = 3500;
       GlobalPlaneAccel = 3000;
       
       horizontal_Stair_RPM_F = 14000;
@@ -619,10 +619,10 @@ void lookUpCalibrationValues(long wifiID)
       thisCubeID = 13;
       HALF_LIGHT = true;
 
-      TRAVERSE_RPM_F = 6500;
-      TRAVERSE_RPM_R = 6500;
-      TRAVERSE_CURRENT_F = 2500;
-      TRAVERSE_CURRENT_R = 2500;
+      TRAVERSE_RPM_F = 7000;
+      TRAVERSE_RPM_R = 7500;
+      TRAVERSE_CURRENT_F = 2900;
+      TRAVERSE_CURRENT_R = 4200;
 
       horizontal_Stair_RPM_F = 14000;
       horizontal_Stair_RPM_R = 14000;
@@ -674,10 +674,10 @@ void lookUpCalibrationValues(long wifiID)
       thisCubeID = 15;
       HALF_LIGHT = false;
 
-      TRAVERSE_RPM_F = 6500;
-      TRAVERSE_RPM_R = 6500;
-      TRAVERSE_CURRENT_F = 2700;
-      TRAVERSE_CURRENT_R = 2800;
+      TRAVERSE_RPM_F = 6000;
+      TRAVERSE_RPM_R = 8500;
+      TRAVERSE_CURRENT_F = 2600;
+      TRAVERSE_CURRENT_R = 4200;
 
       horizontal_Stair_RPM_F = 12000;
       
@@ -701,7 +701,7 @@ void lookUpCalibrationValues(long wifiID)
       //********************************
       case wifiAddress_cube16:   //959839 PEI BLACK DB:9D:99:1A:BA:23
       thisCubeID = 16;
-      HALF_LIGHT = false;
+      HALF_LIGHT = true;
 
       TRAVERSE_RPM_F = 6000;
       TRAVERSE_RPM_R = 6000;

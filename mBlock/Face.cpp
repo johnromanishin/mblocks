@@ -103,7 +103,13 @@ bool Face::updateFace()
       MAGIC_THE_LIGHT = true;
     }
   }
-
+//  this->updateAmbient(true);
+//  for(int i = 0; i < 40000; i++)
+//  {
+//    this->updateAmbient(false);
+//    Serial.println(this->returnAmbientValue(0));
+//    wifiDelay(20);
+//  }
   this->disableSensors(); // turn off sensors...
   return(updateSuccess);
 }
@@ -234,6 +240,28 @@ bool Face::processTag()
     * We have now processed the tag, we now push all of the values into the circular buffer
     * that each cube has internally.
     */
+
+  /*
+   * Check the ANGLE OFFSET
+   */
+  if((tagType == TAGTYPE_REGULAR_CUBE) && (tagID > -1) && (tagID < CUBES))
+  {
+    //Serial.print("TAG id is: ");
+    //Serial.println(tagID);
+    //Serial.print("TAG FACE is: ");
+    //Serial.println(tagFace);
+    
+    if(ARROW_OFFSETS[tagID][tagFace] > 0)
+    {
+     // this->blinkRing(200, 20);
+     // Serial.println("WOOOOOO!");
+     tagAngle = (tagAngle + ARROW_OFFSETS[tagID][tagFace])%4;
+    }
+  }
+  
+  /*
+   * 
+   */
   this->neighborTypeBuffer.push(tagType); 
   this->neighborCommandBuffer.push(tagCommand); 
   this->neighborFaceBuffer.push(tagFace); 
