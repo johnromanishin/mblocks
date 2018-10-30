@@ -90,7 +90,8 @@ void setup() // starts up the various electronic hardware...
    * It is just a global string that can be defined anywhere...
    * IT is set in defines.cpp
   */
-  Game = "PATH";
+  //Game = "PATH";
+  Game = "LIGHT";
   bool DetermineGame = false;
   if(DetermineGame)
   {

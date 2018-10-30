@@ -9,6 +9,7 @@
  * *LINE  - LINE FORMING State Machine switching
  * *LIGHT - Light Tracking State Machine switching
  * *CUBE - code to form a large cube
+ * *GRID - Grid Aggregate
  */
 
 /*p

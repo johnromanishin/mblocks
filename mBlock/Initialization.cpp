@@ -466,8 +466,8 @@ void lookUpCalibrationValues(long wifiID)
       
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 3400;
-      CC_CURRENT_R = 3400;
+      CC_CURRENT_F = 3600;
+      CC_CURRENT_R = 3600;
       CC_BRAKETIME_F = 10;
       CC_BRAKETIME_R = 10;
       break;
@@ -504,9 +504,9 @@ void lookUpCalibrationValues(long wifiID)
       break;
 
     //********************************
-    case wifiAddress_cube14: //8576514 PC BLACK  E3:6B:C6:CE:DA:31
+    case wifiAddress_cube14: //8576514 PEI PURPLE  E3:6B:C6:CE:DA:31
       thisCubeID = 14;
-      HALF_LIGHT = false;
+      HALF_LIGHT = true;
 
       TRAVERSE_RPM_F = 6500;
       TRAVERSE_RPM_R = 6500;
