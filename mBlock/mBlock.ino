@@ -135,6 +135,12 @@ void loop()
 {
 //  while(1)
 //  {
+//    int sample = random(5);
+//    Serial.println(sample);
+//    delay(200);
+//  }
+//  while(1)
+//  {
 //    c.faces[0].turnOnFaceLEDs(1, 1, 1, 1);
 //    wifiDelay(500);
 //    c.faces[0].turnOffFaceLEDs();

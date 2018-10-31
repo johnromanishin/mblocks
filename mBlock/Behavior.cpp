@@ -1112,7 +1112,9 @@ Behavior GridAggregateStateMachine(Cube* c, Behavior inputBehavior, int neighbro
   
   int NSEW_lightValues[4] = {0,0,0,0}; // e.g. 
   int NSEW_faceNumbers[4] = {0,0,0,0};
+  bool NSEW_neighbors[4]   = {false,false,false,false};
   int NSEWindex = 0;
+  int lightThreshold = 40;
   
   if(simpleNotComplicated)
   {
@@ -1136,11 +1138,51 @@ Behavior GridAggregateStateMachine(Cube* c, Behavior inputBehavior, int neighbro
         }
         NSEW_faceNumbers[NSEWindex] = face;
         NSEW_lightValues[NSEWindex] = c->faces[face].returnAmbientValue(0);
-        Serial.print("Face: "); Serial.print(face); Serial.print(" || "); Serial.println(c->faces[face].returnAmbientValue(0));
+        NSEW_neighbors[NSEWindex] = c->faces[face].returnNeighborPresence(0);
+        //Serial.print("Face: "); Serial.print(face); Serial.print(" || "); Serial.println(c->faces[face].returnAmbientValue(0));
         NSEWindex++;
       }
     }
+    bool waitingForSample = true;
+    int sample;
+    
+    while(waitingForSample)
+    {
+      sample = random(5);
+      if(sample == 4)
+      {
+        waitingForSample = false;
+        c->superSpecialBlink(&yellow, 160);
+        Serial.println("Just doing nothing");
+      }
+      else
+      {
+        if((NSEW_lightValues[sample] > lightThreshold) && (NSEW_neighbors[sample] == false))
+        {
+          waitingForSample = false;
+          int faceToLight = NSEW_faceNumbers[sample];
+          /*
+           * ACTION - Move or turn on the light
+           */
+          c->lightFace(faceToLight, &purple);
+          if (c->goToPlaneIncludingFaces(c->returnBottomFace(), faceToLight) == true) // then go to plane parallel to these two faces.
+          {
+            int CW_or_CCW = faceClockiness(faceToLight, c->returnBottomFace());
+            if (CW_or_CCW == 1)
+            {
+              c->moveOnLattice(&traverse_F);
+            }
+            else if (CW_or_CCW == -1)
+            {
+              c->moveOnLattice(&traverse_R);
+            }
+          }
+        }
+      }
+    }
+    
 
+    
     if ((numberOfNeighborz == 0) && (c->numberOfNeighbors(2) == 0))
     {
       
@@ -1170,9 +1212,12 @@ Behavior GridAggregateStateMachine(Cube* c, Behavior inputBehavior, int neighbro
       
     }
     wifiDelay(200+random(100));
+    c->lightCube(&off);
   }
 
-
+/*
+ * COMPLICATED VERSION ---------------
+ */
 
 
   

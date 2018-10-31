@@ -704,7 +704,7 @@ bool Cube::setCorePlaneSimple(PlaneEnum targetCorePlane)
   }
   
   this->lightPlaneRing(targetCorePlane); // blink the desired plane to go into...
-  wifiDelay(200);
+  //wifiDelay(200);
   this->printString("sma retractcurrent 975");
   wifiDelay(800);
   bool succeed = false;
