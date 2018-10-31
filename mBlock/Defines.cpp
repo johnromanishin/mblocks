@@ -54,6 +54,12 @@ extern int DIRECTION = 1;
 extern long timeLightTurnedOn = 0;
 
 
+/*
+ * Global variables related to GRID
+ */
+extern bool LIGHT_TOGGLE_STATE = false;
+extern int  LIGHT_TOGGLE_TIME = 0;
+
 
 /*
  * GLobal Variables that are Flags...
@@ -63,6 +69,9 @@ bool MAGIC_THE_LIGHT = false;
 bool DOUBLE_CHECK = true;
 extern bool THE_CHOSEN_ONE = false;
 
+/*
+ * 
+ */
 extern int FACES_LIGHTS[FACES] = {0,0,0,0,0,0};
 
 //typedef struct Motion

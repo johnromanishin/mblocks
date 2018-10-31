@@ -91,7 +91,7 @@ void setup() // starts up the various electronic hardware...
    * IT is set in defines.cpp
   */
   //Game = "PATH";
-  Game = "LIGHT";
+  Game = "GRID";
   bool DetermineGame = false;
   if(DetermineGame)
   {

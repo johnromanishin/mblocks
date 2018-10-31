@@ -35,8 +35,14 @@ bool Face::updateFace()
   if(FACES_LIGHTS[IOExpanderAddress - IO_Address_offset] > 0)
   {
     this->turnOffFaceLEDs();
-    wifiDelay(10);
+    wifiDelay(5);
   }
+//
+//  if(Game == "GRID")
+//  {
+//    this->turnOffFaceLEDs();
+//    delay(2);
+//  }
   
   updateSuccess = (this->enableSensors() &&
                    this->updateAmbient(true) &&
@@ -66,7 +72,7 @@ bool Face::updateFace()
    * This also prevents us from both checking for light digits, but then both faces being off
    * and not detecting it afterall
    */
-  else if(this->returnNeighborType(0) == TAGTYPE_REGULAR_CUBE)
+  if(this->returnNeighborType(0) == TAGTYPE_REGULAR_CUBE)
   /*
    * Now we are going to check our light sensor 16 times, to try to determine if we are connected to
    * a cube which has its LIGHTS on - we do this 16 times to make sure we don't accidently get a false

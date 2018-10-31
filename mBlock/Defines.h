@@ -37,6 +37,12 @@ extern bool MAGIC_THE_LIGHT;
 extern int FACES_LIGHTS[FACES];
 
 /*
+ * Global variables related to GRID
+ */
+extern bool LIGHT_TOGGLE_STATE;
+extern int  LIGHT_TOGGLE_TIME;
+
+/*
  * Double check makes it so thatwhenwe request a plane change, it only happens if we
  * ask for the same plane change twice in a row.
  */

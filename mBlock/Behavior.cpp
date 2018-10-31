@@ -12,8 +12,8 @@
  * *GRID - Grid Aggregate
  */
 
-/*p
- * ==========================p=====================================================================================
+/*
+ * ===============================================================================================================
  * ===============================================================================================================
  * ===============================================================================================================
  * ============================= *BASIC STATE MACHINE UPKEEP======================================================
@@ -29,7 +29,7 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
    * and IMU's and adds the values to the circular buffers corresponding to each sensor
    */
   c->update();
-  wifiDelay(200);
+  wifiDelay(20);
   
   /*
    * checkForWifiCommands looks to see if it should take any actions based on received WIFI commands
@@ -51,19 +51,19 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
   /*
    * If we have failed to properly move three times in a row, we reset...
    */
-  if(c->moveSuccessBuffer.access(0) == false && 
-     c->moveSuccessBuffer.access(1) == false &&
-     c->moveSuccessBuffer.access(2) == false)
-     {
-          c->superSpecialBlink(&purple, 100);
-          c->superSpecialBlink(&purple, 90);
-          c->superSpecialBlink(&red, 80);
-          c->superSpecialBlink(&purple, 70);
-          c->superSpecialBlink(&yellow, 60);
-          Serial.println("esprst");
-          delay(100);
-          Serial.println("esprst");
-     }
+  if( c->moveSuccessBuffer.access(0) == false && 
+      c->moveSuccessBuffer.access(1) == false &&
+      c->moveSuccessBuffer.access(2) == false )
+      {
+        c->superSpecialBlink(&purple, 100);
+        c->superSpecialBlink(&purple, 90);
+        c->superSpecialBlink(&red, 80);
+        c->superSpecialBlink(&purple, 70);
+        c->superSpecialBlink(&yellow, 60);
+        Serial.println("esprst");
+        delay(100);
+        Serial.println("esprst");
+      }
   /*
    * checkForMagneticTagsStandard - this function "processes" the magnetic tags
    * some tags will prompt immediate actions, including making it go to sleep, 
@@ -73,23 +73,33 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
 
   if (Game == "LIGHT") // *LIGHT
   {
+    wifiDelay(200);
     return(LightTrackingStateMachine(c, newBehavior, numberOfNeighborz));
   }
   
   else if(Game == "LINE") // *LINE
   {
+    wifiDelay(200);
     return(LineStateMachine(c, newBehavior, numberOfNeighborz));
   }
   
   else if(Game == "CUBE") // *CUBE
   {
+    wifiDelay(200);
     return(CubeStateMachine(c, newBehavior, numberOfNeighborz));
   }
   
   else if(Game == "PATH") // *CUBE
   {
+    wifiDelay(200);
     return(PathStateMachine(c, newBehavior, numberOfNeighborz));
   }
+  
+  else if(Game == "GRID") // *GRID
+  {
+    return(GridAggregateStateMachine(c, newBehavior, numberOfNeighborz));
+  }
+  
   return (newBehavior);
 }
 
@@ -453,6 +463,7 @@ int checkForMagneticTagsStandard(Cube* c)
  * ==================*LINE STATE MACHINE==========================================================================
  * ===============================================================================================================
  */
+
 Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
 /*
  * This code determines what to do if the goal is to get into a line...
@@ -514,6 +525,7 @@ Behavior LineStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
    * We just arbitrarily pick the first face with a neighbor, and make that face, and its opposite
    * to be active faces...
    */
+  
   if((PART_OF_LINE == true) && (MAGIC_THE_LIGHT == false))
   {
     if((first_neighborFace > -1) && (first_neighborFace < 6))
@@ -1078,6 +1090,159 @@ Behavior PathStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
   return (newBehavior);
 }
 
+/*
+ * ===============================================================================================================
+ * ==================*GRID STATE MACHINE==========================================================================
+ * ===============================================================================================================
+ */
+ /*
+ * Global variables related to GRID
+ */
+//extern bool LIGHT_TOGGLE_STATE = false;
+//extern int  LIGHT_TOGGLE_TIME = 0;
+
+Behavior GridAggregateStateMachine(Cube* c, Behavior inputBehavior, int neighbros, bool simpleNotComplicated)
+/*
+
+ */
+{
+  Behavior newBehavior = inputBehavior; 
+  int numberOfNeighborz = c->numberOfNeighbors(0);
+  int first_neighborFace = c->whichFaceHasNeighbor(0);
+  
+  int NSEW_lightValues[4] = {0,0,0,0}; // e.g. 
+  int NSEW_faceNumbers[4] = {0,0,0,0};
+  int NSEWindex = 0;
+  
+  if(simpleNotComplicated)
+  {
+    for (int face = 0; face < 6; face++)
+    {
+      if ((face == c->returnTopFace()) || (face == c->returnBottomFace())) // This ensures we only
+      {
+        c->faces[face].turnOnFaceLEDs(0,0,0,0);
+        FACES_LIGHTS[face] = 0;
+      }
+      else
+      {
+        FACES_LIGHTS[face] = 1;
+        c->faces[face].turnOnFaceLEDs(1,1,1,1); 
+        /*
+         * Here we store the face value into an array
+         */
+        if(NSEWindex > 3) 
+        {
+          NSEWindex = 3;
+        }
+        NSEW_faceNumbers[NSEWindex] = face;
+        NSEW_lightValues[NSEWindex] = c->faces[face].returnAmbientValue(0);
+        Serial.print("Face: "); Serial.print(face); Serial.print(" || "); Serial.println(c->faces[face].returnAmbientValue(0));
+        NSEWindex++;
+      }
+    }
+
+    if ((numberOfNeighborz == 0) && (c->numberOfNeighbors(2) == 0))
+    {
+      
+     
+    }
+    /*
+    * IF WE HAVE 1 NEIGHBOR...
+    */
+    else if ((numberOfNeighborz == 1) && (c->numberOfNeighbors(2) == 1))
+    {
+      
+    }
+  
+  /*
+    * IF WE HAVE 2 NEIGHBOR...
+    */
+    if ((numberOfNeighborz == 2) && (c->numberOfNeighbors(2) == 2))
+    {
+      
+    }
+
+    /*
+    * IF WE HAVE 3+ NEIGHBOR...
+    */
+    else if (numberOfNeighborz > 2)
+    {
+      
+    }
+    wifiDelay(200+random(100));
+  }
+
+
+
+
+  
+  else // Complicated Version
+  {
+    for(int i = 0; i < 100; i++)
+    {
+    /*
+     * Blink the four faces in the horizontal plane
+     */
+      /*
+    * IF WE HAVE 0 NEIGHBOR...
+    */
+      //c->lightCube(&off);
+  
+    int currentTime = millis();
+    if((currentTime - LIGHT_TOGGLE_TIME) >= 500)
+    {
+      LIGHT_TOGGLE_STATE = !LIGHT_TOGGLE_STATE;
+      LIGHT_TOGGLE_TIME = currentTime;
+      for (int face = 0; face < 6; face++)
+      {
+        if ((face == c->returnTopFace()) || (face == c->returnBottomFace())) // This ensures we only
+        {
+          c->faces[face].turnOnFaceLEDs(0,0,0,0);
+        }
+
+        // if we have a neighbor on that face....
+        else
+        {
+          //c->faces[face].turnOnFaceLEDs(0,0,0,0);
+          c->faces[face].turnOnFaceLEDs(LIGHT_TOGGLE_STATE, LIGHT_TOGGLE_STATE, LIGHT_TOGGLE_STATE, LIGHT_TOGGLE_STATE); 
+        }
+      }
+    }
+
+  
+    
+    if ((numberOfNeighborz == 0) && (c->numberOfNeighbors(2) == 0))
+    {
+     
+    }
+    /*
+    * IF WE HAVE 1 NEIGHBOR...
+    */
+    else if ((numberOfNeighborz == 1) && (c->numberOfNeighbors(2) == 1))
+    {
+      
+    }
+  
+  /*
+    * IF WE HAVE 2 NEIGHBOR...
+    */
+    if ((numberOfNeighborz == 2) && (c->numberOfNeighbors(2) == 2))
+    {
+      
+    }
+
+    /*
+    * IF WE HAVE 3+ NEIGHBOR...
+    */
+    else if (numberOfNeighborz > 2)
+    {
+      
+    }
+    wifiDelay(50+random(100));
+    }
+  }
+  return (newBehavior);
+}
 
 
 Behavior sleep(Cube* c)

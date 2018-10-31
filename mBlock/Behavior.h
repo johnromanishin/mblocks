@@ -40,7 +40,7 @@ Behavior CubeStateMachine(Cube* c, Behavior inputBehavior, int numberOfNeighborz
 
 Behavior PathStateMachine(Cube* c, Behavior inputBehavior, int numberOfNeighborz);
 
-Behavior GridAggregateStateMachine(Cube* c, Behavior inputBehavior, int numberOfNeighborz);
+Behavior GridAggregateStateMachine(Cube* c, Behavior inputBehavior, int numberOfNeighborz, bool simpleNotComplicated = true);
 
 
 /*
