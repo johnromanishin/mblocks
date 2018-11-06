@@ -1118,6 +1118,7 @@ Behavior GridAggregateStateMachine(Cube* c, Behavior inputBehavior, int neighbro
   
   if(simpleNotComplicated)
   {
+    int CW_or_CCW;
     for (int face = 0; face < 6; face++)
     {
       if ((face == c->returnTopFace()) || (face == c->returnBottomFace())) // This ensures we only
@@ -1170,46 +1171,29 @@ Behavior GridAggregateStateMachine(Cube* c, Behavior inputBehavior, int neighbro
             int CW_or_CCW = faceClockiness(faceToLight, c->returnBottomFace());
             if (CW_or_CCW == 1)
             {
-              c->moveOnLattice(&traverse_F);
+              if (numberOfNeighborz == 0)
+              {
+                c->moveOnLattice(&traverse_F);
+              }
+              else if (numberOfNeighborz == 1)
+              {
+                c->moveOnLattice(&stepDownStair_F);
+              }
             }
             else if (CW_or_CCW == -1)
             {
-              c->moveOnLattice(&traverse_R);
+              if (numberOfNeighborz == 0)
+              {
+                c->moveOnLattice(&traverse_R);
+              }
+              else if(numberOfNeighborz == 1)
+              {
+                c->moveOnLattice(&stepDownStair_R);
+              }
             }
           }
         }
       }
-    }
-    
-
-    
-    if ((numberOfNeighborz == 0) && (c->numberOfNeighbors(2) == 0))
-    {
-      
-     
-    }
-    /*
-    * IF WE HAVE 1 NEIGHBOR...
-    */
-    else if ((numberOfNeighborz == 1) && (c->numberOfNeighbors(2) == 1))
-    {
-      
-    }
-  
-  /*
-    * IF WE HAVE 2 NEIGHBOR...
-    */
-    if ((numberOfNeighborz == 2) && (c->numberOfNeighbors(2) == 2))
-    {
-      
-    }
-
-    /*
-    * IF WE HAVE 3+ NEIGHBOR...
-    */
-    else if (numberOfNeighborz > 2)
-    {
-      
     }
     wifiDelay(200+random(100));
     c->lightCube(&off);
