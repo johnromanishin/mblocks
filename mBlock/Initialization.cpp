@@ -396,10 +396,10 @@ void lookUpCalibrationValues(long wifiID)
       thisCubeID = 5;
       HALF_LIGHT = true;
 
-      TRAVERSE_RPM_F = 6500;
-      TRAVERSE_RPM_R = 6500;
-      TRAVERSE_CURRENT_F = 2500;
-      TRAVERSE_CURRENT_R = 2500;
+      TRAVERSE_RPM_F = 6800;
+      TRAVERSE_RPM_R = 6800;
+      TRAVERSE_CURRENT_F = 2600;
+      TRAVERSE_CURRENT_R = 2600;
 
       horizontal_Stair_RPM_F = 12000;
       horizontal_Stair_RPM_R = 12000;
@@ -409,6 +409,8 @@ void lookUpCalibrationValues(long wifiID)
 
       horizontal_CURRENT_F = 2400;
       horizontal_CURRENT_R = 2400;
+
+      GlobalPlaneAccel = 3100;
 
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
@@ -783,4 +785,3 @@ void resetI2cBus()
   }
   digitalWrite(Switch, HIGH);
 }
-

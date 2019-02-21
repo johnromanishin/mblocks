@@ -99,6 +99,15 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
   {
     return(GridAggregateStateMachine(c, newBehavior, numberOfNeighborz));
   }
+
+  else if(Game == "NOTHING") // 
+  {
+    
+    int topFaceRightNow = c->returnTopFace();
+    FACES_LIGHTS[topFaceRightNow] = 1;
+    wifiDelay(5000);
+    Serial.println("yo");
+  }
   
   return (newBehavior);
 }
@@ -332,7 +341,7 @@ Behavior checkForWifiCommands(Cube* c, Behavior currentBehavior)
     
     else if (receivedCMD == "chill")
     {
-      Game = "Nothing";
+      Game = "NOTHING";
     }
       
     /* cubeID's == 0 means it is attached by a cable... not a real cube // so we print
@@ -430,6 +439,11 @@ int checkForMagneticTagsStandard(Cube* c)
       wifiDelay(100);
       PART_OF_LINE = true;
       THE_CHOSEN_ONE = true;
+      if(Game == "PATH")
+      {
+        MAGIC_THE_LIGHT = true;
+        Game = "NOTHING";
+      }
       if(MAGIC_DEBUG)
       {
         Serial.println("BECAME THE CHOSEN ONE THROUGH MAGNETIC TAG");
