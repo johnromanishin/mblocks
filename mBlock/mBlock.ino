@@ -5,7 +5,8 @@
 */
 
 /*
- * There are several ways that the "server" communicates with the M-Block robotic modules,
+ * There are several ways that the "server" co
+ * mmunicates with the M-Block robotic modules,
  * One way is through using WIFI based on the ESP8266 modues, but the network is not that
  * stable with so many nodes in a small area, so the backup method of communicating is to use a global
  * light source to blink on and off. The TOP_LIGHT_THRESHOLD is the level we think of as a "1" on the top face
