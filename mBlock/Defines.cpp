@@ -139,6 +139,8 @@ extern int TRAVERSE_RPM_F = 6500;
 extern int TRAVERSE_RPM_R = 6500;
 extern int TRAVERSE_CURRENT_F = 2500;
 extern int TRAVERSE_CURRENT_R = 2500;
+extern int TRAVERSE_BRAKETIME_F = 11;
+extern int TRAVERSE_BRAKETIME_R = 11;
 
 extern int CC_RPM_F = 15500;
 extern int CC_RPM_R = 15500;
@@ -325,4 +327,3 @@ const int faceRotations[FACES][4] =
   {2, 3, 0, 1},  // FACE 4
   {1, 0, 3, 2}   // FACE 5
 };
-

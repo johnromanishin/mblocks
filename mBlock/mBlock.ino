@@ -11,7 +11,7 @@
  * stable with so many nodes in a small area, so the backup method of communicating is to use a global
  * light source to blink on and off. The TOP_LIGHT_THRESHOLD is the level we think of as a "1" on the top face
  */
-#define TOP_LIGHT_THRESHOLD 700
+#define TOP_LIGHT_THRESHOLD 500
 
 // External Libraries
 #include <Wire.h>                 // Arduino's implementation of the i2c wireless protocal
@@ -133,22 +133,7 @@ void setup() // starts up the various electronic hardware...
  *   Just continually loops, most of the action happens in checkForBehaviors...
  */
 void loop()
-{
-//  while(1)
-//  {
-//    int sample = random(5);
-//    Serial.println(sample);
-//    delay(200);
-//  }
-//  while(1)
-//  {
-//    c.faces[0].turnOnFaceLEDs(1, 1, 1, 1);
-//    wifiDelay(500);
-//    c.faces[0].turnOffFaceLEDs();
-//    wifiDelay(500);
-//  }
-
-  
+{  
   behavior = checkForBehaviors(&c, behavior);
   mesh.update();
   if (millis() > c.shutDownTime)

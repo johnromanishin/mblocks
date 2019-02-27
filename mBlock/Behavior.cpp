@@ -28,6 +28,7 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
    * c->update(); reads all of the sensor values, includinglight sensors, the magnetic sensors
    * and IMU's and adds the values to the circular buffers corresponding to each sensor
    */
+  delay(50);
   c->update();
   wifiDelay(20);
   
@@ -462,7 +463,8 @@ int checkForMagneticTagsStandard(Cube* c)
 
     else if (c->faces[face].returnNeighborCommand(0) == TAGCOMMAND_13_RED)
     {
-      MAGIC_DEBUG = 1;
+      c->debugAccelerometers();
+      //MAGIC_DEBUG = 1;
     }
     /*
      *  End Else/if tree for specific commands
@@ -855,6 +857,7 @@ Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior, int numberOf
       else if (c->faces[neighborFace].returnNeighborType(0) == TAGTYPE_PASSIVE_CUBE)
       {
         MAGIC_THE_LIGHT = true;
+        Game = "PATH";
         if (neighborFace == c->returnBottomFace())
         {
           newBehavior = ATTRACTIVE;
@@ -1053,15 +1056,27 @@ Behavior PathStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
     /*
   * IF WE HAVE 0 NEIGHBOR...
   */
-  if ((numberOfNeighborz == 0) && (c->numberOfNeighbors(2) == 0))
-  {
-    newBehavior = CHILLING;
-    c->blockingBlink(&teal);
-  }
   if(MAGIC_THE_LIGHT)
   {
     c->lightCube(&green);
-    wifiDelay(5000);
+    for(int face = 0; face < FACES; face++)
+    {
+      FACES_LIGHTS[face] = 1;
+    }
+    wifiDelay(10000);
+  }
+  
+  if ((numberOfNeighborz == 0) && (c->numberOfNeighbors(2) == 0) && (c->numberOfNeighbors(4) == 0))
+  {
+    if(millis() < 50000)
+    {
+      newBehavior = CHILLING;
+    }
+    else if(random(50) > 25);
+    {
+      newBehavior = SOLO_LIGHT_TRACK;
+    }
+    c->blockingBlink(&teal);
   }
   /*
   * IF WE HAVE 1 NEIGHBOR...
@@ -1081,12 +1096,20 @@ Behavior PathStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
 /*
   * IF WE HAVE 2 NEIGHBOR...
   */
-  if ((numberOfNeighborz == 2) && (c->numberOfNeighbors(2) == 2))
+  else if ((numberOfNeighborz == 2) && (c->numberOfNeighbors(2) == 2))
   {
+    if(random(10) > 5)
+    {
+      newBehavior = STAIRCLIMB;
+    }
+    else
+    {
+      wifiDelay(7000);
+    }
     //c->faces[c->returnTopFace()].turnOnFaceLEDs(1, 1, 1, 1);
-    newBehavior = CHILLING;
-    wifiDelay(1000);
-    FACES_LIGHTS[c->returnTopFace()] = 1;
+    //newBehavior = CHILLING;
+    //wifiDelay(1000);
+    //FACES_LIGHTS[c->returnTopFace()] = 1;
   }
 
   /*
@@ -1099,7 +1122,6 @@ Behavior PathStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
     FACES_LIGHTS[c->returnTopFace()] = 1;
     wifiDelay(1000);
   }
-
   wifiDelay(400);
   return (newBehavior);
 }
@@ -1154,7 +1176,8 @@ Behavior GridAggregateStateMachine(Cube* c, Behavior inputBehavior, int neighbro
         NSEW_faceNumbers[NSEWindex] = face;
         NSEW_lightValues[NSEWindex] = c->faces[face].returnAmbientValue(0);
         NSEW_neighbors[NSEWindex] = c->faces[face].returnNeighborPresence(0);
-        //Serial.print("Face: "); Serial.print(face); Serial.print(" || "); Serial.println(c->faces[face].returnAmbientValue(0));
+        //Serial.print("Face: "); Serial.print(face); Serial.print(" || "); 
+        //Serial.println(c->faces[face].returnAmbientValue(0));
         NSEWindex++;
       }
     }
@@ -1180,7 +1203,8 @@ Behavior GridAggregateStateMachine(Cube* c, Behavior inputBehavior, int neighbro
            * ACTION - Move or turn on the light
            */
           c->lightFace(faceToLight, &purple);
-          if (c->goToPlaneIncludingFaces(c->returnBottomFace(), faceToLight) == true) // then go to plane parallel to these two faces.
+          if (c->goToPlaneIncludingFaces(c->returnBottomFace(), faceToLight) == true) 
+          // then go to plane parallel to these two faces.
           {
             int CW_or_CCW = faceClockiness(faceToLight, c->returnBottomFace());
             if (CW_or_CCW == 1)
@@ -1247,7 +1271,8 @@ Behavior GridAggregateStateMachine(Cube* c, Behavior inputBehavior, int neighbro
         else
         {
           //c->faces[face].turnOnFaceLEDs(0,0,0,0);
-          c->faces[face].turnOnFaceLEDs(LIGHT_TOGGLE_STATE, LIGHT_TOGGLE_STATE, LIGHT_TOGGLE_STATE, LIGHT_TOGGLE_STATE); 
+          c->faces[face].turnOnFaceLEDs(LIGHT_TOGGLE_STATE, 
+          LIGHT_TOGGLE_STATE, LIGHT_TOGGLE_STATE, LIGHT_TOGGLE_STATE); 
         }
       }
     }
@@ -1404,6 +1429,13 @@ Behavior soloSeekLight(Cube* c)
 
     // Figure out which way we should try to move
     bool direct = false; // false = reverse...
+    c->lightFace(c->returnForwardFace(), &white);
+    wifiDelay(500);
+    c->lightFace(c->returnReverseFace(), &yellow);
+    wifiDelay(500);
+    c->lightCube(&off);
+    wifiDelay(100);
+    
     if (brightestFace == c->returnForwardFace())
       direct = true;
     else if (brightestFace == c->returnReverseFace())
@@ -1433,9 +1465,11 @@ Behavior soloSeekLight(Cube* c)
       c->superSpecialBlink(&red, 160);
       goToPlane(c, c->returnTopFace());
     }
-    else if (iAmStuck)
+    else if (iAmStuck == true)
     {
       // if we succeed in moving... we break out of this loop
+      c->blockingBlink(&red,10);
+      
       if (c->roll(direct, 8500) == true) // try to roll and succeed...
       {
         iAmStuck = false;
@@ -1475,6 +1509,7 @@ Behavior soloSeekLight(Cube* c)
     //****************************
     else if (c->returnForwardFace() == -1)
     {
+      c->blockingBlink(&white,10);
       if (c->moveBLDCACCEL(1, GlobalMaxAccel, 1700) == false)
       {
         iAmStuck = true;
@@ -1484,6 +1519,17 @@ Behavior soloSeekLight(Cube* c)
     //**************************** this is regular light tracking...
     else
     {
+      if(direct)
+      {
+        c->lightFace(c->returnForwardFace(), &green);
+        delay(300);
+      }
+      else
+      {
+        c->lightFace(c->returnReverseFace(), &red);
+      }
+      c->lightCube(&off);
+      delay(100);
       if (c->roll(direct, 9500) == false)
       {
         iAmStuck = true;
@@ -1492,6 +1538,7 @@ Behavior soloSeekLight(Cube* c)
 
     //************** End if else if chain **************************
     loopCounter++;
+    delay(500);
     nextBehavior = basicUpkeep(c, nextBehavior);  // check for neighbors, etc...
   }
   return (nextBehavior);
@@ -1554,6 +1601,70 @@ Behavior climb(Cube* c)
     {
       nextBehavior = CHILLING;
     }
+  }
+  return nextBehavior;
+}
+
+Behavior stairClimb(Cube* c)
+{
+  if (MAGIC_DEBUG) {
+    Serial.println("***Beginning STAIR CLIMB***");
+  }
+  
+  int connectedFace = -1;
+  int otherConnectedFace = -1;
+  
+  long loopCounter = 0;
+  Behavior nextBehavior = STAIRCLIMB;
+  nextBehavior = basicUpkeep(c, nextBehavior);
+
+  while ((nextBehavior == STAIRCLIMB) &&
+         (c->numberOfNeighbors(0, 0) == 2) && // loop until something changes the next behavior
+         (millis() < c->shutDownTime))        // and if we aren't feeling sleepy
+  {
+    int connectedFace = c->whichFaceHasNeighbor(0);
+    int otherConnectedFace = c->whichFaceHasNeighbor(1);
+    
+    c->lightFace(connectedFace, &white);
+    delay(300);
+    c->lightFace(otherConnectedFace, &yellow);
+    delay(300);
+    c->lightCube(&off);
+    
+    if(connectedFace == c->returnBottomFace())
+    /*
+     * If we picked the wrong face first, then we switch to the current one
+     */
+    {
+      connectedFace = otherConnectedFace;
+    }
+    
+    if ((connectedFace > -1) && (connectedFace != c->returnTopFace()) &&
+        (connectedFace != c->returnBottomFace()))
+    {
+      if (c->isPlaneInPlaneOfFaces(connectedFace, c->returnTopFace()) == true)
+      {
+        delay(50);
+        int CW_or_CCW = faceClockiness(connectedFace, c->returnBottomFace());
+        if (CW_or_CCW == 1)
+        {
+          c->moveOnLattice(&explode_F);
+          DIRECTION = 1;
+        }
+        if (CW_or_CCW == -1)
+        {
+          c->moveOnLattice(&explode_R);
+          DIRECTION = -1;
+        }
+      }
+      else
+      {
+        c->goToPlaneIncludingFaces(connectedFace, c->returnTopFace());
+        wifiDelay(1000);
+      }
+    }
+    nextBehavior = basicUpkeep(c, nextBehavior);
+    loopCounter++;
   }
   return nextBehavior;
 }
@@ -1974,6 +2085,10 @@ String behaviorsToCmd(Behavior inputBehavior)
   {
     return ("climb");
   }
+  else if (inputBehavior == STAIRCLIMB)                  
+  {
+    return ("stairClimb");
+  }
   else if (inputBehavior == ATTRACTIVE)            
   {
     return ("attractive");
@@ -2013,6 +2128,8 @@ Behavior checkForBehaviors(Cube* c, Behavior behavior)
       return followArrows(c);
     case CLIMB:
       return climb(c);
+    case STAIRCLIMB:
+      return stairClimb(c);
     case ATTRACTIVE:
       return attractive(c);
     case SLEEP:

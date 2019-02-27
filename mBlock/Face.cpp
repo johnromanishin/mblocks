@@ -198,26 +198,52 @@ bool Face::processTag()
     /*=======================================================================================================
     * CHECK IF TAG REPRESENTS A PASSIVE MODULE
     */
-    if((magDigit1 == 15 || magDigit1 == 16 || magDigit1 == 17 || // Means magdigit1 is a faceID
-       magDigit1 == 30 || magDigit1 == 1  || magDigit1 == 2 ) &&
-      (magDigit2 == 8  || magDigit2 == 9  || magDigit2 == 10))     // Means magdigit2 stores an ID # 
+    if((magDigit1 == 14 || magDigit1 == 15 || magDigit1 == 16 || magDigit1 == 17 ||
+        magDigit1 == 30 || magDigit1 == 1  || magDigit1 == 2  || magDigit1 == 3)
+       && // Means magdigit1 is a faceID
+      (magDigit2 == 7  || magDigit2 == 8  || magDigit2 == 9) || magDigit2 == 10)     
+        // Means magdigit2 stores an ID # 
     {
       tagType = TAGTYPE_PASSIVE_CUBE;
-      if(magDigit1 == 30 || magDigit1 == 1  || magDigit1 == 2)
+      if(magDigit1 == 30  || magDigit1 == 1 || magDigit1 == 2 || magDigit1 == 3)
         tagAngle = 2;
       else 
         tagAngle = 3;
     }
-    else if((magDigit2 == 15 || magDigit2 == 16 || magDigit2 == 17 ||  // Means magdigit1 is a faceID
-             magDigit2 == 30 || magDigit2 == 1  || magDigit2 == 2 ) &&
-            (magDigit1 == 8  || magDigit1 == 9  || magDigit1 == 10))     // Means magdifit2 stores an ID # 
+    else if((magDigit2 == 14 || magDigit2 == 15 || magDigit2 == 16 || magDigit2 == 17 ||  
+             magDigit2 == 30 || magDigit2 == 1  || magDigit2 == 2  || magDigit2 == 3) 
+             &&  // Means magdigit1 is a faceID
+            (magDigit1 == 7  || magDigit1 == 8  || magDigit1 == 9 || magDigit1 == 10))     // Means magdifit2 stores an ID # 
     {
       tagType = TAGTYPE_PASSIVE_CUBE;
-      if(magDigit2 == 30 || magDigit2 == 1  || magDigit2 == 2)
+      if(magDigit2 == 30  || magDigit2 == 1 || magDigit2 == 2 || magDigit2 == 3)
             tagAngle = 0;
       else 
             tagAngle = 1;
     }
+    /*=======================================================================================================
+    * CHECK IF TAG REPRESENTS A PASSIVE MODULE PREVIOS VERSION
+    */
+//    if((magDigit1 == 15 || magDigit1 == 16 || magDigit1 == 17 || // Means magdigit1 is a faceID
+//       magDigit1 == 30 || magDigit1 == 1  || magDigit1 == 2 ) &&
+//      (magDigit2 == 8  || magDigit2 == 9  || magDigit2 == 10))     // Means magdigit2 stores an ID # 
+//    {
+//      tagType = TAGTYPE_PASSIVE_CUBE;
+//      if(magDigit1 == 30 || magDigit1 == 1  || magDigit1 == 2)
+//        tagAngle = 2;
+//      else 
+//        tagAngle = 3;
+//    }
+//    else if((magDigit2 == 15 || magDigit2 == 16 || magDigit2 == 17 ||  // Means magdigit1 is a faceID
+//             magDigit2 == 30 || magDigit2 == 1  || magDigit2 == 2 ) &&
+//            (magDigit1 == 8  || magDigit1 == 9  || magDigit1 == 10))     // Means magdifit2 stores an ID # 
+//    {
+//      tagType = TAGTYPE_PASSIVE_CUBE;
+//      if(magDigit2 == 30 || magDigit2 == 1  || magDigit2 == 2)
+//            tagAngle = 0;
+//      else 
+//            tagAngle = 1;
+//    }
     /* ================================================================================================
     * CHECK IF TAG REPRESENTS A COMMAND TAG
     */
@@ -768,5 +794,3 @@ int returnFaceNumber(int magDigit)
               return -1;
             }
 }     
-
-

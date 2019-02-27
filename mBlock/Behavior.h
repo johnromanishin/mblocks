@@ -90,6 +90,8 @@ Behavior climb(Cube* c);
  * a.
  * b.
  */
+
+Behavior stairClimb(Cube* c);
  
 Behavior chilling(Cube* c);
 /*        --- What it does ---
@@ -135,4 +137,3 @@ void wifiTargetFace(Cube* c, int faceToSend, int recipientCube = -1);
 void goToPlane(Cube* c, int FaceToGoTo);
 
 #endif
-

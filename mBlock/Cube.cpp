@@ -376,7 +376,7 @@ bool Cube::moveOnLattice(Motion* motion)
       // Actually send the action to Kyles Board...
       iaString = "ia " 
       + String(motion->for_rev)+ " " 
-      + String(motion->rpm) + " " 
+      + String(motion->rpm + random(200)) + " " 
       + String(motion->current) + " " 
       + String(motion->brakeTime) + " "
       + stringAtEnd;
@@ -471,8 +471,8 @@ bool Cube::moveOnLattice(Motion* motion)
       // Actually send the action to Kyles Board...
       String iaString = "ia " 
       + String(motion->for_rev)+ " " 
-      + String(motion->rpm) + " " 
-      + String(motion->current) + " " 
+      + String(motion->rpm + random(200)) + " " 
+      + String(motion->current + random(50)) + " " 
       + String(motion->brakeTime) + " e 15";
     
       this->printString(iaString); // print the command to kyles Board
