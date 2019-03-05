@@ -42,6 +42,7 @@ extern int ARROW_OFFSETS[CUBES][FACES] =
 
 int thisCubeID = 0;
 String Game = "NOTHING";
+String oldGame = "NOTHING";
 extern bool HALF_LIGHT = false;
 
 /*

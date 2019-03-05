@@ -554,10 +554,10 @@ void lookUpCalibrationValues(long wifiID)
       
       CC_RPM_F = 15500;
       CC_RPM_R = 15500;
-      CC_CURRENT_F = 3100;
-      CC_CURRENT_R = 3100;
-      CC_BRAKETIME_F = 10;
-      CC_BRAKETIME_R = 10;
+      CC_CURRENT_F = 3300;
+      CC_CURRENT_R = 3300;
+      CC_BRAKETIME_F = 11;
+      CC_BRAKETIME_R = 11;
       break;
 
     //********************************

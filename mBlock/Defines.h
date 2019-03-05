@@ -28,6 +28,7 @@ extern int thisCubeID;
  *    Cube - Turn into Giant Cube
  */
 extern String Game;
+extern String oldGame;
 /*
  * These variables are involved with the light tracking state machine
  */

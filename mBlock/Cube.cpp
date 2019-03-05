@@ -818,6 +818,7 @@ PlaneEnum Cube::findPlaneStatus(bool reset)
   if(this->cubeID > 50 || this->cubeID == 0) 
   // this means it is a benchtop example and it can't actually run this.
   {
+    this->blockingBlink(&white, 50);
     Serial.println("WE TRIED TO FIND PLANE STATUS, CALLED HERE!");
     this->currentPlaneBuffer.push(PLANE0123);
     return(PLANE0123);

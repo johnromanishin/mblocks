@@ -52,15 +52,14 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
   /*
    * If we have failed to properly move three times in a row, we reset...
    */
-  if( c->moveSuccessBuffer.access(0) == false && 
+  if( Game == "PATH" && 
+      c->moveSuccessBuffer.access(0) == false && 
       c->moveSuccessBuffer.access(1) == false &&
       c->moveSuccessBuffer.access(2) == false )
       {
-        c->superSpecialBlink(&purple, 100);
+        c->superSpecialBlink(&blue, 100);
         c->superSpecialBlink(&purple, 90);
         c->superSpecialBlink(&red, 80);
-        c->superSpecialBlink(&purple, 70);
-        c->superSpecialBlink(&yellow, 60);
         Serial.println("esprst");
         delay(100);
         Serial.println("esprst");
@@ -71,7 +70,12 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
    * or changing to specific colors.
    */
   int numberOfNeighborz = checkForMagneticTagsStandard(c);
-
+  
+  if(oldGame != Game)
+  {
+    c->blockingBlink(&white,5);
+  }
+  
   if (Game == "LIGHT") // *LIGHT
   {
     wifiDelay(200);
@@ -107,9 +111,18 @@ Behavior basicUpkeep(Cube* c, Behavior inputBehavior)
     int topFaceRightNow = c->returnTopFace();
     FACES_LIGHTS[topFaceRightNow] = 1;
     wifiDelay(5000);
-    Serial.println("yo");
   }
-  
+
+  else if(Game == "LAMP") // 
+  {
+    for(int face = 0; face < FACES; face++)
+    {
+      FACES_LIGHTS[face] = 1;
+    }
+    wifiDelay(5000);
+    newBehavior = CHILLING;
+  }
+  oldGame = Game;
   return (newBehavior);
 }
 
@@ -789,7 +802,7 @@ Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior, int numberOf
   {
     for(int face = 0; face < FACES; face++)
     {
-      if(face == c->returnTopFace() || face == c->returnBottomFace())
+      if(face == c->returnBottomFace())
       {
         wifiDelay(1);
       }
@@ -799,13 +812,17 @@ Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior, int numberOf
       }
     }
   }
+  
   if((c->numberOfNeighbors(0) == 0) && (c->numberOfNeighbors(2) == 0))
   {
     if(MAGIC_DEBUG)
     {
        Serial.println("Erassing magic the light and all faces...");
     }
-    
+
+    /*
+     * If we realize that we have zero neighbors we turn off our lights.
+     */
     MAGIC_THE_LIGHT = false;
     PART_OF_LINE = false;
     for(int face = 0; face < FACES; face++)
@@ -850,7 +867,7 @@ Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior, int numberOf
       {
         if (MAGIC_THE_LIGHT == true) // MAGIC_THE_LIGHT
           newBehavior = CLIMB;
-        else if (c->numberOfNeighbors(3, 0) == 1) // if the last one also shows that there is a neighbor...
+        else if (c->numberOfNeighbors(5, 0) == 1) // if the last one also shows that there is a neighbor...
           newBehavior = DUO_LIGHT_TRACK;
       }
       
@@ -861,10 +878,8 @@ Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior, int numberOf
         if (neighborFace == c->returnBottomFace())
         {
           newBehavior = ATTRACTIVE;
+          Game = "LAMP";
         }
-        //else if ((c->returnForwardFace() == neighborFace) ||
-        //         (c->returnReverseFace() == neighborFace))
-        //  newBehavior = CLIMB;
         else
           newBehavior = CLIMB;
       }
@@ -886,6 +901,7 @@ Behavior LightTrackingStateMachine(Cube* c, Behavior inputBehavior, int numberOf
           Serial.println(" I SEE THE LIGHT - Don't do the next part...");
         }
         newBehavior = ATTRACTIVE;
+        Game = "LAMP";
       }
       else if (c->areFacesOpposite(first_neighborFace, second_neighborFace) == true)
       {
@@ -1056,27 +1072,41 @@ Behavior PathStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
     /*
   * IF WE HAVE 0 NEIGHBOR...
   */
-  if(MAGIC_THE_LIGHT)
+  if(MAGIC_THE_LIGHT == true)
   {
     c->lightCube(&green);
     for(int face = 0; face < FACES; face++)
     {
-      FACES_LIGHTS[face] = 1;
+      if(face = c->returnBottomFace())
+      {
+        FACES_LIGHTS[face] = 0;
+      }
+      else
+      {
+        FACES_LIGHTS[face] = 1;
+      }
     }
-    wifiDelay(10000);
+    wifiDelay(5000);
   }
   
-  if ((numberOfNeighborz == 0) && (c->numberOfNeighbors(2) == 0) && (c->numberOfNeighbors(4) == 0))
+  if ((numberOfNeighborz == 0) && (c->numberOfNeighbors(2) == 0))
   {
-    if(millis() < 50000)
+    MAGIC_THE_LIGHT = false;
+    int random_num = random(50);
+    if(millis() < 30000)
     {
       newBehavior = CHILLING;
     }
-    else if(random(50) > 25);
+    else if(random_num > 25 && random_num < 40)
     {
+      c->moveOnLattice(&traverse_R);
+      //newBehavior = SOLO_LIGHT_TRACK;
+    }
+    else if(random_num > 40)
+    {
+      c->moveOnLattice(&traverse_F);
       newBehavior = SOLO_LIGHT_TRACK;
     }
-    c->blockingBlink(&teal);
   }
   /*
   * IF WE HAVE 1 NEIGHBOR...
@@ -1098,7 +1128,7 @@ Behavior PathStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
   */
   else if ((numberOfNeighborz == 2) && (c->numberOfNeighbors(2) == 2))
   {
-    if(random(10) > 5)
+    if((random(10) > 5) && (MAGIC_THE_LIGHT == false))
     {
       newBehavior = STAIRCLIMB;
     }
@@ -1106,10 +1136,6 @@ Behavior PathStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
     {
       wifiDelay(7000);
     }
-    //c->faces[c->returnTopFace()].turnOnFaceLEDs(1, 1, 1, 1);
-    //newBehavior = CHILLING;
-    //wifiDelay(1000);
-    //FACES_LIGHTS[c->returnTopFace()] = 1;
   }
 
   /*
@@ -1121,6 +1147,7 @@ Behavior PathStateMachine(Cube* c, Behavior inputBehavior, int neighbros)
     newBehavior = CHILLING;
     FACES_LIGHTS[c->returnTopFace()] = 1;
     wifiDelay(1000);
+    Game = "LAMP";
   }
   wifiDelay(400);
   return (newBehavior);
@@ -1404,8 +1431,7 @@ Behavior soloSeekLight(Cube* c)
     Serial.println("***soloSeekLight***");
   }
   Behavior nextBehavior = SOLO_LIGHT_TRACK;
-  int loopCounter = 0;
-  bool iAmStuck  = false;
+    
   nextBehavior = basicUpkeep(c, nextBehavior);  // check for neighbors, etc...
 
   while ((nextBehavior == SOLO_LIGHT_TRACK) && // if we haven't changed state
@@ -1463,58 +1489,14 @@ Behavior soloSeekLight(Cube* c)
     if (c->currentPlaneBuffer.access(0) == PLANENONE)
     {
       c->superSpecialBlink(&red, 160);
+      c->superSpecialBlink(&red, 150);
+      c->superSpecialBlink(&red, 140);
       goToPlane(c, c->returnTopFace());
-    }
-    else if (iAmStuck == true)
-    {
-      // if we succeed in moving... we break out of this loop
-      c->blockingBlink(&red,10);
-      
-      if (c->roll(direct, 8500) == true) // try to roll and succeed...
-      {
-        iAmStuck = false;
-        //iMightBeStuck = false;
-      }
-      else
-      {
-        // If we fail to move, we try to move plane parallel to ground
-        // int attempts = 3;
-        int topFace = c->returnTopFace();
-        if ((topFace > -1) && (topFace < FACES)) // if this is true we are on the ground... so we should try to 
-        //change planes
-        {
-          goToPlane(c, topFace);
-        }
-        else // we are not on the ground... So we jump a little bit...
-        {
-          c->moveOnLattice(&traverse_F);
-        }
-
-        if (c->returnForwardFace() == -1) // this is a proxy for plane being parallel to ground... or an error
-        {
-          if (c->numberOfNeighborsCheckNow() == 0)
-            c->moveOnLattice(&traverse_F);
-
-          c->superSpecialBlink(&yellow, 50);
-          
-          wifiDelay(1500);
-
-          if (c->numberOfNeighborsCheckNow() == 0)
-            c->moveOnLattice(&traverse_R);
-            
-          wifiDelay(1500);
-        }
-      }
     }
     //****************************
     else if (c->returnForwardFace() == -1)
     {
-      c->blockingBlink(&white,10);
-      if (c->moveBLDCACCEL(1, GlobalMaxAccel, 1700) == false)
-      {
-        iAmStuck = true;
-      }
-      wifiDelay(100);
+      c->moveOnLattice(&cornerClimb_R);
     }
     //**************************** this is regular light tracking...
     else
@@ -1530,14 +1512,35 @@ Behavior soloSeekLight(Cube* c)
       }
       c->lightCube(&off);
       delay(100);
-      if (c->roll(direct, 9500) == false)
+      int rollDice = random(2);
+      if(rollDice == 1)
       {
-        iAmStuck = true;
+        if (c->roll(direct, 9500) == false)
+        {
+           if(rollDice == 1)
+           {
+              goToPlane(c, c->returnTopFace());
+           }
+           else
+           {
+              c->moveOnLattice(&cornerClimb_F);
+           }
+        }
+      }
+      else
+      {
+        if(direct)
+        {
+          c->moveOnLattice(&traverse_F);
+        }
+        else
+        {
+          c->moveOnLattice(&traverse_R);
+        }
       }
     }
 
     //************** End if else if chain **************************
-    loopCounter++;
     delay(500);
     nextBehavior = basicUpkeep(c, nextBehavior);  // check for neighbors, etc...
   }
@@ -1822,6 +1825,7 @@ Behavior duoSeekLight(Cube* c)
       int brightestFace = c->returnXthBrightestFace(0, true);
       int nextBrightestFace = c->returnXthBrightestFace(1, true);
       //
+      delay(random(4000));
       c->lightFace(brightestFace, &yellow);
       delay(400);
       c->lightFace(nextBrightestFace, &red);
@@ -1842,7 +1846,7 @@ Behavior duoSeekLight(Cube* c)
       /*
          Begin if/ else if statement tree...
       */
-      if (failedMoveCounter > 2)
+      if (failedMoveCounter > 1)
       {
         if ((c->returnTopFace(0) > -1) && (c->returnTopFace(0) < FACES) && (c->returnForwardFace() != -1))
         // if this is true we are on the ground... so we should try to change planes
@@ -1851,7 +1855,7 @@ Behavior duoSeekLight(Cube* c)
         }
         else // we are not on the ground... So we jump a little bit...
         {
-          c->moveOnLattice(&traverse_F);
+          c->moveOnLattice(&explode_F);
         }
         if (c->returnForwardFace() == -1) // this is a proxy for plane being parallel to ground... or an error
         {

@@ -70,7 +70,8 @@ void setup() // starts up the various electronic hardware...
   
   c.updateCubeID(thisCubeID, mesh.getNodeId()); // updated variable c.cubeID from initialization loop up table...
   c.findPlaneStatus(true); // Populate the initial reading for the current plane status
-
+  delay(100);
+  c.findPlaneStatus(true); // Populate the initial reading for the current plane status
   for(int updateTimes = 0; updateTimes < 2; updateTimes++)
   {
     c.update();
@@ -91,8 +92,9 @@ void setup() // starts up the various electronic hardware...
    * It is just a global string that can be defined anywhere...
    * IT is set in defines.cpp
   */
-  Game = "PATH";
+  //Game = "PATH";
   //Game = "GRID";
+  Game = "LIGHT";
   bool DetermineGame = false;
   if(DetermineGame)
   {
