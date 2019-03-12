@@ -55,6 +55,7 @@ extern bool DOUBLE_CHECK;
  * this is changed to true/false by initialization.cpp for each cube
  */
 extern bool HALF_LIGHT;
+extern bool HALF_BRIGHT;
 extern int ARROW_OFFSETS[CUBES][FACES]; 
 
 /*
@@ -128,8 +129,17 @@ extern int magicVariable;
 extern int MAGIC_DEBUG;
 extern int magicFace;
 
+extern int ADDITION_FACTOR_GRID_RPM;
+extern int ADDITION_FACTOR_GRID_CURRENT;
+
 extern int TRAVERSE_RPM_F;
 extern int TRAVERSE_RPM_R;
+
+extern int GRID_TRAVERSE_RPM_F;
+extern int GRID_TRAVERSE_RPM_R;
+extern int GRID_TRAVERSE_CURRENT_F;
+extern int GRID_TRAVERSE_CURRENT_R;
+
 extern int TRAVERSE_CURRENT_F;
 extern int TRAVERSE_CURRENT_R;
 extern int TRAVERSE_BRAKETIME_F;
@@ -203,6 +213,7 @@ typedef enum TagType
   TAGTYPE_NOTHING,
   TAGTYPE_INVALID,
   TAGTYPE_REGULAR_CUBE,
+  TAGTYPE_PASSIVE_GRID,
   TAGTYPE_PASSIVE_CUBE,
   TAGTYPE_COMMAND
 } TagType;
@@ -243,6 +254,9 @@ extern Motion traverse_R;
 
 extern Motion roll_F;
 extern Motion roll_R;
+
+extern Motion grid_traverse_F;
+extern Motion grid_traverse_R; 
 
 extern Motion cornerClimb_F;
 extern Motion cornerClimb_R;

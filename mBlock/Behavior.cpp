@@ -1192,7 +1192,14 @@ Behavior GridAggregateStateMachine(Cube* c, Behavior inputBehavior, int neighbro
       else
       {
         FACES_LIGHTS[face] = 1;
-        c->faces[face].turnOnFaceLEDs(1,1,1,1); 
+        if(HALF_BRIGHT)
+        {
+          c->faces[face].turnOnFaceLEDs(1,0,1,0); 
+        }
+        else
+        {
+          c->faces[face].turnOnFaceLEDs(1,1,1,1); 
+        }
         /*
          * Here we store the face value into an array
          */
@@ -1217,7 +1224,7 @@ Behavior GridAggregateStateMachine(Cube* c, Behavior inputBehavior, int neighbro
       if(sample == 4)
       {
         waitingForSample = false;
-        c->superSpecialBlink(&yellow, 160);
+        c->superSpecialBlink(&yellow, 50);
         Serial.println("Just doing nothing");
       }
       else
@@ -1230,6 +1237,9 @@ Behavior GridAggregateStateMachine(Cube* c, Behavior inputBehavior, int neighbro
            * ACTION - Move or turn on the light
            */
           c->lightFace(faceToLight, &purple);
+          delay(50);
+          c->lightCube(&off);
+          delay(200);
           if (c->goToPlaneIncludingFaces(c->returnBottomFace(), faceToLight) == true) 
           // then go to plane parallel to these two faces.
           {
@@ -1238,22 +1248,22 @@ Behavior GridAggregateStateMachine(Cube* c, Behavior inputBehavior, int neighbro
             {
               if (numberOfNeighborz == 0)
               {
-                c->moveOnLattice(&traverse_F);
+                c->moveOnLattice(&grid_traverse_F);
               }
               else if (numberOfNeighborz == 1)
               {
-                c->moveOnLattice(&stepDownStair_F);
+                c->moveOnLattice(&explode_F);
               }
             }
             else if (CW_or_CCW == -1)
             {
               if (numberOfNeighborz == 0)
               {
-                c->moveOnLattice(&traverse_R);
+                c->moveOnLattice(&grid_traverse_R);
               }
               else if(numberOfNeighborz == 1)
               {
-                c->moveOnLattice(&stepDownStair_R);
+                c->moveOnLattice(&explode_R);
               }
             }
           }

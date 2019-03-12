@@ -44,6 +44,7 @@ int thisCubeID = 0;
 String Game = "NOTHING";
 String oldGame = "NOTHING";
 extern bool HALF_LIGHT = false;
+extern bool HALF_BRIGHT = false; // this lowers power for grid state machine
 
 /*
  * 
@@ -91,6 +92,9 @@ extern int FACES_LIGHTS[FACES] = {0,0,0,0,0,0};
 Motion traverse_F         = {"traverse"   , true    , 6000    , 6000    , 3000    , 12        , 1           , "f"};
 Motion traverse_R         = {"traverse"   , true    , 6000    , 6000    , 3000    , 12        , 1           , "r"};
 
+Motion grid_traverse_F    = {"g_traverse"   , true    , 7000    , 7000    , 3000    , 12        , 1           , "f"};
+Motion grid_traverse_R    = {"g_traverse"   , true    , 7000    , 7000    , 3000    , 12        , 1           , "r"};
+
 Motion horizontal_F       = {"h_traverse" , true    , 5000    , 4000    , 3000    , 20        , 1           , "f"};
 Motion horizontal_R       = {"h_traverse" , true    , 5000    , 4000    , 3000    , 20        , 1           , "r"};
 
@@ -109,8 +113,8 @@ Motion stepDownStair_R    = {"stairDown"  , true    , 12000   , 6000    , 4500  
 Motion shake_F            = {"shake"      , false   , 4500    , 4000    , 3500    , 20        , 0         , "f"};
 Motion softShake_F        = {"softShake"  , false   , 3500    , 3000    , 3000    , 20        , 0         , "f"};
 
-Motion explode_F          = {"explode"    , false   , 15500   , 6000    , 5000    , 30        , 3         , "f"};
-Motion explode_R          = {"explode"    , false   , 15500   , 6000    , 5000    , 30        , 3         , "r"};
+Motion explode_F          = {"explode"    , false   , 13500   , 6000    , 4500    , 25        , 3         , "f"};
+Motion explode_R          = {"explode"    , false   , 13500   , 6000    , 4500    , 25        , 3         , "r"};
 //
 Motion rollDouble_F       = {"double"     , false   , 15500   , 3000    , 3000    , 5         , 0         , "f"};
 Motion rollDouble_R       = {"double"     , false   , 15500   , 3000    , 3000    , 5         , 0         , "r"};
@@ -135,6 +139,9 @@ extern int magicFace = 0;
 
 extern int GlobalMaxAccel = 6000;
 
+extern int ADDITION_FACTOR_GRID_RPM = 1500;
+extern int ADDITION_FACTOR_GRID_CURRENT = 500;
+
 // Defaults for motion values
 extern int TRAVERSE_RPM_F = 6500;
 extern int TRAVERSE_RPM_R = 6500;
@@ -142,6 +149,12 @@ extern int TRAVERSE_CURRENT_F = 2500;
 extern int TRAVERSE_CURRENT_R = 2500;
 extern int TRAVERSE_BRAKETIME_F = 11;
 extern int TRAVERSE_BRAKETIME_R = 11;
+
+
+extern int GRID_TRAVERSE_RPM_F = 7000;
+extern int GRID_TRAVERSE_RPM_R = 7000;
+extern int GRID_TRAVERSE_CURRENT_F = 3000;
+extern int GRID_TRAVERSE_CURRENT_R = 3000;
 
 extern int CC_RPM_F = 15500;
 extern int CC_RPM_R = 15500;

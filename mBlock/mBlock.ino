@@ -17,6 +17,10 @@
 #include <Wire.h>                 // Arduino's implementation of the i2c wireless protocal
 #include <painlessMesh.h>         // Wifi Mesh Library found on the internet  
 #include <Arduino.h>              // library with basic arduino commands
+//#include <vector.h>
+//#include <algorithm.h>
+#include <iterator.h>
+
 
 // Header Files
 #include "Defines.h"              // includes defines, helper functions, some global variables
@@ -93,8 +97,8 @@ void setup() // starts up the various electronic hardware...
    * IT is set in defines.cpp
   */
   //Game = "PATH";
-  //Game = "GRID";
-  Game = "LIGHT";
+  Game = "GRID";
+  //Game = "LIGHT";
   bool DetermineGame = false;
   if(DetermineGame)
   {
