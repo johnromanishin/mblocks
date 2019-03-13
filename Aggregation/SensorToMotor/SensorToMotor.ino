@@ -3,7 +3,8 @@
 #include <algorithm>
 #include <iterator> // for back_inserter 
 #include <random>
-#include "algorithm.h"
+//#include "algorithm.h"
+
 
 // Definitions: Hard-coded.
 const int nContext = 18;
@@ -60,8 +61,9 @@ const std::vector<float> ControlParameters =  {2.14227699e-01, 1.05419841e-01, 1
                                                9.73944577e-01, 9.97738802e-01, 3.10794687e-04, 1.21327340e-03,
                                                9.94012392e-01, 4.78038385e-01, 9.37732719e-01, 3.09412028e-01};
 
+void setup(){}
 
-int main(int argc, char* argv[])
+void loop()
 {
     // The code based on sensor reading includes at least one 1.
     // If the sensor reading made of only 0s and 2s, that means stop only!    
@@ -137,5 +139,5 @@ int main(int argc, char* argv[])
         std::mt19937 generator(rd()); // Random number generator.
         std::discrete_distribution<int> ProbDist(Parameters.begin(),Parameters.end());
         int Action = ProbDist(generator); // Action. Order; Stop, N, W, S, E.
-    return 0;
+ 
 }
