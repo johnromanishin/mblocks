@@ -139,8 +139,8 @@ extern int magicFace = 0;
 
 extern int GlobalMaxAccel = 6000;
 
-extern int ADDITION_FACTOR_GRID_RPM = 1500;
-extern int ADDITION_FACTOR_GRID_CURRENT = 500;
+extern int ADDITION_FACTOR_GRID_RPM = 1300;
+extern int ADDITION_FACTOR_GRID_CURRENT = 450;
 
 // Defaults for motion values
 extern int TRAVERSE_RPM_F = 6500;

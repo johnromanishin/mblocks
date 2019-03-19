@@ -64,7 +64,14 @@ bool Face::updateFace()
    
   if(FACES_LIGHTS[IOExpanderAddress - IO_Address_offset] > 0)
   {
-    this->turnOnFaceLEDs(1,1,1,1);
+    if(HALF_BRIGHT)
+    {
+      this->turnOnFaceLEDs(0,1,1,0);
+    }
+    else
+    {
+      this->turnOnFaceLEDs(1,1,1,1);
+    }
   }
 
   /*

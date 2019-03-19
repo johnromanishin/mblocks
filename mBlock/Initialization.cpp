@@ -301,20 +301,20 @@ void lookUpCalibrationValues(long wifiID)
     //********************************
     case wifiAddress_cube01: //960662 PEI BROWN  - F1:E8:71:B2:99:B5
       thisCubeID = 1;
-      HALF_LIGHT = false;
-      HALF_BRIGHT = false;
+      HALF_LIGHT = true;
+      HALF_BRIGHT = true;
 
       TRAVERSE_RPM_F = 7500;
       TRAVERSE_RPM_R = 7000;
-      TRAVERSE_CURRENT_F = 2300;
-      TRAVERSE_CURRENT_R = 2500;
+      TRAVERSE_CURRENT_F = 2600;
+      TRAVERSE_CURRENT_R = 2800;
       TRAVERSE_BRAKETIME_R = 10;
       TRAVERSE_BRAKETIME_F = 11;
 
-      GRID_TRAVERSE_RPM_F = 8000;
-      GRID_TRAVERSE_RPM_R = 8000;
-      GRID_TRAVERSE_CURRENT_F = 3500;
-      GRID_TRAVERSE_CURRENT_R = 3500;
+      GRID_TRAVERSE_RPM_F = 8200;
+      GRID_TRAVERSE_RPM_R = 8200;
+      GRID_TRAVERSE_CURRENT_F = 4000;
+      GRID_TRAVERSE_CURRENT_R = 4000;
 
       
       GlobalMaxAccel = 5000;    // ** FIX BAT
@@ -452,7 +452,7 @@ void lookUpCalibrationValues(long wifiID)
      case wifiAddress_cube05: //960427 PEI RED  D0:D5:6F:CB:32:4C
       thisCubeID = 5;
       HALF_LIGHT = true;
-      HALF_BRIGHT = false;
+      HALF_BRIGHT = true;
 
       TRAVERSE_RPM_F = 6800;
       TRAVERSE_RPM_R = 6800;
@@ -525,12 +525,12 @@ void lookUpCalibrationValues(long wifiID)
     case wifiAddress_cube07: //960242 PEI ORANGE E6:F6:05:69:08:F2
       thisCubeID = 7;
       HALF_LIGHT = true;
-      HALF_BRIGHT = false;
+      HALF_BRIGHT = true;
 
-      TRAVERSE_RPM_F = 7000;
-      TRAVERSE_RPM_R = 7000;
-      TRAVERSE_CURRENT_F = 3000;
-      TRAVERSE_CURRENT_R = 2500;
+      TRAVERSE_RPM_F = 7200;
+      TRAVERSE_RPM_R = 7200;
+      TRAVERSE_CURRENT_F = 3500;
+      TRAVERSE_CURRENT_R = 3000;
       TRAVERSE_BRAKETIME_R = 11;
       TRAVERSE_BRAKETIME_F = 11;
       
@@ -603,10 +603,10 @@ void lookUpCalibrationValues(long wifiID)
       HALF_BRIGHT = false;
       GlobalPlaneAccel = 3200;
 
-      TRAVERSE_RPM_F = 6500;
-      TRAVERSE_RPM_R = 6500;
-      TRAVERSE_CURRENT_F = 2800;
-      TRAVERSE_CURRENT_R = 3300;
+      TRAVERSE_RPM_F = 7000;
+      TRAVERSE_RPM_R = 7000;
+      TRAVERSE_CURRENT_F = 2900;
+      TRAVERSE_CURRENT_R = 3500;
       TRAVERSE_BRAKETIME_R = 11;
       TRAVERSE_BRAKETIME_F = 11;
       
@@ -638,10 +638,10 @@ void lookUpCalibrationValues(long wifiID)
       HALF_LIGHT = true;
       HALF_BRIGHT = false;
 
-      TRAVERSE_RPM_F = 6500;
-      TRAVERSE_RPM_R = 7000;
-      TRAVERSE_CURRENT_F = 2800;
-      TRAVERSE_CURRENT_R = 3500;
+      TRAVERSE_RPM_F = 6700;
+      TRAVERSE_RPM_R = 7200;
+      TRAVERSE_CURRENT_F = 2900;
+      TRAVERSE_CURRENT_R = 3600;
        TRAVERSE_BRAKETIME_R = 11;
       TRAVERSE_BRAKETIME_F = 11;
 
@@ -747,10 +747,10 @@ void lookUpCalibrationValues(long wifiID)
       HALF_LIGHT = true;
       HALF_BRIGHT = false;
 
-      TRAVERSE_RPM_F = 6500;
-      TRAVERSE_RPM_R = 7000;
-      TRAVERSE_CURRENT_F = 2400;
-      TRAVERSE_CURRENT_R = 2900;
+      TRAVERSE_RPM_F = 7400;
+      TRAVERSE_RPM_R = 7300;
+      TRAVERSE_CURRENT_F = 2800;
+      TRAVERSE_CURRENT_R = 3300;
       TRAVERSE_BRAKETIME_R = 11;
       TRAVERSE_BRAKETIME_F = 9;
 
@@ -815,8 +815,8 @@ void lookUpCalibrationValues(long wifiID)
     //********************************
     case wifiAddress_cube15: //960348 PEI GREEN | EC:47:A9:35:1F:02
       thisCubeID = 15;
-      HALF_LIGHT = false;
-      HALF_BRIGHT = false;
+      HALF_LIGHT = true;
+      HALF_BRIGHT = true;
 
       TRAVERSE_RPM_F = 6000;
       TRAVERSE_RPM_R = 7600;

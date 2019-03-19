@@ -1180,18 +1180,34 @@ Behavior GridAggregateStateMachine(Cube* c, Behavior inputBehavior, int neighbro
   int lightThreshold = 40;
   
   if(simpleNotComplicated)
+  /*
+   * This runs the "Simple" version of the grid aggregation code
+   * The varible is passed into the state machine function, and is by default true.
+   */
   {
     int CW_or_CCW;
+    
     for (int face = 0; face < 6; face++)
+    /*
+     * Iterate over all six of the faces to figure out what we are supposed to do.
+     * If the face is a bottom face or a top face, we should turn off all of the face LED's
+     */
     {
-      if ((face == c->returnTopFace()) || (face == c->returnBottomFace())) // This ensures we only
+      if ((face == c->returnTopFace()) || (face == c->returnBottomFace())) 
       {
-        c->faces[face].turnOnFaceLEDs(0,0,0,0);
-        FACES_LIGHTS[face] = 0;
+        c->faces[face].turnOffFaceLEDs();
+        FACES_LIGHTS[face] = 0; // this stores in a global variable if the face should be on or off
       }
       else
+      /*
+       * THis means that this face is not the top or the bottom, so then we turn on the LED's
+       * Half_Bright is a global variable that is defined uniquely for each cube at initializatin
+       * that limits the current draw for cubes with problematic batteries. It is read from a user-input
+       * table at the beginning of the problem based on the ID number for each cube
+       */
       {
         FACES_LIGHTS[face] = 1;
+        
         if(HALF_BRIGHT)
         {
           c->faces[face].turnOnFaceLEDs(1,0,1,0); 
@@ -1210,8 +1226,6 @@ Behavior GridAggregateStateMachine(Cube* c, Behavior inputBehavior, int neighbro
         NSEW_faceNumbers[NSEWindex] = face;
         NSEW_lightValues[NSEWindex] = c->faces[face].returnAmbientValue(0);
         NSEW_neighbors[NSEWindex] = c->faces[face].returnNeighborPresence(0);
-        //Serial.print("Face: "); Serial.print(face); Serial.print(" || "); 
-        //Serial.println(c->faces[face].returnAmbientValue(0));
         NSEWindex++;
       }
     }
@@ -1221,16 +1235,31 @@ Behavior GridAggregateStateMachine(Cube* c, Behavior inputBehavior, int neighbro
     while(waitingForSample)
     {
       sample = random(5);
+      /*
+       * Randomly sample a number between 0 and 4 
+       */
       if(sample == 4)
       {
+        /*
+         * If we drew 4 
+         */
         waitingForSample = false;
         c->superSpecialBlink(&yellow, 50);
-        Serial.println("Just doing nothing");
       }
+      /*
+       * NSEW_lightValues[sample] contains one of the faces
+       */
       else
       {
         if((NSEW_lightValues[sample] > lightThreshold) && (NSEW_neighbors[sample] == false))
         {
+          if(numberOfNeighborz == 0)
+          {
+            if(random(10) > 7) //% 20% Chance
+            {
+              break;
+            }
+          }
           waitingForSample = false;
           int faceToLight = NSEW_faceNumbers[sample];
           /*
