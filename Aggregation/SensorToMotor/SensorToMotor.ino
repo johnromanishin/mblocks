@@ -71,7 +71,7 @@ void loop()
     // If the sensor reading made of only 0s and 2s, that means stop only!    
     // This is the container for the sensor readings. A vector of nSensor = 4. The order is N, W, S, E.
     
-    std::vector<int> SR = {2,1,1,1};  // Example Sensor Reading.
+    std::vector<int> SR = {1,1,1,1};  // Example Sensor Reading.
     // Sanity check. If less than 4 sensor readigs or if any sensor reading is outside {0,1,2}; terminate.
         bool ConditionToProceed = true;
         if (SR.size() != nSensor)
@@ -141,12 +141,12 @@ void loop()
         std::mt19937 generator(rd()); // Random number generator.
         std::discrete_distribution<int> ProbDist(Parameters.begin(),Parameters.end());
         int Action = ProbDist(generator); // Action. Order; Stop, N, W, S, E.
-//        for(int i = 0; i<5; i++)
-//        {
-//           String strPar = String(Parameters[i],4) + "\t";
-//           Serial.print(strPar);
-//        }
-        Serial.print(ProbDist(generator));
+        for(int i = 0; i<5; i++)
+        {
+           String strPar = String(Parameters[i],4) + "\t";
+           Serial.print(strPar);
+        }
+//        Serial.print(ProbDist(generator));
         Serial.print("\n");
          delay(1000);        
  
