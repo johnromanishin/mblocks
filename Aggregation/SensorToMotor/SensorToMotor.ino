@@ -61,7 +61,9 @@ const std::vector<float> ControlParameters =  {2.14227699e-01, 1.05419841e-01, 1
                                                9.73944577e-01, 9.97738802e-01, 3.10794687e-04, 1.21327340e-03,
                                                9.94012392e-01, 4.78038385e-01, 9.37732719e-01, 3.09412028e-01};
 
-void setup(){}
+void setup(){
+  Serial.begin(115200);
+}
 
 void loop()
 {
@@ -139,5 +141,13 @@ void loop()
         std::mt19937 generator(rd()); // Random number generator.
         std::discrete_distribution<int> ProbDist(Parameters.begin(),Parameters.end());
         int Action = ProbDist(generator); // Action. Order; Stop, N, W, S, E.
+//        for(int i = 0; i<5; i++)
+//        {
+//           String strPar = String(Parameters[i],4) + "\t";
+//           Serial.print(strPar);
+//        }
+        Serial.print(ProbDist(generator));
+        Serial.print("\n");
+         delay(1000);        
  
 }
