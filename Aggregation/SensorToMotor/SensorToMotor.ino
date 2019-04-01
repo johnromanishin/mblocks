@@ -1,65 +1,192 @@
-#include <iostream>
-#include <vector>
-#include <algorithm>
-#include <iterator> // for back_inserter 
-#include <random>
-//#include "algorithm.h"
-
-
-// Definitions: Hard-coded.
-const int nContext = 18;
-const int nSensor  = 4;
-
+const int nContext = 81; // Number of Unique Contexts
+const int nSensor  = 4; // Number of Sensors
+const int dt = 500; // Delay-time.
 // 0 = no neighbors 
 // 1 = Light only
 // 2 = Neighbor in contact
 
-const std::vector< std::vector<int> > SensorList = { {1,1,1,1}, 
-                                                     {1,1,1,0}, 
-                                                     {1,1,1,2}, 
-                                                     {2,1,2,1}, 
-                                                     {2,1,0,1}, 
-                                                     {0,1,0,1}, 
-                                                     {1,1,2,2}, 
-                                                     {1,1,0,2}, 
-                                                     {1,1,2,0}, 
-                                                     {1,1,0,0}, 
-                                                     {1,2,2,2}, 
-                                                     {1,0,2,2}, 
-                                                     {1,2,0,2}, 
-                                                     {1,2,2,0}, 
-                                                     {1,0,0,2}, 
-                                                     {1,0,2,0}, 
-                                                     {1,2,0,0}, 
-                                                     {1,0,0,0} };
-         
-const std::vector< std::vector<int> > ControllerDict = { {0, 1, 2, 3},
-                                                         {4, 5, 6},
-                                                         {7, 8, 9},
-                                                         {10, 11},
-                                                         {12, 13},
-                                                         {14, 15},
-                                                         {16, 17},
-                                                         {18, 19},
-                                                         {20, 21},
-                                                         {22, 23},
-                                                         {24},
-                                                         {25},
-                                                         {26},
-                                                         {27},
-                                                         {28},
-                                                         {29},
-                                                         {30},
-                                                         {31} };
+// Definitions: Hard-coded.
+int AllSensors[nContext][nSensor] = {
+    {0,0,0,0},
+    {0,0,0,2},
+    {0,0,2,0},
+    {0,0,2,2},
+    {0,2,0,0},
+    {0,2,0,2},
+    {0,2,2,0},
+    {0,2,2,2},
+    {2,0,0,0},
+    {2,0,0,2},
+    {2,0,2,0},
+    {2,0,2,2},
+    {2,2,0,0},
+    {2,2,0,2},
+    {2,2,2,0},
+    {2,2,2,2},
+    {1,1,1,1},
+    {1,1,1,0},
+    {0,1,1,1},
+    {1,0,1,1},
+    {1,1,0,1},
+    {1,1,1,2},
+    {2,1,1,1},
+    {1,2,1,1},
+    {1,1,2,1},
+    {2,1,2,1},
+    {1,2,1,2},
+    {2,1,0,1},
+    {1,2,1,0},
+    {0,1,2,1},
+    {1,0,1,2},
+    {0,1,0,1},
+    {1,0,1,0},
+    {1,1,2,2},
+    {2,1,1,2},
+    {2,2,1,1},
+    {1,2,2,1},
+    {1,1,0,2},
+    {2,1,1,0},
+    {0,2,1,1},
+    {1,0,2,1},
+    {1,1,2,0},
+    {0,1,1,2},
+    {2,0,1,1},
+    {1,2,0,1},
+    {1,1,0,0},
+    {0,1,1,0},
+    {0,0,1,1},
+    {1,0,0,1},
+    {1,2,2,2},
+    {2,1,2,2},
+    {2,2,1,2},
+    {2,2,2,1},
+    {1,0,2,2},
+    {2,1,0,2},
+    {2,2,1,0},
+    {0,2,2,1},
+    {1,2,0,2},
+    {2,1,2,0},
+    {0,2,1,2},
+    {2,0,2,1},
+    {1,2,2,0},
+    {0,1,2,2},
+    {2,0,1,2},
+    {2,2,0,1},
+    {1,0,0,2},
+    {2,1,0,0},
+    {0,2,1,0},
+    {0,0,2,1},
+    {1,0,2,0},
+    {0,1,0,2},
+    {2,0,1,0},
+    {0,2,0,1},
+    {1,2,0,0},
+    {0,1,2,0},
+    {0,0,1,2},
+    {2,0,0,1},
+    {1,0,0,0},
+    {0,1,0,0},
+    {0,0,1,0},
+    {0,0,0,1}};
 
-const std::vector<float> ControlParameters =  {2.14227699e-01, 1.05419841e-01, 1.84067061e-01, 4.16797019e-02,
-                                               2.91384338e-02, 9.98197117e-01, 3.51535127e-02, 1.39068161e-03,
-                                               3.01063835e-02, 2.03673939e-02, 6.75807063e-01, 5.57445512e-02,
-                                               5.28726365e-01, 9.93379583e-01, 5.48178745e-01, 7.05043896e-01,
-                                               1.67147769e-02, 2.15627617e-02, 8.24514833e-04, 4.76639205e-02,
-                                               3.79914571e-01, 9.72522112e-01, 9.86571294e-01, 9.99585010e-01,
-                                               9.73944577e-01, 9.97738802e-01, 3.10794687e-04, 1.21327340e-03,
-                                               9.94012392e-01, 4.78038385e-01, 9.37732719e-01, 3.09412028e-01};
+float AllParameters[nContext][nSensor+1] = {
+      {1.000000,0.000000,0.000000,0.000000,0.000000},
+      {1.000000,0.000000,0.000000,0.000000,0.000000},
+      {1.000000,0.000000,0.000000,0.000000,0.000000},
+      {1.000000,0.000000,0.000000,0.000000,0.000000},
+      {1.000000,0.000000,0.000000,0.000000,0.000000},
+      {1.000000,0.000000,0.000000,0.000000,0.000000},
+      {1.000000,0.000000,0.000000,0.000000,0.000000},
+      {1.000000,0.000000,0.000000,0.000000,0.000000},
+      {1.000000,0.000000,0.000000,0.000000,0.000000},
+      {1.000000,0.000000,0.000000,0.000000,0.000000},
+      {1.000000,0.000000,0.000000,0.000000,0.000000},
+      {1.000000,0.000000,0.000000,0.000000,0.000000},
+      {1.000000,0.000000,0.000000,0.000000,0.000000},
+      {1.000000,0.000000,0.000000,0.000000,0.000000},
+      {1.000000,0.000000,0.000000,0.000000,0.000000},
+      {1.000000,0.000000,0.000000,0.000000,0.000000},
+      {0.992677,0.001831,0.001831,0.001831,0.001831},
+      {0.664613,0.001601,0.333195,0.000591,0.000000},
+      {0.664613,0.000000,0.001601,0.333195,0.000591},
+      {0.664613,0.000591,0.000000,0.001601,0.333195},
+      {0.664613,0.333195,0.000591,0.000000,0.001601},
+      {0.941329,0.000070,0.044790,0.013810,0.000000},
+      {0.941329,0.000000,0.000070,0.044790,0.013810},
+      {0.941329,0.013810,0.000000,0.000070,0.044790},
+      {0.941329,0.044790,0.013810,0.000000,0.000070},
+      {0.008827,0.000000,0.495587,0.000000,0.495587},
+      {0.008827,0.495587,0.000000,0.495587,0.000000},
+      {0.043784,0.000000,0.465886,0.000000,0.490330},
+      {0.043784,0.490330,0.000000,0.465886,0.000000},
+      {0.043784,0.000000,0.490330,0.000000,0.465886},
+      {0.043784,0.465886,0.000000,0.490330,0.000000},
+      {0.003692,0.000000,0.498154,0.000000,0.498154},
+      {0.003692,0.498154,0.000000,0.498154,0.000000},
+      {0.996154,0.000463,0.003383,0.000000,0.000000},
+      {0.996154,0.000000,0.000463,0.003383,0.000000},
+      {0.996154,0.000000,0.000000,0.000463,0.003383},
+      {0.996154,0.003383,0.000000,0.000000,0.000463},
+      {0.165319,0.499262,0.335420,0.000000,0.000000},
+      {0.165319,0.000000,0.499262,0.335420,0.000000},
+      {0.165319,0.000000,0.000000,0.499262,0.335420},
+      {0.165319,0.335420,0.000000,0.000000,0.499262},
+      {0.496369,0.004311,0.499320,0.000000,0.000000},
+      {0.496369,0.000000,0.004311,0.499320,0.000000},
+      {0.496369,0.000000,0.000000,0.004311,0.499320},
+      {0.496369,0.499320,0.000000,0.000000,0.004311},
+      {0.002682,0.499544,0.497773,0.000000,0.000000},
+      {0.002682,0.000000,0.499544,0.497773,0.000000},
+      {0.002682,0.000000,0.000000,0.499544,0.497773},
+      {0.002682,0.497773,0.000000,0.000000,0.499544},
+      {0.998558,0.001442,0.000000,0.000000,0.000000},
+      {0.998558,0.000000,0.001442,0.000000,0.000000},
+      {0.998558,0.000000,0.000000,0.001442,0.000000},
+      {0.998558,0.000000,0.000000,0.000000,0.001442},
+      {0.556494,0.443506,0.000000,0.000000,0.000000},
+      {0.556494,0.000000,0.443506,0.000000,0.000000},
+      {0.556494,0.000000,0.000000,0.443506,0.000000},
+      {0.556494,0.000000,0.000000,0.000000,0.443506},
+      {0.009498,0.990502,0.000000,0.000000,0.000000},
+      {0.009498,0.000000,0.990502,0.000000,0.000000},
+      {0.009498,0.000000,0.000000,0.990502,0.000000},
+      {0.009498,0.000000,0.000000,0.000000,0.990502},
+      {0.999902,0.000098,0.000000,0.000000,0.000000},
+      {0.999902,0.000000,0.000098,0.000000,0.000000},
+      {0.999902,0.000000,0.000000,0.000098,0.000000},
+      {0.999902,0.000000,0.000000,0.000000,0.000098},
+      {0.000015,0.999985,0.000000,0.000000,0.000000},
+      {0.000015,0.000000,0.999985,0.000000,0.000000},
+      {0.000015,0.000000,0.000000,0.999985,0.000000},
+      {0.000015,0.000000,0.000000,0.000000,0.999985},
+      {0.373871,0.626129,0.000000,0.000000,0.000000},
+      {0.373871,0.000000,0.626129,0.000000,0.000000},
+      {0.373871,0.000000,0.000000,0.626129,0.000000},
+      {0.373871,0.000000,0.000000,0.000000,0.626129},
+      {0.984537,0.015463,0.000000,0.000000,0.000000},
+      {0.984537,0.000000,0.015463,0.000000,0.000000},
+      {0.984537,0.000000,0.000000,0.015463,0.000000},
+      {0.984537,0.000000,0.000000,0.000000,0.015463},
+      {0.005356,0.994644,0.000000,0.000000,0.000000},
+      {0.005356,0.000000,0.994644,0.000000,0.000000},
+      {0.005356,0.000000,0.000000,0.994644,0.000000},
+      {0.005356,0.000000,0.000000,0.000000,0.994644}};
+
+int FindSensorIndex(int Reading[])
+{
+  int Index = 0;
+  int Counter = 0;
+  while (Index<nContext)
+  {
+    Counter = 0;
+    // Go through each sensor element and count how many of them are the same.
+    for (int i=0;i<nSensor;i++) if (Reading[i]==AllSensors[Index][i]) Counter++;
+    // If all of them are the same, break the loop. Otherwise, continue search.
+    if (Counter==nSensor) break;
+    Index++;
+  }
+  return Index;
+}
 
 void setup(){
   Serial.begin(115200);
@@ -67,87 +194,41 @@ void setup(){
 
 void loop()
 {
-    // The code based on sensor reading includes at least one 1.
-    // If the sensor reading made of only 0s and 2s, that means stop only!    
-    // This is the container for the sensor readings. A vector of nSensor = 4. The order is N, W, S, E.
-    
-    std::vector<int> SR = {1,1,1,1};  // Example Sensor Reading.
-    // Sanity check. If less than 4 sensor readigs or if any sensor reading is outside {0,1,2}; terminate.
-        bool ConditionToProceed = true;
-        if (SR.size() != nSensor)
-            ConditionToProceed = false;
-        int i = 0;
-        do 
-        {
-            if (SR[i] < 0 || SR[i] > 2)
-                ConditionToProceed = false;
-            i++;
-        }
-        while(i < nSensor && ConditionToProceed);
-        if (!ConditionToProceed)
-        {
-            printf("Wrong Sensor Format!\n");
-        }
-
-    // Algorithm Starts: 
-    // Find SR_P (permutated) in AllSensorList
-        int iContext = -1; // Has to start from -1, so that inside the while loop it will be 0.
-        int iPermute; 
-        bool sensorFound = false;
-        while(!sensorFound && iContext < nContext)
-        {
-            iContext++;
-            std::vector<int> SR_P;
-            std::copy(SensorList[iContext].begin(), SensorList[iContext].end(), std::back_inserter(SR_P));
-            iPermute = -1;
-            while(!sensorFound && iPermute < nSensor)
-            {
-                iPermute++;
-                if (SR == SR_P) // If they are the same, then there is no need to rotate. We found it.
-                {
-                    sensorFound = true;   
-                }
-                else // We rotate one-by-one until it matches. 
-                {
-                    std::rotate(SR_P.begin(), SR_P.begin() + (nSensor - 1), SR_P.end()); // 2nd arg for right rotation: +(nSensor - 1), left rotation: +1.
-                }
-              }
-        }
-    
-    // Find the indices in Parameter List
-        std::vector<int> iParameters; // List of indices for the parameters.
-        std::copy(ControllerDict[iContext].begin(), ControllerDict[iContext].end(), std::back_inserter(iParameters)); // Copy the content.
-
-        // Populate the Parameters.
-        std::vector<float> Parameters = {0.0, 0.0, 0.0, 0.0}; // The parameters {p_1, p_2, p_3, p_4}. It will be a vector of 5 later on, but now p_0 is not included.
-        float sumParameters = 0.0; // To be used in calc. of p_0.s
-        int j = 0; // Temp. counter for the iParameters index.
-        int k;
-        int nZeros = nSensor - iParameters.size();
-        for (int i = 0; i < nSensor; i++)
-        {
-            if (SensorList[iContext][i] == 1) // If there is light, assign the control parameter for that index.
-            {
-                Parameters[i] = ControlParameters[iParameters[j]]/iParameters.size(); // Normalize 
-                sumParameters += Parameters[i]; // Sum all the parameter values.
-                j++;
-            }
-        }   
-    // Now we know, how many times the parameters should be permutated ("iPermute" times).
-        std::rotate(Parameters.begin(), Parameters.begin() + (nSensor - iPermute), Parameters.end()); // 2nd arg for right rotation: +(nSensor - iPermute), left rotation: +1.
-        Parameters.insert(Parameters.begin(), 1 - sumParameters); // Calc. and insert p_0 to the beginning.
-        // Now we have a Parameter vector of 5 elements. This is the Prob. Distribution Weights.
-        std::random_device rd;
-        std::mt19937 generator(rd()); // Random number generator.
-        std::discrete_distribution<int> ProbDist(Parameters.begin(),Parameters.end());
-        int Action = ProbDist(generator); // Action. Order; Stop, N, W, S, E.
-        for(int i = 0; i<5; i++)
-        {
-           String strPar = String(Parameters[i],4) + "\t";
-           Serial.print(strPar);
-        }
-//        Serial.print(ProbDist(generator));
-        Serial.print("\n");
-         delay(1000);        
- 
+    bool DebugMode = false;
+    if (DebugMode)
+    {
+      int iS = 17;
+      Serial.print("[");
+      for(int i = 0; i<nSensor; i++)
+      {
+        String strPar = String(AllSensors[iS][i]) + ",\t";
+        Serial.print(strPar);
+      }
+      Serial.print("]  ---  [");
+      for(int i = 0; i<nSensor+1; i++)
+      {
+        String strPar = String(AllParameters[iS][i]) + ",\t";
+        Serial.print(strPar);
+      }
+      Serial.print("]\n");
+      delay(dt);        
+   
+      // Some debugging 
+      int s1[4] = {0,2,0,0};
+      Serial.println(FindSensorIndex(s1));
+      delay(dt);
+      int s2[4]= {0,0,0,0};
+      Serial.println(FindSensorIndex(s2));
+      delay(dt);
+      int s3[4]= {2,2,2,2};
+      Serial.println(FindSensorIndex(s3));
+      delay(dt);
+      int s4[4]= {1,0,0,0};
+      Serial.println(FindSensorIndex(s4));
+      delay(dt);
+     }
+     
+  // Sensor reading should be an int array of 4.
+  // All possible sensor readings are given in AllSensors
+  
 }
