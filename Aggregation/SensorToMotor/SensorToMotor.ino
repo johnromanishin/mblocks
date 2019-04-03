@@ -1,9 +1,24 @@
+/******************************************************************************
+ * Sensor reading should be an `int' array of 4.
+ * Sensor Readings
+ * ------------------------
+ * 0 => no neighbors  
+ * 1 => Light only
+ * 2 => Neighbor in contact
+ * Actions:
+ * -----------------------
+ * 0: Stop. 1
+ * All possible sensor readings are given in AllSensors
+******************************************************************************/
+
+// Some definitions
 const int nContext = 81; // Number of Unique Contexts
 const int nSensor  = 4; // Number of Sensors
 const int dt = 500; // Delay-time.
-// 0 = no neighbors 
-// 1 = Light only
-// 2 = Neighbor in contact
+
+// Random Choice:
+const int Weight = 1;
+const int RandNumMax = 1000000;
 
 // Definitions: Hard-coded.
 int AllSensors[nContext][nSensor] = {
@@ -172,6 +187,25 @@ float AllParameters[nContext][nSensor+1] = {
       {0.005356,0.000000,0.000000,0.994644,0.000000},
       {0.005356,0.000000,0.000000,0.000000,0.994644}};
 
+
+void setup(){
+  Serial.begin(115200);
+//  randomSeed(analogRead(0)); // Random seed. Not sure if we need this. Commented out for now.
+}
+
+void loop()
+{
+    int SensorReading[4] = {2,1,1,0}; // Given sensor reading. The only part to be modified. Cannot be constant.
+    int Index = FindSensorIndex(SensorReading); // Index of the sensor reading in the look-up table (between 0 and 80).
+    float randNumber = (float) random(RandNumMax) / RandNumMax; // Generate a random number with 6 significant figure accuracy.
+    int ActionIndex =  DiscreteDist(Index, randNumber); // Randomly sample an action (0 to 4) from given weights using the uniformly random generated number `randNumber'.
+    
+
+//    Debugger(Index, ActionIndex); // Only use for debug purpose.
+}
+
+
+// Function definitions.
 int FindSensorIndex(int Reading[])
 {
   int Index = 0;
@@ -188,47 +222,35 @@ int FindSensorIndex(int Reading[])
   return Index;
 }
 
-void setup(){
-  Serial.begin(115200);
+
+int DiscreteDist(int Index, float randNumber)
+{
+    for (int i = 0; i < nSensor + 1; i++)
+    {
+      if (randNumber < AllParameters[Index][i])
+          return i;
+      randNumber -= AllParameters[Index][i];
+    }
 }
 
-void loop()
+void Debugger(int Index, int ActionIndex)
 {
-    bool DebugMode = false;
-    if (DebugMode)
-    {
-      int iS = 17;
-      Serial.print("[");
+      String strToPrint;
+      Serial.print("SensorIndex: "+ String(Index) + " -- Sensor: [");
       for(int i = 0; i<nSensor; i++)
       {
-        String strPar = String(AllSensors[iS][i]) + ",\t";
-        Serial.print(strPar);
+        strToPrint = String(AllSensors[Index][i]);
+        if (i != nSensor-1) strToPrint += ", ";
+        Serial.print(strToPrint);
       }
-      Serial.print("]  ---  [");
+      Serial.print("]  --  Parameters: [");
       for(int i = 0; i<nSensor+1; i++)
       {
-        String strPar = String(AllParameters[iS][i]) + ",\t";
-        Serial.print(strPar);
+        strToPrint = String(AllParameters[Index][i], 6);
+        if (i != nSensor) strToPrint += ", ";
+        Serial.print(strToPrint);
       }
-      Serial.print("]\n");
-      delay(dt);        
-   
-      // Some debugging 
-      int s1[4] = {0,2,0,0};
-      Serial.println(FindSensorIndex(s1));
+      Serial.print("]");
+      Serial.println(" -- ActionIndex: " + String(ActionIndex));
       delay(dt);
-      int s2[4]= {0,0,0,0};
-      Serial.println(FindSensorIndex(s2));
-      delay(dt);
-      int s3[4]= {2,2,2,2};
-      Serial.println(FindSensorIndex(s3));
-      delay(dt);
-      int s4[4]= {1,0,0,0};
-      Serial.println(FindSensorIndex(s4));
-      delay(dt);
-     }
-     
-  // Sensor reading should be an int array of 4.
-  // All possible sensor readings are given in AllSensors
-  
 }
